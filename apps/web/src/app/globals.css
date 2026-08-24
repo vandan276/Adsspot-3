@@ -1,0 +1,53 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-jakarta: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --spot-blue: #4787F2;
+  --festival-yellow: #F2B604;
+  --trust-green: #35AB4E;
+  --deep-crimson: #981837;
+  --ink: #17181C;
+  --canvas: #F4F6FB;
+}
+
+body {
+  font-family: var(--font-inter);
+  background-color: var(--canvas);
+  color: var(--ink);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-jakarta);
+  letter-spacing: -0.02em;
+}
+
+/* Spot Ring Conic Gradient Animation */
+@keyframes spot-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spot-ring-conic {
+  background: conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2);
+}
+
+.spot-ring-linear {
+  background: linear-gradient(135deg, #4787F2 0%, #35AB4E 33%, #F2B604 66%, #981837 100%);
+}
+
+.spot-ring-glow {
+  box-shadow: 0 0 20px rgba(71, 135, 242, 0.25);
+}

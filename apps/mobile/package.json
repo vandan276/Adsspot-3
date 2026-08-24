@@ -1,0 +1,35 @@
+{
+  "name": "@adsspot/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "dev:web": "expo start --web --port 8081",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web --port 8081",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@adsspot/api": "workspace:*",
+    "@adsspot/types": "workspace:*",
+    "@adsspot/ui": "workspace:*",
+    "@expo/metro-runtime": "~3.2.3",
+    "expo": "~51.0.38",
+    "expo-constants": "~16.0.2",
+    "expo-status-bar": "~1.12.1",
+    "lucide-react": "^0.475.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-native": "0.74.5",
+    "react-native-web": "~0.19.10"
+  },
+  "devDependencies": {
+    "@adsspot/config-typescript": "workspace:*",
+    "@babel/core": "^7.20.0",
+    "@types/node": "^20.17.19",
+    "@types/react": "^18.3.18",
+    "typescript": "^5.7.3"
+  }
+}
