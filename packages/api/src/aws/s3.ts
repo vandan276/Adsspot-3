@@ -2,8 +2,8 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 
-const AWS_REGION = process.env.AWS_REGION || 'ap-south-1';
-const S3_BUCKET = process.env.AWS_S3_BUCKET || 'adsspot-media-prod';
+const AWS_REGION = process.env.APP_AWS_REGION || process.env.AWS_REGION || 'ap-south-1';
+const S3_BUCKET = process.env.APP_AWS_S3_BUCKET || process.env.AWS_S3_BUCKET || 'adsspot-media-prod';
 const CLOUDFRONT_DOMAIN = process.env.AWS_CLOUDFRONT_DOMAIN || '';
 
 let s3ClientInstance: S3Client | null = null;
