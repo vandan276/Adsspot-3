@@ -37,6 +37,13 @@ export default function HomePage() {
   const [selectedCity, setSelectedCity] = useState('Mumbai');
 
   useEffect(() => {
+    // Show splash screen on first visit in the session
+    const hasSeenSplash = sessionStorage.getItem('adsspot_has_seen_splash');
+    if (!hasSeenSplash) {
+      setShowSplash(true);
+      sessionStorage.setItem('adsspot_has_seen_splash', 'true');
+    }
+
     const handleTrigger = () => setShowSplash(true);
     window.addEventListener('adsspot:trigger-splash', handleTrigger);
     return () => window.removeEventListener('adsspot:trigger-splash', handleTrigger);

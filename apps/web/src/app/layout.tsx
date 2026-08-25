@@ -2,7 +2,6 @@ import React from 'react';
 import type { Metadata } from 'next';
 import './globals.css';
 import { AuthProvider } from '@adsspot/api';
-import { DevPersonaBar } from '../components/DevPersonaBar';
 import { Navbar } from '../components/Navbar';
 import { FloatingMobileNav } from '../components/FloatingMobileNav';
 
@@ -38,7 +37,6 @@ export default function RootLayout({
 
       <body className="min-h-screen bg-[#F4F6FB] text-[#17181C] antialiased flex flex-col">
         <AuthProvider>
-          <DevPersonaBar />
           <Navbar />
           <PwaInstallPrompt />
           <main className="flex-1 flex flex-col">{children}</main>
