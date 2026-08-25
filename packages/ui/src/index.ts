@@ -6,3 +6,4 @@ export * from './components/Card';
 export * from './components/Badge';
 export * from './components/StatCard';
 export * from './components/Logo';
+export * from './components/AnimatedLogoMark';

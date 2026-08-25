@@ -96,8 +96,8 @@ export default function LoginPage() {
               <ChevronLeft className="w-4 h-4" /> Back to Home
             </Link>
 
-            <div className="flex items-center gap-3 mb-6">
-              <Logo size={40} withText={false} />
+            <div className="flex items-center gap-3.5 mb-6">
+              <Logo size={52} withText={false} />
               <div>
                 <h1 className="text-xl font-extrabold text-[#17181C]">Sign in to Adsspot</h1>
                 <p className="text-xs text-[#687182]">Single phone login across all roles</p>

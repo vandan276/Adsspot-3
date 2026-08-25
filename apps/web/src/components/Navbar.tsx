@@ -85,7 +85,7 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Logo size={28} withText={true} />
+          <Logo size={38} withText={true} />
         </Link>
 
         {/* Public Navigation (Desktop) */}
@@ -190,11 +190,11 @@ export const Navbar: React.FC = () => {
                 </div>
               </Link>
 
-              {/* Desktop Logout Button (Mobile logout is accessed via /profile) */}
+              {/* Logout Button (Desktop & Mobile) */}
               <button
                 onClick={logout}
                 title="Logout"
-                className="hidden sm:flex text-neutral-400 hover:text-red-500 p-1.5 rounded-full transition-colors shrink-0"
+                className="flex items-center justify-center text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors shrink-0"
               >
                 <LogOut className="w-4 h-4" />
               </button>

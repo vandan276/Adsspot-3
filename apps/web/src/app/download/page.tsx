@@ -20,7 +20,7 @@ export default function DownloadPwaPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="flex justify-center">
-            <Logo size={44} withText={true} />
+            <Logo size={56} withText={true} />
           </div>
           <h1 className="text-2xl font-black text-[#17181C] tracking-tight">
             Install Adsspot on Mobile

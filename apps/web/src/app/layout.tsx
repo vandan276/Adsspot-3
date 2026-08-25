@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   description:
     'Discover trending businesses, exclusive festival banners, digital visiting cards, and local services in your pincode.',
   manifest: '/manifest.json',
-  themeColor: '#4787F2',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -33,6 +32,12 @@ export default function RootLayout({
         <meta name="theme-color" content="#4787F2" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
       </head>
 
       <body className="min-h-screen bg-[#F4F6FB] text-[#17181C] antialiased flex flex-col">

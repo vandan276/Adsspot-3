@@ -55,7 +55,7 @@ export default function BusinessRegistrationPage() {
         {/* Top Header */}
         <div className="text-center space-y-2">
           <Link href="/" className="inline-block">
-            <Logo size={32} withText={true} />
+            <Logo size={46} withText={true} />
           </Link>
           <h1 className="text-2xl sm:text-3xl font-black text-[#17181C]">Register Your Business on Adsspot</h1>
           <p className="text-xs sm:text-sm text-[#687182]">

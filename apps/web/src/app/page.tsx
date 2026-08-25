@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth, SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
-import { Button, Card, Avatar, TrustedBadge, TierBadge, RoleBadge, Logo } from '@adsspot/ui';
+import { Button, Card, Avatar, TrustedBadge, TierBadge, RoleBadge, Logo, AnimatedLogoMark } from '@adsspot/ui';
 import { WebSplashScreen } from '../components/WebSplashScreen';
 
 import {
@@ -359,12 +359,25 @@ export default function HomePage() {
 
       {/* 5. APP DOWNLOAD CTA SECTION */}
       <section id="mobile-app" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-        <div className="bg-[#17181C] text-white rounded-3xl p-8 sm:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 shadow-xl">
-          <div className="max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold mb-4">
+        <div className="bg-[#17181C] text-white rounded-3xl p-8 sm:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 shadow-2xl relative overflow-hidden">
+          {/* Subtle Ambient Brand Glow */}
+          <div 
+            className="absolute -right-20 -top-20 w-96 h-96 rounded-full pointer-events-none"
+            style={{
+              background: 'radial-gradient(circle, rgba(71, 135, 242, 0.18) 0%, rgba(53, 171, 78, 0.1) 50%, transparent 70%)',
+              filter: 'blur(40px)',
+            }}
+          />
+
+          <div className="max-w-xl z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <Logo size={44} withText={true} />
+            </div>
+
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-white text-xs font-bold mb-4 backdrop-blur-md border border-white/10">
               <Smartphone className="w-3.5 h-3.5 text-[#4787F2]" /> Free Mobile App for iOS &amp; Android
             </div>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight mb-4 font-['Plus_Jakarta_Sans',sans-serif]">
               Take Adsspot with you everywhere you go.
             </h2>
             <p className="text-sm sm:text-base text-neutral-300 mb-8 leading-relaxed">
@@ -372,29 +385,36 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4">
-              <a
-                href="#download"
-                className="inline-flex items-center gap-3 bg-white text-[#17181C] px-5 py-3 rounded-full font-bold text-sm hover:bg-neutral-100 transition-colors shadow-sm"
+              <Link
+                href="/download"
+                className="inline-flex items-center gap-3 bg-white text-[#17181C] px-6 py-3.5 rounded-full font-extrabold text-sm hover:bg-neutral-100 transition-all shadow-lg hover:scale-105 active:scale-95"
               >
                 <Download className="w-4 h-4 text-[#4787F2]" /> Download for iOS
-              </a>
-              <a
-                href="#download"
-                className="inline-flex items-center gap-3 bg-neutral-800 text-white px-5 py-3 rounded-full font-bold text-sm hover:bg-neutral-700 transition-colors border border-neutral-700"
+              </Link>
+              <Link
+                href="/download"
+                className="inline-flex items-center gap-3 bg-neutral-800/90 text-white px-6 py-3.5 rounded-full font-extrabold text-sm hover:bg-neutral-700 transition-all border border-neutral-700 shadow-lg hover:scale-105 active:scale-95"
               >
                 <Download className="w-4 h-4 text-[#35AB4E]" /> Download for Android
-              </a>
+              </Link>
             </div>
           </div>
 
-          {/* Clean App Preview Graphic */}
-          <div className="w-full lg:w-auto flex-shrink-0 flex items-center justify-center">
-            <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl flex flex-col items-center gap-3 max-w-[260px] text-center shadow-lg">
-              <div className="w-36 h-36 bg-white rounded-xl p-2 flex items-center justify-center">
-                <QrCode className="w-32 h-32 text-[#17181C]" />
+          {/* Clean App Preview Graphic with Center Animated Logo Spot */}
+          <div className="w-full lg:w-auto flex-shrink-0 flex items-center justify-center z-10">
+            <div className="bg-neutral-900/90 border border-neutral-800 p-7 rounded-3xl flex flex-col items-center gap-4 max-w-[280px] text-center shadow-2xl backdrop-blur-xl">
+              <div className="relative w-40 h-40 bg-white rounded-2xl p-2.5 flex items-center justify-center shadow-inner">
+                <QrCode className="w-36 h-36 text-[#17181C]" />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-10 h-10 rounded-xl bg-white shadow-md flex items-center justify-center p-0.5 border border-neutral-200">
+                    <AnimatedLogoMark size={28} loop={true} />
+                  </div>
+                </div>
               </div>
-              <span className="text-xs font-bold text-white mt-1">Scan to Install Mobile App</span>
-              <span className="text-[11px] text-neutral-400">Available on App Store &amp; Google Play</span>
+              <div>
+                <span className="text-sm font-extrabold text-white block">Scan to Install Mobile App</span>
+                <span className="text-xs text-neutral-400 mt-0.5 block">Available on App Store &amp; Google Play</span>
+              </div>
             </div>
           </div>
         </div>
@@ -611,8 +631,8 @@ export default function HomePage() {
       <footer className="bg-[#17181C] text-white pt-14 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-neutral-800">
           <div>
-            <div className="mb-3">
-              <Logo size="md" withText={true} dark={true} />
+            <div className="mb-4">
+              <Logo size="lg" withText={true} dark={true} />
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed mb-4">
               Hyperlocal discovery and marketing platform connecting local consumers, shops, and field sales teams across India.

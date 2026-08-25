@@ -34,6 +34,7 @@ import {
   Plus,
   Search,
   Check,
+  LogOut,
   AdsspotBrandLockupNative,
   AdsspotLogoMarkNative,
 } from './icons';
@@ -705,6 +706,31 @@ function MobileAppInner() {
                 </TouchableOpacity>
               );
             })}
+          </View>
+
+          {/* Explicit Sign Out Button */}
+          <View style={{ marginTop: 20, marginBottom: 20 }}>
+            <TouchableOpacity
+              onPress={() => {
+                logout();
+                showToast('Signed out successfully');
+              }}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                paddingVertical: 14,
+                paddingHorizontal: 20,
+                borderRadius: 14,
+                backgroundColor: '#FBECEF',
+                borderWidth: 1,
+                borderColor: 'rgba(152, 24, 55, 0.2)',
+                gap: 8,
+              }}
+            >
+              <LogOut size={18} color="#981837" />
+              <Text style={{ color: '#981837', fontSize: 14, fontWeight: '800' }}>Sign Out</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       )}

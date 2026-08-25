@@ -122,14 +122,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (found) {
             setUser(found);
           } else {
-            setUser(buildAuthUser('usr-consumer-1'));
+            setUser(null);
           }
         } else {
-          setUser(buildAuthUser('usr-consumer-1'));
+          setUser(null);
         }
       }
     } catch {
-      setUser(buildAuthUser('usr-consumer-1'));
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
