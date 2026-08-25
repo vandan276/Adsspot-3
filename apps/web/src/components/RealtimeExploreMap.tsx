@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
+import L from 'leaflet';
 import Link from 'next/link';
 import { Business } from '@adsspot/types';
 import { TrustedBadge } from '@adsspot/ui';
@@ -22,167 +22,159 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
   onSelectBusiness,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const mapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
   const [activeBiz, setActiveBiz] = useState<Business | null>(null);
-  const [mapStyle, setMapStyle] = useState<'streets' | 'satellite' | 'maptiler'>('streets');
+  const [mapStyle, setMapStyle] = useState<'streets' | 'satellite'>('streets');
   const [isLocating, setIsLocating] = useState(false);
 
-  // Initialize Map with reliable standard tiles
+  // 1. Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
+    if (mapRef.current) return;
 
-    let mapInstance: mapboxgl.Map | null = null;
-    try {
-      // Standard raster tile style (CartoDB / OpenStreetMap)
-      const mapboxStyle = {
-        version: 8 as const,
-        sources: {
-          'osm-raster-tiles': {
-            type: 'raster' as const,
-            tiles:
-              mapStyle === 'satellite'
-                ? [
-                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                  ]
-                : [
-                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  ],
-            tileSize: 256,
-            attribution: '&copy; OpenStreetMap contributors',
-            maxzoom: 19,
-          },
-        },
-        layers: [
-          {
-            id: 'background',
-            type: 'background' as const,
-            paint: {
-              'background-color': '#e5e3df',
-            },
-          },
-          {
-            id: 'osm-raster-layer',
-            type: 'raster' as const,
-            source: 'osm-raster-tiles',
-            minzoom: 0,
-            maxzoom: 19,
-          },
-        ],
-      };
+    const map = L.map(mapContainerRef.current, {
+      center: [18.933, 72.834], // Fort, South Mumbai center
+      zoom: 15,
+      zoomControl: false,
+    });
 
-      mapInstance = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: mapboxStyle as any,
-        center: [72.834, 18.933], // Fort / South Mumbai shopping hub
-        zoom: 14.8,
-        pitch: 0,
-      });
+    // Add Zoom control on top-right
+    L.control.zoom({ position: 'topright' }).addTo(map);
 
-      mapInstance.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
-      mapRef.current = mapInstance;
-    } catch (e) {
-      console.warn('Map canvas init notice:', e);
-    }
+    // Initial tile layer
+    const tileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      maxZoom: 19,
+      subdomains: 'abcd',
+    }).addTo(map);
+
+    tileLayerRef.current = tileLayer;
+
+    // Markers layer group
+    const markersLayer = L.layerGroup().addTo(map);
+    markersLayerRef.current = markersLayer;
+
+    mapRef.current = map;
 
     return () => {
-      if (mapInstance) {
-        try {
-          mapInstance.remove();
-        } catch {}
-      }
+      map.remove();
+      mapRef.current = null;
     };
+  }, []);
+
+  // 2. Handle Map Style Switch
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (tileLayerRef.current) {
+      mapRef.current.removeLayer(tileLayerRef.current);
+    }
+
+    const newTileUrl =
+      mapStyle === 'satellite'
+        ? 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
+    const newTileLayer = L.tileLayer(newTileUrl, {
+      attribution: mapStyle === 'satellite' ? 'Esri &copy; OpenStreetMap' : '&copy; OpenStreetMap &copy; CARTO',
+      maxZoom: 19,
+      subdomains: 'abcd',
+    }).addTo(mapRef.current);
+
+    tileLayerRef.current = newTileLayer;
   }, [mapStyle]);
 
-  // Update Markers when businesses change
+  // 3. Render Spot Markers with Custom HTML & Spot Ring
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
+    if (!mapRef.current || !markersLayerRef.current) return;
 
-    // Clear existing markers
-    markersRef.current.forEach((m) => m.remove());
-    markersRef.current = [];
+    markersLayerRef.current.clearLayers();
 
     businesses.forEach((biz) => {
-      // Custom HTML Marker with Spot Ring
-      const el = document.createElement('div');
-      el.className = 'group cursor-pointer transform transition-transform hover:scale-125';
-      el.innerHTML = `
-        <div style="
-          position: relative;
-          width: 44px;
-          height: 44px;
-          border-radius: 14px;
-          padding: 2.5px;
-          background: ${
-            biz.tier === 'elite'
-              ? 'conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2)'
-              : biz.tier === 'premium'
-                ? '#35AB4E'
-                : '#4787F2'
-          };
-          box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        ">
-          <img src="${biz.logo_url || ''}" style="
-            width: 100%;
-            height: 100%;
-            border-radius: 11px;
-            object-fit: cover;
-            background: #fff;
-          " />
-          ${
-            biz.tier === 'elite'
-              ? `<div style="
-                  position: absolute;
-                  top: -4px;
-                  right: -4px;
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 50%;
-                  background: #981837;
-                  color: #fff;
-                  font-size: 9px;
-                  font-weight: 900;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  border: 1.5px solid #fff;
-                ">★</div>`
-              : ''
-          }
+      const ringGradient =
+        biz.tier === 'elite'
+          ? 'conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2)'
+          : biz.tier === 'premium'
+            ? '#35AB4E'
+            : '#4787F2';
+
+      const customIconHtml = `
+        <div style="cursor: pointer; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%);">
+          <div style="
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border-radius: 13px;
+            padding: 2.5px;
+            background: ${ringGradient};
+            box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <img src="${biz.logo_url || ''}" style="
+              width: 100%;
+              height: 100%;
+              border-radius: 10px;
+              object-fit: cover;
+              background: #fff;
+            " />
+            ${
+              biz.tier === 'elite'
+                ? `<div style="
+                    position: absolute;
+                    top: -4px;
+                    right: -4px;
+                    width: 15px;
+                    height: 15px;
+                    border-radius: 50%;
+                    background: #981837;
+                    color: #fff;
+                    font-size: 8px;
+                    font-weight: 900;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1.5px solid #fff;
+                  ">★</div>`
+                : ''
+            }
+          </div>
+          <div style="
+            margin-top: 3px;
+            background: rgba(23, 24, 28, 0.92);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 9999px;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+          ">${biz.name.split(' ')[0]}</div>
         </div>
-        <div style="
-          margin-top: 2px;
-          background: rgba(23, 24, 28, 0.9);
-          color: #fff;
-          font-size: 10px;
-          font-weight: 800;
-          padding: 2px 6px;
-          border-radius: 9999px;
-          white-space: nowrap;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-          text-align: center;
-        ">${biz.name.split(' ')[0]}</div>
       `;
 
-      el.addEventListener('click', () => {
-        setActiveBiz(biz);
-        if (onSelectBusiness) onSelectBusiness(biz);
-        map.flyTo({ center: [biz.lng, biz.lat], zoom: 16, pitch: 45, speed: 1.2 });
+      const customIcon = L.divIcon({
+        className: 'custom-spot-marker',
+        html: customIconHtml,
+        iconSize: [42, 56],
+        iconAnchor: [21, 28],
       });
 
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([biz.lng, biz.lat])
-        .addTo(map);
+      const marker = L.marker([biz.lat, biz.lng], { icon: customIcon });
 
-      markersRef.current.push(marker);
+      marker.on('click', () => {
+        setActiveBiz(biz);
+        if (onSelectBusiness) onSelectBusiness(biz);
+        mapRef.current?.flyTo([biz.lat, biz.lng], 16, { animate: true, duration: 1 });
+      });
+
+      marker.addTo(markersLayerRef.current!);
     });
   }, [businesses, onSelectBusiness]);
 
-  // Locate User GPS
+  // 4. Locate User GPS
   const handleLocateMe = () => {
     setIsLocating(true);
     if ('geolocation' in navigator) {
@@ -192,35 +184,33 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
           setIsLocating(false);
 
           if (mapRef.current) {
-            mapRef.current.flyTo({
-              center: [longitude, latitude],
-              zoom: 15.5,
-              pitch: 40,
-            });
+            mapRef.current.flyTo([latitude, longitude], 16, { animate: true, duration: 1.2 });
 
-            // Add user pulse marker
-            const el = document.createElement('div');
-            el.innerHTML = `
+            const userIconHtml = `
               <div style="
-                width: 20px;
-                height: 20px;
+                width: 18px;
+                height: 18px;
                 background: #4787F2;
                 border: 3px solid #ffffff;
                 border-radius: 50%;
-                box-shadow: 0 0 12px #4787F2;
-                animation: pulse 1.5s infinite;
+                box-shadow: 0 0 14px #4787F2;
+                transform: translate(-50%, -50%);
               "></div>
             `;
-            new mapboxgl.Marker({ element: el })
-              .setLngLat([longitude, latitude])
-              .addTo(mapRef.current);
+            const userIcon = L.divIcon({
+              className: 'user-gps-pulse',
+              html: userIconHtml,
+              iconSize: [18, 18],
+              iconAnchor: [9, 9],
+            });
+
+            L.marker([latitude, longitude], { icon: userIcon }).addTo(mapRef.current);
           }
         },
         () => {
           setIsLocating(false);
-          // Fallback to Fort Mumbai center
           if (mapRef.current) {
-            mapRef.current.flyTo({ center: [72.8315, 18.9382], zoom: 15 });
+            mapRef.current.flyTo([18.933, 72.834], 15);
           }
         },
         { enableHighAccuracy: true, timeout: 8000 }
@@ -229,9 +219,9 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
   };
 
   return (
-    <div className="relative w-full h-[65vh] min-h-[420px] rounded-3xl overflow-hidden shadow-xl border border-[#E3E8EF] bg-neutral-900">
+    <div className="relative w-full h-[65vh] min-h-[420px] rounded-3xl overflow-hidden shadow-xl border border-[#E3E8EF] bg-[#F4F6FB]">
       {/* Map Container */}
-      <div ref={mapContainerRef} className="w-full h-full" />
+      <div ref={mapContainerRef} className="w-full h-full z-0" />
 
       {/* Top Map Controls - Responsively Stacked without Overlapping */}
       <div className="absolute top-3 left-3 right-14 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
