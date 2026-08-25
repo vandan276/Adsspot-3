@@ -1,13 +1,40 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@adsspot/api';
-import { Button, Avatar } from '@adsspot/ui';
-import { LayoutDashboard, LogIn, LogOut } from 'lucide-react';
+import { Button, Avatar, Logo } from '@adsspot/ui';
+import { LayoutDashboard, LogIn, LogOut, Globe, Check, ChevronDown } from 'lucide-react';
+
+const LANGUAGES = [
+  { code: 'en', label: 'English', native: 'English', short: 'EN' },
+  { code: 'hi', label: 'Hindi', native: 'हिन्दी', short: 'हि' },
+  { code: 'mr', label: 'Marathi', native: 'मराठी', short: 'म' },
+  { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી', short: 'ગુ' },
+  { code: 'ta', label: 'Tamil', native: 'தமிழ்', short: 'த' },
+  { code: 'te', label: 'Telugu', native: 'తెలుగు', short: 'తె' },
+  { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ', short: 'ಕ' },
+  { code: 'bn', label: 'Bengali', native: 'বাংলা', short: 'বা' },
+];
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const [selectedLang, setSelectedLang] = useState('en');
+  const [showLangMenu, setShowLangMenu] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2000);
+  };
+
+  const handleSelectLanguage = (lang: (typeof LANGUAGES)[0]) => {
+    setSelectedLang(lang.code);
+    setShowLangMenu(false);
+    showToast(`Language set to ${lang.native} (${lang.label})`);
+  };
+
+  const currentLang = LANGUAGES.find((l) => l.code === selectedLang) ?? LANGUAGES[0]!;
 
   const getPortalLink = () => {
     if (!user) return '/login';
@@ -23,7 +50,7 @@ export const Navbar: React.FC = () => {
       case 'merchant':
         return '/merchant';
       default:
-        return '/';
+        return '/profile';
     }
   };
 
@@ -41,55 +68,114 @@ export const Navbar: React.FC = () => {
       case 'merchant':
         return 'Merchant Studio';
       default:
-        return 'Explore Feed';
+        return 'Profile';
     }
   };
 
   return (
-    <header className="bg-white border-b border-[#E3E8EF] sticky top-[33px] z-40 shadow-sm backdrop-blur-md bg-white/95">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        {/* Brand Logo & Tagline */}
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-[#4787F2] flex items-center justify-center font-black text-white text-lg tracking-tighter shadow-sm group-hover:bg-[#3373E0] transition-colors">
-            A<span className="text-[#F2B604]">.</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-xl font-extrabold text-[#17181C] tracking-tight leading-none">
-              Ads<span className="text-[#4787F2]">spot</span>
-            </span>
-            <span className="text-[10px] font-semibold text-[#687182] uppercase tracking-wider mt-0.5">
-              Hyperlocal Discovery
-            </span>
-          </div>
+    <header className="bg-white border-b border-[#E3E8EF] sticky top-0 z-40 shadow-xs backdrop-blur-md bg-white/95 w-full">
+      {/* Language Toast */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 border border-neutral-700 animate-fade-in whitespace-nowrap">
+          <Globe className="w-3.5 h-3.5 text-[#4787F2]" />
+          {toastMessage}
+        </div>
+      )}
+
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <Logo size={28} withText={true} />
         </Link>
 
-        {/* Public Navigation */}
+        {/* Public Navigation (Desktop) */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-[#4A5260]">
-          <Link href="/" className="hover:text-[#4787F2] transition-colors">
-            Discover
+          <Link href="/feed" className="hover:text-[#4787F2] transition-colors flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-[#35AB4E] animate-ping" />
+            Live Feed
+          </Link>
+          <Link href="/explore" className="hover:text-[#4787F2] transition-colors">
+            Explore Stores
+          </Link>
+          <Link href="/wallet" className="hover:text-[#4787F2] transition-colors">
+            UPI Wallet
           </Link>
           <Link href="/#pricing" className="hover:text-[#4787F2] transition-colors">
-            Pricing & Tiers
-          </Link>
-          <Link href="/#mobile-app" className="hover:text-[#4787F2] transition-colors">
-            Mobile App
+            Pricing &amp; Tiers
           </Link>
           <Link href="/#roles" className="hover:text-[#4787F2] transition-colors">
-            Hierarchy Roles
+            Roles &amp; Portals
           </Link>
         </nav>
 
-        {/* User / Action Buttons */}
-        <div className="flex items-center gap-3">
-          {isAuthenticated && user ? (
-            <div className="flex items-center gap-3">
-              <Link href={getPortalLink()}>
-                <Button variant="primary" size="sm" leftIcon={<LayoutDashboard className="w-3.5 h-3.5" />}>
-                  {getPortalLabel()}
-                </Button>
-              </Link>
+        {/* Action Controls & Language Button */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* 🌐 LANGUAGE SWITCHER */}
+          <div className="relative">
+            <button
+              onClick={() => setShowLangMenu(!showLangMenu)}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-1.5 rounded-full border border-[#E3E8EF] hover:border-[#4787F2] bg-[#F4F6FB] hover:bg-white text-xs font-bold text-[#17181C] transition-all shadow-2xs active:scale-95 shrink-0"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#4787F2]" />
+              <span className="hidden sm:inline">{currentLang.native}</span>
+              <span className="sm:hidden text-[11px]">{currentLang.short}</span>
+              <ChevronDown className="w-3 h-3 text-[#687182]" />
+            </button>
 
-              <div className="flex items-center gap-2 pl-2 border-l border-neutral-200">
+            {/* Dropdown Menu */}
+            {showLangMenu && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowLangMenu(false)}
+                />
+                <div className="absolute right-0 mt-2 w-44 sm:w-48 bg-white rounded-2xl shadow-2xl border border-[#E3E8EF] py-2 z-50 animate-slide-up">
+                  <div className="px-3 py-1 text-[10px] font-black uppercase text-[#687182] border-b border-[#F4F6FB] mb-1">
+                    Language / भाषा
+                  </div>
+                  <div className="max-h-60 overflow-y-auto no-scrollbar">
+                    {LANGUAGES.map((lang) => {
+                      const isSelected = selectedLang === lang.code;
+                      return (
+                        <button
+                          key={lang.code}
+                          onClick={() => handleSelectLanguage(lang)}
+                          className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between transition-colors ${
+                            isSelected
+                              ? 'bg-[#EDF4FF] text-[#4787F2] font-bold'
+                              : 'text-[#17181C] hover:bg-[#F4F6FB]'
+                          }`}
+                        >
+                          <div>
+                            <span className="font-bold block">{lang.native}</span>
+                            <span className="text-[10px] text-[#687182]">{lang.label}</span>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-[#4787F2]" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* User Profile Avatar Link */}
+          {isAuthenticated && user ? (
+            <div className="flex items-center gap-2 shrink-0">
+              {user.role !== 'consumer' && (
+                <Link href={getPortalLink()} className="hidden sm:block">
+                  <Button variant="primary" size="sm" leftIcon={<LayoutDashboard className="w-3.5 h-3.5" />}>
+                    {getPortalLabel()}
+                  </Button>
+                </Link>
+              )}
+
+              <Link
+                href={user.role === 'consumer' ? '/profile' : getPortalLink()}
+                className="flex items-center gap-2 group shrink-0"
+                title="My Profile"
+              >
                 <Avatar
                   src={user.avatar_url}
                   name={user.full_name}
@@ -97,22 +183,26 @@ export const Navbar: React.FC = () => {
                   isElite={user.business_profile?.tier === 'elite'}
                 />
                 <div className="hidden lg:flex flex-col">
-                  <span className="text-xs font-bold text-[#17181C] leading-none">{user.full_name}</span>
+                  <span className="text-xs font-bold text-[#17181C] group-hover:text-[#4787F2] transition-colors leading-none truncate max-w-[100px]">
+                    {user.full_name}
+                  </span>
                   <span className="text-[10px] text-[#687182] capitalize">{user.role}</span>
                 </div>
-                <button
-                  onClick={logout}
-                  title="Logout"
-                  className="text-neutral-400 hover:text-red-500 p-1 rounded-full transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
+              </Link>
+
+              {/* Desktop Logout Button (Mobile logout is accessed via /profile) */}
+              <button
+                onClick={logout}
+                title="Logout"
+                className="hidden sm:flex text-neutral-400 hover:text-red-500 p-1.5 rounded-full transition-colors shrink-0"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
             </div>
           ) : (
-            <Link href="/login">
-              <Button variant="primary" size="sm" leftIcon={<LogIn className="w-3.5 h-3.5" />}>
-                Phone OTP Login
+            <Link href="/login" className="shrink-0">
+              <Button variant="primary" size="sm" className="text-xs py-1.5 px-3" leftIcon={<LogIn className="w-3.5 h-3.5" />}>
+                Login
               </Button>
             </Link>
           )}

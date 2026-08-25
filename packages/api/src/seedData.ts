@@ -15,8 +15,10 @@ import {
   Attendance,
   Announcement,
   AuditLog,
+  Review,
   LoginDemoPersona,
 } from '@adsspot/types';
+
 
 // ==========================================
 // 1. Categories
@@ -480,3 +482,38 @@ export const SEED_AUDIT_LOGS: AuditLog[] = [
     created_at: '2026-08-23T10:30:00Z',
   },
 ];
+
+export const SEED_REVIEWS: Review[] = [
+
+  {
+    id: 'rev-1',
+    business_id: 'biz-1',
+    user_id: 'Rohan Deshmukh',
+    rating: 5,
+    comment: 'Exceptional 22KT bridal collection. Handcrafted Zambian emerald choker was breathtaking!',
+    reply: 'Thank you Rohan! It was an honor designing the bespoke bridal set for your family.',
+    created_at: '2026-08-21T16:20:00Z',
+    updated_at: '2026-08-21T18:00:00Z',
+  },
+  {
+    id: 'rev-2',
+    business_id: 'biz-2',
+    user_id: 'Ananya Sharma',
+    rating: 5,
+    comment: 'Best Kesar Jalebis in Mumbai. Freshly prepared in pure desi ghee!',
+    reply: null,
+    created_at: '2026-08-23T11:45:00Z',
+    updated_at: '2026-08-23T11:45:00Z',
+  },
+  {
+    id: 'rev-3',
+    business_id: 'biz-3',
+    user_id: 'Kavita Patel',
+    rating: 5,
+    comment: 'Super fast delivery and authentic organic groceries. The WhatsApp ordering is seamless.',
+    reply: 'Thank you Kavita ji! We always deliver fresh to Fort residents in under 30 mins.',
+    created_at: '2026-08-22T09:10:00Z',
+    updated_at: '2026-08-22T10:00:00Z',
+  },
+];
+

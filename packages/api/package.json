@@ -4,12 +4,21 @@
   "private": true,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts"
+  },
   "scripts": {
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:migrate": "tsx src/aws/migrate.ts"
   },
   "dependencies": {
     "@adsspot/types": "workspace:*",
-    "@supabase/supabase-js": "^2.48.1"
+    "@aws-sdk/client-s3": "^3.1117.0",
+    "@aws-sdk/s3-request-presigner": "^3.1117.0",
+    "@supabase/supabase-js": "^2.48.1",
+    "ioredis": "^6.0.0",
+    "pg": "^8.23.0"
   },
   "peerDependencies": {
     "react": "^18.3.1 || ^19.0.0",
@@ -17,11 +26,14 @@
   },
   "devDependencies": {
     "@adsspot/config-typescript": "workspace:*",
+    "@types/ioredis": "^5.0.0",
     "@types/node": "^20.17.19",
+    "@types/pg": "^8.23.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "tsx": "^4.19.3",
     "typescript": "^5.7.3"
   }
 }

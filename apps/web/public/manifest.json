@@ -1,0 +1,17 @@
+{
+  "name": "Adsspot — Hyperlocal Business Discovery",
+  "short_name": "Adsspot",
+  "description": "India's Hyperlocal Business Discovery & Marketing Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#17181C",
+  "theme_color": "#4787F2",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

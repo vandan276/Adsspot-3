@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth, SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
-import { Button, Card, Avatar, TrustedBadge, TierBadge, RoleBadge } from '@adsspot/ui';
+import { Button, Card, Avatar, TrustedBadge, TierBadge, RoleBadge, Logo } from '@adsspot/ui';
+import { WebSplashScreen } from '../components/WebSplashScreen';
+
 import {
   Search,
   MapPin,
@@ -29,9 +31,16 @@ import {
 
 export default function HomePage() {
   const { user, switchPersona, personas } = useAuth();
+  const [showSplash, setShowSplash] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState('Mumbai');
+
+  useEffect(() => {
+    const handleTrigger = () => setShowSplash(true);
+    window.addEventListener('adsspot:trigger-splash', handleTrigger);
+    return () => window.removeEventListener('adsspot:trigger-splash', handleTrigger);
+  }, []);
 
   const filteredBusinesses = SEED_BUSINESSES.filter((b) => {
     const matchesCat = selectedCategory === 'all' || b.category_id === selectedCategory;
@@ -44,8 +53,11 @@ export default function HomePage() {
   });
 
   return (
-    <div className="flex-1 flex flex-col bg-[#F4F6FB] min-h-screen">
+    <div className="flex-1 flex flex-col bg-[#F4F6FB] min-h-screen relative">
+      {showSplash && <WebSplashScreen onFinish={() => setShowSplash(false)} />}
+
       {/* 1. MODERN CONSUMER HERO SECTION */}
+
       <section className="bg-white border-b border-[#E3E8EF] pt-14 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
           {/* Tagline Pill */}
@@ -592,17 +604,15 @@ export default function HomePage() {
       <footer className="bg-[#17181C] text-white pt-14 pb-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8 pb-12 border-b border-neutral-800">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-[#4787F2] flex items-center justify-center font-black text-white text-base">
-                A
-              </div>
-              <span className="text-lg font-bold text-white">Adsspot</span>
+            <div className="mb-3">
+              <Logo size="md" withText={true} dark={true} />
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed mb-4">
               Hyperlocal discovery and marketing platform connecting local consumers, shops, and field sales teams across India.
             </p>
             <p className="text-xs text-neutral-400">© 2026 Adsspot India. All rights reserved.</p>
           </div>
+
 
           <div>
             <h4 className="text-xs font-bold text-neutral-200 uppercase tracking-wider mb-4">Active Cities</h4>

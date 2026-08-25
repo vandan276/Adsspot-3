@@ -1,0 +1,20 @@
+{
+  "packageId": "in.adsspot.app",
+  "host": "localhost:3000",
+  "name": "Adsspot",
+  "launcherName": "Adsspot",
+  "themeColor": "#4787F2",
+  "navigationColor": "#17181C",
+  "backgroundColor": "#17181C",
+  "enableNotifications": true,
+  "startUrl": "/feed",
+  "iconUrl": "https://raw.githubusercontent.com/adsspot/brand/main/icon-512.png",
+  "maskableIconUrl": "https://raw.githubusercontent.com/adsspot/brand/main/icon-maskable.png",
+  "appVersionName": "1.0.0",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./android.keystore",
+    "alias": "adsspot"
+  },
+  "generatorApp": "bubblewrap-cli"
+}

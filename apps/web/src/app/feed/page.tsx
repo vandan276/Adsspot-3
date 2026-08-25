@@ -1,0 +1,616 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useAuth, SEED_BUSINESSES, SEED_POSTS, SEED_CATEGORIES } from '@adsspot/api';
+import { Avatar } from '@adsspot/ui';
+import {
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  MapPin,
+  Plus,
+  CheckCircle,
+  X,
+  Send,
+  Gift,
+  QrCode,
+  ShieldCheck,
+  UserPlus,
+  UserCheck,
+} from 'lucide-react';
+
+const WhatsAppIcon = ({ size = 20, className = '' }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+  >
+    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+  </svg>
+);
+
+const STORY_DATA = [
+  {
+    id: 'story-1',
+    businessId: 'biz-elite-1',
+    name: 'Royal Heritage Jewellers',
+    logo: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1000&auto=format&fit=crop&q=80',
+    tag: '20% OFF',
+    coupon: 'ROYAL20',
+    caption: 'Exclusive 20% Off making charges on 916 Hallmark Bridal Kundan Sets this festival week!',
+    time: '2h ago',
+    location: 'Zaveri Bazaar, Kalbadevi',
+    phone: '+919876543213',
+  },
+  {
+    id: 'story-2',
+    businessId: 'biz-prem-1',
+    name: 'Mehta Authentic Mithai',
+    logo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=1000&auto=format&fit=crop&q=80',
+    tag: 'FRESH',
+    coupon: 'MEHTA15',
+    caption: 'Hot Kesar Jalebis with thick creamy Rabdi freshly prepared in Pure Desi Ghee!',
+    time: '4h ago',
+    location: 'Flora Fountain, Fort',
+    phone: '+919876543212',
+  },
+  {
+    id: 'story-3',
+    businessId: 'biz-basic-1',
+    name: 'Joshi Kirana & Dry Fruits',
+    logo: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1000&auto=format&fit=crop&q=80',
+    tag: 'NEW',
+    coupon: 'JOSHI10',
+    caption: 'Premium Kashmiri Saffron and Afghan Walnuts & Almonds special festive hampers.',
+    time: '6h ago',
+    location: 'Colaba Market, Fort',
+    phone: '+919876543211',
+  },
+];
+
+export default function MobileFeedPage() {
+  const { user } = useAuth();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
+  const [doubleTapHeart, setDoubleTapHeart] = useState<string | null>(null);
+  const [likesCounts, setLikesCounts] = useState<Record<string, number>>(() => {
+    const init: Record<string, number> = {};
+    SEED_POSTS.forEach((p) => {
+      init[p.id] = p.likes_count;
+    });
+    return init;
+  });
+  const [followingBiz, setFollowingBiz] = useState<Record<string, boolean>>({});
+  const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
+
+  // Stories Player State
+  const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
+  const [storyProgress, setStoryProgress] = useState<number>(0);
+  const [storyReactions, setStoryReactions] = useState<{ id: string; emoji: string }[]>([]);
+
+  // Comments Sheet State
+  const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
+  const [newCommentText, setNewCommentText] = useState<string>('');
+  const [postComments, setPostComments] = useState<Record<string, { id: string; author: string; text: string; time: string }[]>>({
+    'post-1': [
+      { id: 'c-1', author: 'Pooja Nair', text: 'Stunning craftsmanship! Is this available in Kalbadevi store?', time: '1h ago' },
+      { id: 'c-2', author: 'Aarav Sharma', text: 'Visited yesterday, hallmark certified quality is outstanding.', time: '30m ago' },
+    ],
+    'post-2': [
+      { id: 'c-3', author: 'Rohan Deshmukh', text: 'Best Kesar Jalebis in South Mumbai without doubt 🔥', time: '2h ago' },
+    ],
+  });
+
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 2500);
+  };
+
+  // Story Auto-Advance Timer
+  useEffect(() => {
+    if (activeStoryIndex === null) return;
+    setStoryProgress(0);
+    const interval = setInterval(() => {
+      setStoryProgress((prev) => {
+        if (prev >= 100) {
+          if (activeStoryIndex < STORY_DATA.length - 1) {
+            setActiveStoryIndex(activeStoryIndex + 1);
+            return 0;
+          } else {
+            setActiveStoryIndex(null);
+            return 0;
+          }
+        }
+        return prev + 2;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [activeStoryIndex]);
+
+  const handleToggleLike = (postId: string) => {
+    setLikedPosts((prev) => {
+      const isLiked = !prev[postId];
+      setLikesCounts((c) => ({
+        ...c,
+        [postId]: (c[postId] || 0) + (isLiked ? 1 : -1),
+      }));
+      return { ...prev, [postId]: isLiked };
+    });
+  };
+
+  const handleDoubleTapPost = (postId: string) => {
+    if (!likedPosts[postId]) {
+      handleToggleLike(postId);
+    }
+    setDoubleTapHeart(postId);
+    setTimeout(() => setDoubleTapHeart(null), 800);
+  };
+
+  const handleToggleFollow = (bizId: string, bizName: string) => {
+    setFollowingBiz((prev) => {
+      const isFollowing = !prev[bizId];
+      showToast(isFollowing ? `Following ${bizName}` : `Unfollowed ${bizName}`);
+      return { ...prev, [bizId]: isFollowing };
+    });
+  };
+
+  const handleToggleSave = (postId: string) => {
+    setSavedPosts((prev) => {
+      const isSaved = !prev[postId];
+      showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
+      return { ...prev, [postId]: isSaved };
+    });
+  };
+
+  const handleAddComment = (postId: string) => {
+    if (!newCommentText.trim()) return;
+    const newComment = {
+      id: `comm-${Date.now()}`,
+      author: user?.full_name || 'Aarav Sharma',
+      text: newCommentText.trim(),
+      time: 'Just now',
+    };
+    setPostComments((prev) => ({
+      ...prev,
+      [postId]: [...(prev[postId] || []), newComment],
+    }));
+    setNewCommentText('');
+    showToast('Comment posted!');
+  };
+
+  const handleSendStoryReaction = (emoji: string) => {
+    const reactionId = `react-${Date.now()}`;
+    setStoryReactions((prev) => [...prev, { id: reactionId, emoji }]);
+    setTimeout(() => {
+      setStoryReactions((prev) => prev.filter((r) => r.id !== reactionId));
+    }, 1500);
+  };
+
+  const filteredPosts = SEED_POSTS.filter((post) => {
+    const biz = SEED_BUSINESSES.find((b) => b.id === post.business_id);
+    if (!biz) return true;
+    return selectedCategory === 'all' || biz.category_id === selectedCategory;
+  });
+
+  const currentActiveStory = activeStoryIndex !== null ? STORY_DATA[activeStoryIndex] : null;
+
+  return (
+    <div className="flex-1 bg-[#F8FAFC] pb-28 max-w-md mx-auto w-full min-h-screen relative overflow-x-hidden">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-18 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-[11px] font-semibold px-3.5 py-2 rounded-full shadow-lg flex items-center gap-1.5 border border-neutral-700 animate-fade-in whitespace-nowrap">
+          <CheckCircle className="w-3.5 h-3.5 text-[#35AB4E]" />
+          {toastMessage}
+        </div>
+      )}
+
+      {/* 🌟 IMMERSIVE FULL-SCREEN STORY VIEWER */}
+      {currentActiveStory && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
+          <div className="relative w-full h-full sm:h-[85vh] sm:max-w-sm bg-[#17181C] sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between">
+            {/* Story Floating Reactions Animation */}
+            {storyReactions.map((r) => (
+              <div
+                key={r.id}
+                className="absolute bottom-24 right-8 text-3xl animate-float-up pointer-events-none z-30"
+              >
+                {r.emoji}
+              </div>
+            ))}
+
+            {/* Story Progress Segments */}
+            <div className="absolute top-3 left-3 right-3 z-30 flex gap-1">
+              {STORY_DATA.map((s, idx) => (
+                <div key={s.id} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white transition-all duration-100 ease-linear"
+                    style={{
+                      width:
+                        idx < activeStoryIndex!
+                          ? '100%'
+                          : idx === activeStoryIndex!
+                            ? `${storyProgress}%`
+                            : '0%',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Story Header */}
+            <div className="relative z-30 flex items-center justify-between px-3.5 pt-6 pb-2 bg-gradient-to-b from-black/80 to-transparent">
+              <div className="flex items-center gap-2">
+                <img src={currentActiveStory.logo} alt={currentActiveStory.name} className="w-8 h-8 rounded-full object-cover border border-white/40" />
+                <div>
+                  <h4 className="text-xs font-bold text-white leading-tight">{currentActiveStory.name}</h4>
+                  <span className="text-[10px] text-neutral-300">
+                    {currentActiveStory.location} • {currentActiveStory.time}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setActiveStoryIndex(null)}
+                className="text-white/80 hover:text-white p-1 rounded-full bg-black/30 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Story Image */}
+            <div className="absolute inset-0 w-full h-full overflow-hidden">
+              <img
+                src={currentActiveStory.image}
+                alt="Story"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 pointer-events-none" />
+            </div>
+
+            {/* Tap Zones */}
+            <div
+              className="absolute left-0 top-16 bottom-28 w-1/3 z-20 cursor-pointer"
+              onClick={() => {
+                if (activeStoryIndex! > 0) setActiveStoryIndex(activeStoryIndex! - 1);
+              }}
+            />
+            <div
+              className="absolute right-0 top-16 bottom-28 w-1/3 z-20 cursor-pointer"
+              onClick={() => {
+                if (activeStoryIndex! < STORY_DATA.length - 1) setActiveStoryIndex(activeStoryIndex! + 1);
+                else setActiveStoryIndex(null);
+              }}
+            />
+
+            {/* Story Caption & Action */}
+            <div className="relative z-30 p-3.5 space-y-2 bg-gradient-to-t from-black via-black/70 to-transparent">
+              <p className="text-xs text-white/90 leading-relaxed font-medium bg-black/30 backdrop-blur-xs p-2.5 rounded-xl">
+                {currentActiveStory.caption}
+              </p>
+
+              {/* Reactions */}
+              <div className="flex items-center justify-center gap-3 py-1">
+                {['❤️', '🔥', '😍', '👏', '🎉'].map((emoji) => (
+                  <button
+                    key={emoji}
+                    onClick={() => handleSendStoryReaction(emoji)}
+                    className="text-lg p-1 hover:scale-125 transition-transform"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
+              {/* Offer CTA */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    showToast(`Coupon ${currentActiveStory.coupon} claimed!`);
+                  }}
+                  className="flex-1 py-2.5 rounded-full bg-[#4787F2] hover:bg-[#3972D4] text-white font-bold text-xs flex items-center justify-center gap-1 shadow-md transition-transform active:scale-95"
+                >
+                  <Gift className="w-3.5 h-3.5" /> Claim {currentActiveStory.coupon}
+                </button>
+                <a
+                  href={`https://wa.me/${currentActiveStory.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(currentActiveStory.name)},%20I%20saw%20your%20story%20on%20Adsspot!`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-2.5 rounded-full bg-[#25D366] text-white font-semibold text-xs flex items-center justify-center shadow-md gap-1.5"
+                >
+                  <WhatsAppIcon size={16} className="text-white" />
+                  <span>WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 COMMENTS DRAWER */}
+      {openCommentsPostId && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-4 shadow-xl border border-[#E3E8EF] max-h-[70vh] flex flex-col justify-between animate-slide-up">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#E3E8EF]">
+              <div className="flex items-center gap-1.5">
+                <MessageCircle className="w-3.5 h-3.5 text-[#4787F2]" />
+                <h3 className="text-xs font-bold text-[#17181C]">Comments</h3>
+              </div>
+              <button onClick={() => setOpenCommentsPostId(null)} className="text-neutral-400 hover:text-neutral-700 p-0.5">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-2.5 py-3 pr-1">
+              {(postComments[openCommentsPostId] || []).map((comm) => (
+                <div key={comm.id} className="p-2.5 bg-[#F4F6FB] rounded-xl text-xs space-y-0.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#17181C] text-[11px]">{comm.author}</span>
+                    <span className="text-[9px] text-[#687182]">{comm.time}</span>
+                  </div>
+                  <p className="text-[#4A5260] text-[11px]">{comm.text}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2 border-t border-[#E3E8EF] flex gap-1.5">
+              <input
+                type="text"
+                value={newCommentText}
+                onChange={(e) => setNewCommentText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddComment(openCommentsPostId);
+                }}
+                placeholder="Write a comment..."
+                className="flex-1 px-3 py-1.5 rounded-full border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
+              />
+              <button
+                onClick={() => handleAddComment(openCommentsPostId)}
+                className="p-1.5 rounded-full bg-[#4787F2] text-white"
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 1. TOP LOCATION STATUS BAR */}
+      <div className="bg-white px-3 sm:px-4 py-2.5 border-b border-[#E3E8EF] flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-[#17181C] font-bold min-w-0 flex-1 truncate">
+          <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
+          <span className="truncate">Fort, Mumbai <span className="text-neutral-400 font-normal">400001</span></span>
+        </div>
+        <span className="shrink-0 text-[10px] font-bold text-[#1D53B8] bg-[#EDF4FF] px-2.5 py-0.5 rounded-full border border-[#4787F2]/20">
+          24 Spots
+        </span>
+      </div>
+
+      {/* 2. STORIES RAIL */}
+      <div className="bg-white py-3 border-b border-[#E3E8EF]">
+        <div className="flex gap-3 sm:gap-3.5 overflow-x-auto no-scrollbar px-3 sm:px-4 items-center">
+          {/* Add story / User avatar */}
+          <div
+            onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
+            className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group"
+          >
+            <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0">
+              <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="sm" />
+              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white">
+                <Plus className="w-2.5 h-2.5 stroke-[3]" />
+              </div>
+            </div>
+            <span className="text-[9.5px] sm:text-[10px] text-neutral-600 font-bold truncate max-w-[50px] sm:max-w-[54px]">Your Feed</span>
+          </div>
+
+          {/* Business Stories with Gradient Ring */}
+          {STORY_DATA.map((story, idx) => (
+            <div
+              key={story.id}
+              onClick={() => setActiveStoryIndex(idx)}
+              className="flex flex-col items-center gap-1 shrink-0 cursor-pointer group"
+            >
+              <div className="relative w-12 h-12 sm:w-13 sm:h-13 rounded-full p-0.5 bg-gradient-to-tr from-[#4787F2] via-[#35AB4E] to-[#F2B604] shrink-0 transform group-hover:scale-105 transition-transform shadow-xs">
+                <div className="w-full h-full rounded-full bg-white p-0.5 overflow-hidden">
+                  <img
+                    src={story.logo}
+                    alt={story.name}
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                </div>
+              </div>
+              <span className="text-[9.5px] sm:text-[10px] text-neutral-800 font-bold truncate max-w-[52px] sm:max-w-[58px] text-center">
+                {story.name.split(' ')[0]}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. CATEGORY PILLS */}
+      <div className="py-2.5 px-3 sm:px-4 flex gap-1.5 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
+            selectedCategory === 'all'
+              ? 'bg-[#17181C] text-white shadow-xs'
+              : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
+          }`}
+        >
+          All
+        </button>
+        {SEED_CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
+              selectedCategory === cat.id
+                ? 'bg-[#17181C] text-white shadow-xs'
+                : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
+            }`}
+          >
+            {cat.name}
+          </button>
+        ))}
+      </div>
+
+      {/* 4. POSTS WITH AUTHENTIC ICONS */}
+      <div className="px-2.5 sm:px-3 pb-4 space-y-3.5">
+        {filteredPosts.map((post) => {
+          const fallbackBiz = SEED_BUSINESSES[0]!;
+          const biz = SEED_BUSINESSES.find((b) => b.id === post.business_id) ?? fallbackBiz;
+          const isLiked = !!likedPosts[post.id];
+          const likesCount = likesCounts[post.id] ?? post.likes_count;
+          const isFollowing = !!followingBiz[biz.id];
+          const isSaved = !!savedPosts[post.id];
+          const commentsCount = (postComments[post.id] || []).length + post.comments_count;
+
+          return (
+            <div
+              key={post.id}
+              className="bg-white rounded-2xl overflow-hidden border border-[#E3E8EF] shadow-sm"
+            >
+              {/* Post Header with Compact Follow Icon Button */}
+              <div className="p-3 flex items-center justify-between gap-2.5">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <Avatar src={biz.logo_url} name={biz.name} size="sm" isElite={biz.tier === 'elite'} />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/card/${biz.slug}`}
+                      className="font-bold text-xs text-[#17181C] hover:text-[#4787F2] leading-snug block break-words"
+                    >
+                      {biz.name}
+                    </Link>
+                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 mt-0.5">
+                      <span className="truncate">{biz.address}</span>
+                      {biz.trusted && (
+                        <span className="text-[#35AB4E] font-bold flex items-center gap-0.5 shrink-0">
+                          <ShieldCheck className="w-3 h-3 text-[#35AB4E]" /> Verified
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Minimalist Follow Icon Button */}
+                <button
+                  onClick={() => handleToggleFollow(biz.id, biz.name)}
+                  title={isFollowing ? 'Following' : 'Follow'}
+                  className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
+                    isFollowing
+                      ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30 hover:bg-neutral-100'
+                      : 'bg-[#EDF4FF] text-[#4787F2] hover:bg-[#D9E8FF] border border-[#4787F2]/20 active:scale-95'
+                  }`}
+                >
+                  {isFollowing ? (
+                    <UserCheck className="w-4 h-4" />
+                  ) : (
+                    <UserPlus className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+
+              {/* Post Media (4:3 Aspect Ratio for clean scaling on all phones) */}
+              <div
+                className="relative w-full aspect-[4/3] overflow-hidden cursor-pointer bg-neutral-100"
+                onDoubleClick={() => handleDoubleTapPost(post.id)}
+              >
+                <img
+                  src={post.image_urls[0]}
+                  alt="Post"
+                  className="w-full h-full object-cover"
+                />
+
+                {doubleTapHeart === post.id && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none animate-ping">
+                    <Heart className="w-16 h-16 text-white fill-red-500 stroke-red-500 drop-shadow-xl" />
+                  </div>
+                )}
+              </div>
+
+              {/* Minimalist Action Bar with Authentic WhatsApp and Card Icons */}
+              <div className="p-3 pb-1.5 flex items-center justify-between gap-2 text-neutral-700">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => handleToggleLike(post.id)}
+                    className="flex items-center gap-1 text-xs font-semibold transition-transform active:scale-125"
+                  >
+                    <Heart
+                      className={`w-5 h-5 ${
+                        isLiked ? 'text-red-500 fill-red-500' : 'hover:text-red-500'
+                      }`}
+                    />
+                    <span className={isLiked ? 'text-red-500 font-bold' : 'text-neutral-700'}>{likesCount}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setOpenCommentsPostId(post.id)}
+                    className="flex items-center gap-1 text-xs font-semibold hover:text-[#4787F2]"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>{commentsCount}</span>
+                  </button>
+
+                  <button onClick={() => handleToggleSave(post.id)} className="hover:text-[#4787F2]">
+                    <Bookmark
+                      className={`w-5 h-5 ${isSaved ? 'text-[#4787F2] fill-[#4787F2]' : ''}`}
+                    />
+                  </button>
+
+                  <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2]">
+                    <Share2 className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Direct Visiting Card and Authentic WhatsApp Icons */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <Link
+                    href={`/card/${biz.slug}`}
+                    title="Digital Visiting Card"
+                    className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center transition-all active:scale-95 shadow-xs"
+                  >
+                    <QrCode className="w-4.5 h-4.5 text-neutral-700" />
+                  </Link>
+
+                  <a
+                    href={`https://wa.me/${biz.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20saw%20your%20post%20on%20Adsspot!`}
+                    target="_blank"
+                    rel="noreferrer"
+                    title="Chat on WhatsApp"
+                    className="w-8 h-8 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center justify-center transition-all active:scale-95 shadow-xs"
+                  >
+                    <WhatsAppIcon size={18} className="text-white" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Post Caption */}
+              <div className="px-3 pb-3 space-y-1">
+                <p className="text-xs text-neutral-800 leading-relaxed break-words">
+                  <span className="font-bold text-[#17181C] mr-1">{biz.name}</span>
+                  {post.caption}
+                </p>
+
+                <button
+                  onClick={() => setOpenCommentsPostId(post.id)}
+                  className="text-[11px] text-neutral-400 font-semibold hover:text-[#4787F2] block"
+                >
+                  View all {commentsCount} comments
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

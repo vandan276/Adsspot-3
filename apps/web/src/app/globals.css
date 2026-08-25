@@ -1,8 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
+@import 'mapbox-gl/dist/mapbox-gl.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 :root {
   --font-jakarta: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -51,3 +53,19 @@ h1, h2, h3, h4, h5, h6 {
 .spot-ring-glow {
   box-shadow: 0 0 20px rgba(71, 135, 242, 0.25);
 }
+
+@keyframes float-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-80px) scale(1.6);
+  }
+}
+
+.animate-float-up {
+  animation: float-up 1.2s ease-out forwards;
+}
+
