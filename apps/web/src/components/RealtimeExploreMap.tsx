@@ -34,54 +34,42 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
 
     let mapInstance: mapboxgl.Map | null = null;
     try {
-      // Standard raster tile style (CartoDB / OpenStreetMap) for guaranteed crisp rendering
-      const mapboxStyle =
-        mapStyle === 'satellite'
-          ? {
-              version: 8 as const,
-              sources: {
-                'satellite-tiles': {
-                  type: 'raster' as const,
-                  tiles: [
+      // Standard raster tile style (CartoDB / OpenStreetMap)
+      const mapboxStyle = {
+        version: 8 as const,
+        sources: {
+          'osm-raster-tiles': {
+            type: 'raster' as const,
+            tiles:
+              mapStyle === 'satellite'
+                ? [
                     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                  ]
+                : [
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   ],
-                  tileSize: 256,
-                },
-              },
-              layers: [
-                {
-                  id: 'satellite-layer',
-                  type: 'raster' as const,
-                  source: 'satellite-tiles',
-                  minzoom: 0,
-                  maxzoom: 19,
-                },
-              ],
-            }
-          : {
-              version: 8 as const,
-              sources: {
-                'osm-tiles': {
-                  type: 'raster' as const,
-                  tiles: [
-                    'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                    'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                    'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
-                  ],
-                  tileSize: 256,
-                  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-                },
-              },
-              layers: [
-                {
-                  id: 'osm-layer',
-                  type: 'raster' as const,
-                  source: 'osm-tiles',
-                  minzoom: 0,
-                  maxzoom: 20,
-                },
-              ],
-            };
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors',
+            maxzoom: 19,
+          },
+        },
+        layers: [
+          {
+            id: 'background',
+            type: 'background' as const,
+            paint: {
+              'background-color': '#e5e3df',
+            },
+          },
+          {
+            id: 'osm-raster-layer',
+            type: 'raster' as const,
+            source: 'osm-raster-tiles',
+            minzoom: 0,
+            maxzoom: 19,
+          },
+        ],
+      };
 
       mapInstance = new mapboxgl.Map({
         container: mapContainerRef.current,

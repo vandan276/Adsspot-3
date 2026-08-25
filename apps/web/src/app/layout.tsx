@@ -38,6 +38,7 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800;900&display=swap"
           rel="stylesheet"
         />
+        <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet" />
       </head>
 
       <body className="min-h-screen bg-[#F4F6FB] text-[#17181C] antialiased flex flex-col">
