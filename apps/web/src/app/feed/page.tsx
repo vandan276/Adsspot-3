@@ -35,6 +35,45 @@ const WhatsAppIcon = ({ size = 20, className = '' }: { size?: number; className?
 
 const STORY_DATA = [
   {
+    id: 'story-vad-1',
+    businessId: 'biz-vad-1',
+    name: 'Mandap Gujarati Thali',
+    logo: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=200&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=1000&auto=format&fit=crop&q=80',
+    tag: 'FESTIVAL',
+    coupon: 'MANDAP15',
+    caption: 'Royal Gujarati Grand Thali with authentic Puran Poli & Rasawala Khaman at Alkapuri!',
+    time: '1h ago',
+    location: 'Express Hotel, Alkapuri',
+    phone: '+912652330720',
+  },
+  {
+    id: 'story-vad-2',
+    businessId: 'biz-vad-2',
+    name: 'Jagdish Farshan',
+    logo: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=200&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=1000&auto=format&fit=crop&q=80',
+    tag: 'FRESH BATCH',
+    coupon: 'JAGDISH10',
+    caption: 'World-famous Vadodara special hot crispy Bhakarwadi freshly prepared in Pure Desi Ghee!',
+    time: '2h ago',
+    location: 'Jubilee Baug / Alkapuri',
+    phone: '+912652410188',
+  },
+  {
+    id: 'story-vad-3',
+    businessId: 'biz-vad-3',
+    name: 'C.H. Jewellers',
+    logo: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&auto=format&fit=crop&q=80',
+    image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1000&auto=format&fit=crop&q=80',
+    tag: '20% OFF',
+    coupon: 'CHJEWEL20',
+    caption: 'Exclusive 20% Off making charges on 916 Hallmark Solitaire Diamond & Antique Bridal Sets!',
+    time: '3h ago',
+    location: 'CH House, Alkapuri',
+    phone: '+912652300000',
+  },
+  {
     id: 'story-1',
     businessId: 'biz-elite-1',
     name: 'Royal Heritage Jewellers',
@@ -43,35 +82,9 @@ const STORY_DATA = [
     tag: '20% OFF',
     coupon: 'ROYAL20',
     caption: 'Exclusive 20% Off making charges on 916 Hallmark Bridal Kundan Sets this festival week!',
-    time: '2h ago',
+    time: '4h ago',
     location: 'Zaveri Bazaar, Kalbadevi',
     phone: '+919876543213',
-  },
-  {
-    id: 'story-2',
-    businessId: 'biz-prem-1',
-    name: 'Mehta Authentic Mithai',
-    logo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=80',
-    image: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=1000&auto=format&fit=crop&q=80',
-    tag: 'FRESH',
-    coupon: 'MEHTA15',
-    caption: 'Hot Kesar Jalebis with thick creamy Rabdi freshly prepared in Pure Desi Ghee!',
-    time: '4h ago',
-    location: 'Flora Fountain, Fort',
-    phone: '+919876543212',
-  },
-  {
-    id: 'story-3',
-    businessId: 'biz-basic-1',
-    name: 'Joshi Kirana & Dry Fruits',
-    logo: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200&auto=format&fit=crop&q=80',
-    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1000&auto=format&fit=crop&q=80',
-    tag: 'NEW',
-    coupon: 'JOSHI10',
-    caption: 'Premium Kashmiri Saffron and Afghan Walnuts & Almonds special festive hampers.',
-    time: '6h ago',
-    location: 'Colaba Market, Fort',
-    phone: '+919876543211',
   },
 ];
 
@@ -107,6 +120,33 @@ export default function MobileFeedPage() {
       { id: 'c-3', author: 'Rohan Deshmukh', text: 'Best Kesar Jalebis in South Mumbai without doubt 🔥', time: '2h ago' },
     ],
   });
+
+  const [locationState, setLocationState] = useState({
+    city: 'Vadodara',
+    pincode: '390007',
+    area: 'Alkapuri & Old Padra Road',
+  });
+
+  useEffect(() => {
+    const updateLoc = () => {
+      try {
+        const storedLoc = localStorage.getItem('adsspot_user_location');
+        if (storedLoc) {
+          const parsed = JSON.parse(storedLoc);
+          if (parsed.city) {
+            setLocationState({
+              city: parsed.city,
+              pincode: parsed.pincode || '390007',
+              area: parsed.area || 'Alkapuri',
+            });
+          }
+        }
+      } catch {}
+    };
+    updateLoc();
+    window.addEventListener('adsspot_location_changed', updateLoc);
+    return () => window.removeEventListener('adsspot_location_changed', updateLoc);
+  }, []);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -419,10 +459,13 @@ export default function MobileFeedPage() {
       <div className="bg-white px-3 sm:px-4 py-2.5 border-b border-[#E3E8EF] flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5 text-xs text-[#17181C] font-bold min-w-0 flex-1 truncate">
           <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
-          <span className="truncate">Fort, Mumbai <span className="text-neutral-400 font-normal">400001</span></span>
+          <span className="truncate">
+            {locationState.area}, {locationState.city}{' '}
+            <span className="text-neutral-400 font-normal">{locationState.pincode}</span>
+          </span>
         </div>
         <span className="shrink-0 text-[10px] font-bold text-[#1D53B8] bg-[#EDF4FF] px-2.5 py-0.5 rounded-full border border-[#4787F2]/20">
-          24 Spots
+          {filteredPosts.length} Live Spots
         </span>
       </div>
 
