@@ -1,0 +1,26 @@
+version: 1
+applications:
+  - appRoot: apps/web
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - corepack enable
+            - corepack prepare pnpm@latest --activate
+            - pnpm --version
+            - cd ../..
+            - pnpm install --frozen-lockfile
+            - cd apps/web
+        build:
+          commands:
+            - cd ../..
+            - pnpm turbo run build --filter=@adsspot/web...
+            - cd apps/web
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - ../../node_modules/**/*
+          - .next/cache/**/*
