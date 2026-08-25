@@ -226,37 +226,6 @@ function MobileAppInner() {
         </View>
       </Modal>
 
-      {/* 1. DEV PERSONA SWITCHER BAR */}
-      <View style={styles.devBar}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.devBarScroll}>
-          <TouchableOpacity onPress={() => setShowSplash(true)} style={styles.splashChip}>
-            <Text style={styles.splashChipText}>✨ Splash</Text>
-          </TouchableOpacity>
-
-          <Text style={styles.devBarLabel}>⚡ Role:</Text>
-          {personas.map((p) => {
-            const isSelected = user?.id === p.id;
-            return (
-              <TouchableOpacity
-                key={p.id}
-                onPress={() => {
-                  switchPersona(p.id);
-                  if (p.role === 'merchant') setPanelMode('merchant');
-                  else if (p.role === 'sm') setPanelMode('sm');
-                  else setPanelMode('consumer');
-                  showToast(`Switched to ${p.name} (${p.role})`);
-                }}
-                style={[styles.devChip, isSelected && styles.devChipActive]}
-              >
-                <Text style={[styles.devChipText, isSelected && styles.devChipTextActive]}>
-                  {p.role === 'merchant' ? `Merch (${p.tier})` : p.role.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
       {/* 2. TOP BRAND HEADER WITH AUTHENTIC UNIFIED VECTOR LOGO */}
       <View style={styles.header}>
         <View style={styles.headerBrand}>
@@ -684,28 +653,23 @@ function MobileAppInner() {
             </View>
           </View>
 
-          {/* Fast Switch Persona Panel */}
+          {/* User Details & Account Info */}
           <View style={styles.walletSectionBox}>
-            <Text style={styles.boxHeading}>Quick Switch Persona Account</Text>
-            {personas.map((p) => {
-              const isActive = user?.id === p.id;
-              return (
-                <TouchableOpacity
-                  key={p.id}
-                  onPress={() => {
-                    switchPersona(p.id);
-                    showToast(`Switched to ${p.name}`);
-                  }}
-                  style={[styles.personaRow, isActive && styles.personaRowActive]}
-                >
-                  <View>
-                    <Text style={[styles.personaName, isActive && { color: '#4787F2' }]}>{p.name}</Text>
-                    <Text style={styles.personaRole}>{p.description}</Text>
-                  </View>
-                  {isActive && <Check size={16} color="#4787F2" />}
-                </TouchableOpacity>
-              );
-            })}
+            <Text style={styles.boxHeading}>Account Details</Text>
+            <View style={{ paddingVertical: 8, gap: 10 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 12, color: '#687182' }}>Account Status</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#35AB4E' }}>● Active &amp; Verified</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 12, color: '#687182' }}>Pincode Territory</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#17181C' }}>Mumbai 400001</Text>
+              </View>
+              <View style={{ flexDirection: 'row', justifyContent: 'between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 12, color: '#687182' }}>Adsspot Unified ID</Text>
+                <Text style={{ fontSize: 11, fontFamily: 'monospace', color: '#4787F2' }}>{user?.id || 'GUEST'}</Text>
+              </View>
+            </View>
           </View>
 
           {/* Explicit Sign Out Button */}

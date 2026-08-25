@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth, SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
-import { Button, Card, Avatar, TrustedBadge, TierBadge, RoleBadge, Logo, AnimatedLogoMark } from '@adsspot/ui';
+import { SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
+import { Button, Card, Avatar, TrustedBadge, TierBadge, Logo, AnimatedLogoMark } from '@adsspot/ui';
 import { WebSplashScreen } from '../components/WebSplashScreen';
 
 import {
@@ -26,11 +26,9 @@ import {
   ChevronRight,
   Download,
   CheckCircle2,
-  Check,
 } from 'lucide-react';
 
 export default function HomePage() {
-  const { user, switchPersona, personas } = useAuth();
   const [showSplash, setShowSplash] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -566,63 +564,66 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 7. EVALUATION & DEMO PERSONA SWITCHER */}
+      {/* 7. PLATFORM ECOSYSTEM & PORTALS */}
       <section id="roles" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 w-full">
-        <div className="bg-white rounded-2xl border border-[#E3E8EF] p-8 shadow-card">
+        <div className="bg-white rounded-3xl border border-[#E3E8EF] p-8 sm:p-10 shadow-card">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-[#E3E8EF]">
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EDF4FF] text-[#1D53B8] text-xs font-bold mb-2">
-                <Users className="w-3.5 h-3.5 text-[#4787F2]" /> Role Testing &amp; Portals
+                <Users className="w-3.5 h-3.5 text-[#4787F2]" /> Unified Platform Ecosystem
               </div>
-              <h2 className="text-xl font-bold text-[#17181C]">Interactive Role Personas (1-Click Switch)</h2>
+              <h2 className="text-2xl font-black text-[#17181C]">Built for Every Stakeholder</h2>
               <p className="text-xs text-[#687182] mt-0.5">
-                Switch instantly between Consumer, Merchant Tiers, SM, RO, ZO, and Super Admin to test all shells.
+                From local shoppers to merchants and field sales networks across India.
               </p>
             </div>
             <Link href="/login">
-              <Button variant="primary" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                Phone OTP Login
+              <Button variant="primary" size="md" rightIcon={<ArrowRight className="w-4 h-4" />}>
+                Sign In to Your Account
               </Button>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
-            {personas.map((p) => {
-              const isCurrent = user?.id === p.id;
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => switchPersona(p.id)}
-                  className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                    isCurrent
-                      ? 'border-[#4787F2] bg-[#EDF4FF]/50 ring-1 ring-[#4787F2]'
-                      : 'border-[#E3E8EF] bg-white hover:border-[#4787F2]/40'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2.5">
-                    <Avatar src={p.avatar_url} name={p.name} size="sm" isElite={p.tier === 'elite'} />
-                    <div className="overflow-hidden">
-                      <div className="flex items-center gap-1">
-                        <RoleBadge role={p.role} size="sm" />
-                        {p.tier && <TierBadge tier={p.tier} size="sm" />}
-                      </div>
-                      <p className="text-xs font-bold text-[#17181C] truncate mt-1">{p.name}</p>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-[#687182] line-clamp-2 mb-3">{p.description}</p>
-                  <div className="flex items-center justify-between text-[11px] pt-2 border-t border-[#E3E8EF]/60">
-                    <span className="font-mono text-[#687182]">{p.phone}</span>
-                    {isCurrent ? (
-                      <span className="font-bold text-[#4787F2] flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Active
-                      </span>
-                    ) : (
-                      <span className="font-semibold text-[#4787F2]">Switch &rarr;</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 pt-8">
+            <div className="p-5 rounded-2xl border border-[#E3E8EF] bg-[#F4F6FB]/50 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#4787F2] flex items-center justify-center font-bold">
+                🛍️
+              </div>
+              <h3 className="text-sm font-bold text-[#17181C]">Local Consumers</h3>
+              <p className="text-xs text-[#687182] leading-relaxed">
+                Discover trending neighborhood shops, claim 24-hour festival spotlight deals, and pay with UPI wallet.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-[#E3E8EF] bg-[#F4F6FB]/50 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-100 text-[#F2B604] flex items-center justify-center font-bold">
+                🏬
+              </div>
+              <h3 className="text-sm font-bold text-[#17181C]">Verified Merchants</h3>
+              <p className="text-xs text-[#687182] leading-relaxed">
+                Manage business microsites, publish daily branded banners, and engage local shoppers directly via WhatsApp.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-[#E3E8EF] bg-[#F4F6FB]/50 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-[#35AB4E] flex items-center justify-center font-bold">
+                🚀
+              </div>
+              <h3 className="text-sm font-bold text-[#17181C]">Sales Managers (SM)</h3>
+              <p className="text-xs text-[#687182] leading-relaxed">
+                Field app with GPS check-in, pincode lead pipelines, owner instant onboarding, and daily target rings.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl border border-[#E3E8EF] bg-[#F4F6FB]/50 space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-100 text-[#981837] flex items-center justify-center font-bold">
+                📊
+              </div>
+              <h3 className="text-sm font-bold text-[#17181C]">RO, ZO &amp; Admin</h3>
+              <p className="text-xs text-[#687182] leading-relaxed">
+                City-wide hierarchy oversight, commission management, content moderation, and real-time revenue analytics.
+              </p>
+            </div>
           </div>
         </div>
       </section>

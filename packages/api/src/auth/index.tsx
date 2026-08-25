@@ -63,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [staffList, setStaffList] = useState<StaffProfile[]>(SEED_STAFF_PROFILES);
   const [merchantList, setMerchantList] = useState<Business[]>(SEED_BUSINESSES);
 
-  // Helper to construct fully hydrated AuthUser
+  // Helper to construct fully hydrated AuthUser with per-user wallet
   const buildAuthUser = (userId: string): AuthUser | null => {
     const baseUser =
       personas.find((p) => p.id === userId) ||
@@ -74,11 +74,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const staffProfile = staffList.find((s) => s.user_id === userId) || null;
     const businessProfile = merchantList.find((b) => b.owner_id === userId) || null;
 
+    // Retrieve per-user custom wallet balance or initialize based on role (new user = 0.00)
+    let userBalance = 0.0;
+    if (typeof window !== 'undefined') {
+      const storedWallet = localStorage.getItem(`adsspot_wallet_${userId}`);
+      if (storedWallet !== null) {
+        userBalance = parseFloat(storedWallet);
+      } else {
+        // Seed users have demo balances, real newly registered users start at ₹0.00
+        if (userId === 'usr-consumer-1') userBalance = 1540.0;
+        else if (userId === 'usr-merchant-1') userBalance = 10000.0;
+        else if (userId.startsWith('usr-staff')) userBalance = 5000.0;
+        else userBalance = 0.0;
+        localStorage.setItem(`adsspot_wallet_${userId}`, userBalance.toString());
+      }
+    }
+
     return {
       id: baseUser.id,
       phone: baseUser.phone,
       full_name: (baseUser as any).name || (baseUser as any).full_name || 'User',
-
       avatar_url: baseUser.avatar_url,
       role: baseUser.role,
       created_at: (baseUser as any).created_at || new Date().toISOString(),
@@ -88,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       wallet: {
         id: `wallet-${userId}`,
         user_id: userId,
-        balance: 1540.0,
+        balance: userBalance,
         currency: 'INR',
         updated_at: new Date().toISOString(),
       },

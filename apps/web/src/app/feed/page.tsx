@@ -164,11 +164,42 @@ export default function MobileFeedPage() {
     });
   };
 
+  // Load user saved posts from localStorage
+  useEffect(() => {
+    if (!user) {
+      setSavedPosts({});
+      return;
+    }
+    const storageKey = `adsspot_saved_${user.id}`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      try {
+        const arr: string[] = JSON.parse(stored);
+        const map: Record<string, boolean> = {};
+        arr.forEach((id) => {
+          map[id] = true;
+        });
+        setSavedPosts(map);
+      } catch {}
+    } else if (user.id === 'usr-consumer-1') {
+      setSavedPosts({ 'post-1': true, 'post-2': true });
+      localStorage.setItem(storageKey, JSON.stringify(['post-1', 'post-2']));
+    }
+  }, [user]);
+
   const handleToggleSave = (postId: string) => {
+    if (!user) {
+      showToast('Please sign in to bookmark deals.');
+      return;
+    }
     setSavedPosts((prev) => {
       const isSaved = !prev[postId];
       showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-      return { ...prev, [postId]: isSaved };
+      const nextMap = { ...prev, [postId]: isSaved };
+
+      const activeIds = Object.keys(nextMap).filter((k) => nextMap[k]);
+      localStorage.setItem(`adsspot_saved_${user.id}`, JSON.stringify(activeIds));
+      return nextMap;
     });
   };
 
