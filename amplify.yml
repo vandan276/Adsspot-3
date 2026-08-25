@@ -8,13 +8,14 @@ applications:
             - corepack enable
             - corepack prepare pnpm@latest --activate
             - pnpm --version
+            - npm install -g turbo
             - cd ../..
-            - pnpm install --no-frozen-lockfile
+            - pnpm install --no-frozen-lockfile --prod=false
             - cd apps/web
         build:
           commands:
             - cd ../..
-            - pnpm turbo run build --filter=@adsspot/web...
+            - turbo run build --filter=@adsspot/web...
             - cd apps/web
       artifacts:
         baseDirectory: .next
