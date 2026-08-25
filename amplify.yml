@@ -9,7 +9,7 @@ applications:
             - corepack prepare pnpm@latest --activate
             - pnpm --version
             - cd ../..
-            - pnpm install --frozen-lockfile
+            - pnpm install --no-frozen-lockfile
             - cd apps/web
         build:
           commands:
