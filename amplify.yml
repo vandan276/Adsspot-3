@@ -5,10 +5,7 @@ applications:
       phases:
         preBuild:
           commands:
-            - corepack enable
-            - corepack prepare pnpm@latest --activate
-            - pnpm --version
-            - npm install -g turbo
+            - npm install -g pnpm@9 turbo
             - cd ../..
             - pnpm install --no-frozen-lockfile --prod=false
             - cd apps/web
@@ -17,20 +14,11 @@ applications:
             - cd ../..
             - turbo run build --filter=@adsspot/web...
             - cd apps/web
-            - mkdir -p node_modules
-            - cp -rn ../../node_modules/.pnpm/next@* /tmp/next_pnpm 2>/dev/null || true
-            - cp -r ../../node_modules/next ./node_modules/ 2>/dev/null || true
-            - cp -r ../../node_modules/@next ./node_modules/ 2>/dev/null || true
-            - cp -r ../../node_modules/react ./node_modules/ 2>/dev/null || true
-            - cp -r ../../node_modules/react-dom ./node_modules/ 2>/dev/null || true
-            - cp -r ../../node_modules/* ./node_modules/ 2>/dev/null || true
       artifacts:
         baseDirectory: .next
         files:
           - '**/*'
       cache:
         paths:
-          - ../../node_modules/**/*
-          - node_modules/**/*
           - .next/cache/**/*
           - $(pnpm store path)
