@@ -34,9 +34,20 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
     if (!mapContainerRef.current) return;
     if (mapRef.current) return;
 
+    let initCenter: [number, number] = [22.3106, 73.1678]; // Vadodara Alkapuri Hub
+    try {
+      const storedLoc = localStorage.getItem('adsspot_user_location');
+      if (storedLoc) {
+        const parsed = JSON.parse(storedLoc);
+        if (parsed.lat && parsed.lng) {
+          initCenter = [parsed.lat, parsed.lng];
+        }
+      }
+    } catch {}
+
     const map = L.map(mapContainerRef.current, {
-      center: [18.933, 72.834], // Fort, South Mumbai center
-      zoom: 15,
+      center: initCenter,
+      zoom: 14.5,
       zoomControl: false,
     });
 
@@ -58,7 +69,23 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
 
     mapRef.current = map;
 
+    // Listen for dynamic location switches
+    const handleLocUpdate = () => {
+      try {
+        const updated = localStorage.getItem('adsspot_user_location');
+        if (updated && mapRef.current) {
+          const loc = JSON.parse(updated);
+          if (loc.lat && loc.lng) {
+            mapRef.current.flyTo([loc.lat, loc.lng], 15, { animate: true, duration: 1.2 });
+          }
+        }
+      } catch {}
+    };
+
+    window.addEventListener('adsspot_location_changed', handleLocUpdate);
+
     return () => {
+      window.removeEventListener('adsspot_location_changed', handleLocUpdate);
       map.remove();
       mapRef.current = null;
     };

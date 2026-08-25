@@ -38,19 +38,25 @@ export const SEED_CATEGORIES: Category[] = [
 // 2. Geographic Hierarchy (Cities, Regions, Pincodes)
 // ==========================================
 export const SEED_CITIES: City[] = [
+  { id: 'city-vad', name: 'Vadodara', state: 'Gujarat', zo_user_id: 'usr-zo-1', created_at: '2026-01-01T00:00:00Z' },
   { id: 'city-mum', name: 'Mumbai', state: 'Maharashtra', zo_user_id: 'usr-zo-1', created_at: '2026-01-01T00:00:00Z' },
+  { id: 'city-ahm', name: 'Ahmedabad', state: 'Gujarat', zo_user_id: null, created_at: '2026-01-01T00:00:00Z' },
   { id: 'city-del', name: 'Delhi NCR', state: 'Delhi', zo_user_id: null, created_at: '2026-01-01T00:00:00Z' },
   { id: 'city-blr', name: 'Bengaluru', state: 'Karnataka', zo_user_id: null, created_at: '2026-01-01T00:00:00Z' },
-  { id: 'city-ahm', name: 'Ahmedabad', state: 'Gujarat', zo_user_id: null, created_at: '2026-01-01T00:00:00Z' },
 ];
 
 export const SEED_REGIONS: Region[] = [
+  { id: 'reg-vad-alkapuri', city_id: 'city-vad', name: 'Alkapuri & Old Padra', ro_user_id: 'usr-ro-1', created_at: '2026-01-01T00:00:00Z' },
+  { id: 'reg-vad-mandvi', city_id: 'city-vad', name: 'Mandvi & Raopura', ro_user_id: 'usr-ro-1', created_at: '2026-01-01T00:00:00Z' },
   { id: 'reg-mum-south', city_id: 'city-mum', name: 'Mumbai South', ro_user_id: 'usr-ro-1', created_at: '2026-01-01T00:00:00Z' },
   { id: 'reg-mum-west', city_id: 'city-mum', name: 'Mumbai Western Suburbs', ro_user_id: null, created_at: '2026-01-01T00:00:00Z' },
   { id: 'reg-mum-central', city_id: 'city-mum', name: 'Mumbai Central Suburbs', ro_user_id: null, created_at: '2026-01-01T00:00:00Z' },
 ];
 
 export const SEED_PINCODES: PincodeTerritory[] = [
+  { pincode: '390007', region_id: 'reg-vad-alkapuri', city_id: 'city-vad', assigned_sm_id: 'usr-sm-1', updated_at: '2026-01-01T00:00:00Z' },
+  { pincode: '390001', region_id: 'reg-vad-mandvi', city_id: 'city-vad', assigned_sm_id: 'usr-sm-1', updated_at: '2026-01-01T00:00:00Z' },
+  { pincode: '390020', region_id: 'reg-vad-alkapuri', city_id: 'city-vad', assigned_sm_id: 'usr-sm-1', updated_at: '2026-01-01T00:00:00Z' },
   { pincode: '400001', region_id: 'reg-mum-south', city_id: 'city-mum', assigned_sm_id: 'usr-sm-1', updated_at: '2026-01-01T00:00:00Z' },
   { pincode: '400020', region_id: 'reg-mum-south', city_id: 'city-mum', assigned_sm_id: 'usr-sm-1', updated_at: '2026-01-01T00:00:00Z' },
   { pincode: '400050', region_id: 'reg-mum-west', city_id: 'city-mum', assigned_sm_id: null, updated_at: '2026-01-01T00:00:00Z' },
@@ -218,9 +224,146 @@ export const SEED_PLANS: Plan[] = [
 ];
 
 // ==========================================
-// 5. Businesses across Tiers
+// 5. Businesses across Tiers (Vadodara & Mumbai)
 // ==========================================
 export const SEED_BUSINESSES: Business[] = [
+  // Vadodara Famous Landmarks & Businesses
+  {
+    id: 'biz-vad-1',
+    owner_id: 'usr-merch-elite',
+    category_id: 'cat-1',
+    name: 'Mandap — Authentic Gujarati Dining',
+    slug: 'mandap-gujarati-thali',
+    description: 'Iconic heritage royal Gujarati Thali since 1974, known for authentic seasonal delicacies, Rasawala Khaman, and Puran Poli in royal Baroda style.',
+    address: 'Express Hotel, RC Dutt Road, Alkapuri',
+    pincode: '390007',
+    lat: 22.3106,
+    lng: 73.1678,
+    phone: '+912652330720',
+    whatsapp: '+919876543213',
+    logo_url: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=200&auto=format&fit=crop&q=80',
+    cover_url: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80',
+    trusted: true,
+    status: 'active',
+    tier: 'elite',
+    created_at: '2026-01-10T00:00:00Z',
+    stats: {
+      views_count: 28450,
+      likes_count: 5620,
+      followers_count: 3410,
+      reviews_count: 245,
+      avg_rating: 4.9,
+    },
+  },
+  {
+    id: 'biz-vad-2',
+    owner_id: 'usr-merch-prem',
+    category_id: 'cat-1',
+    name: 'Jagdish Farshan & Sweets',
+    slug: 'jagdish-farshan-vadodara',
+    description: 'World-famous Vadodara special Bhakarwadi, Sev Usal mix, Lilo Chevdo, and pure Ghee Mohan Thal serving patrons since 1938.',
+    address: 'Jubilee Baug Road, Raopura / Alkapuri Branch',
+    pincode: '390001',
+    lat: 22.3008,
+    lng: 73.2043,
+    phone: '+912652410188',
+    whatsapp: '+919876543212',
+    logo_url: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=200&auto=format&fit=crop&q=80',
+    cover_url: 'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?w=800&auto=format&fit=crop&q=80',
+    trusted: true,
+    status: 'active',
+    tier: 'premium',
+    created_at: '2026-01-12T00:00:00Z',
+    stats: {
+      views_count: 19800,
+      likes_count: 3980,
+      followers_count: 2150,
+      reviews_count: 188,
+      avg_rating: 4.8,
+    },
+  },
+  {
+    id: 'biz-vad-3',
+    owner_id: 'usr-merch-elite',
+    category_id: 'cat-7',
+    name: 'C.H. Jewellers',
+    slug: 'ch-jewellers-alkapuri',
+    description: 'Gujarat premier jewellery destination featuring Solitaire Polki, 916 BIS Hallmark Diamond Bridal Masterpieces & Antique Temple Jewellery.',
+    address: 'CH House, Near Alkapuri Society, Alkapuri',
+    pincode: '390007',
+    lat: 22.3128,
+    lng: 73.1695,
+    phone: '+912652300000',
+    whatsapp: '+919876543214',
+    logo_url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&auto=format&fit=crop&q=80',
+    cover_url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80',
+    trusted: true,
+    status: 'active',
+    tier: 'elite',
+    created_at: '2026-01-14T00:00:00Z',
+    stats: {
+      views_count: 32100,
+      likes_count: 6720,
+      followers_count: 4890,
+      reviews_count: 310,
+      avg_rating: 4.95,
+    },
+  },
+  {
+    id: 'biz-vad-4',
+    owner_id: 'usr-merch-prem',
+    category_id: 'cat-1',
+    name: 'Canara Coffee House',
+    slug: 'canara-coffee-house',
+    description: 'Vadodara beloved vintage South Indian filter coffee & crisp hot Masala Dosa center since 1956 near Sayajigunj.',
+    address: 'Near Dairy Den Circle, Sayajigunj',
+    pincode: '390005',
+    lat: 22.3082,
+    lng: 73.1891,
+    phone: '+912652794455',
+    whatsapp: '+919876543215',
+    logo_url: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=200&auto=format&fit=crop&q=80',
+    cover_url: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&auto=format&fit=crop&q=80',
+    trusted: true,
+    status: 'active',
+    tier: 'premium',
+    created_at: '2026-01-18T00:00:00Z',
+    stats: {
+      views_count: 15400,
+      likes_count: 2890,
+      followers_count: 1420,
+      reviews_count: 142,
+      avg_rating: 4.7,
+    },
+  },
+  {
+    id: 'biz-vad-5',
+    owner_id: 'usr-merch-basic',
+    category_id: 'cat-1',
+    name: 'Mahakali Sev Usal & Snacks',
+    slug: 'mahakali-sev-usal',
+    description: 'The legendary fiery Tari & Sev Usal of Vadodara, served hot with butter pav and spicy spring onions since decades.',
+    address: 'Kirti Stambh, Salatwada Road',
+    pincode: '390001',
+    lat: 22.3025,
+    lng: 73.2081,
+    phone: '+919825123456',
+    whatsapp: '+919825123456',
+    logo_url: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=200&auto=format&fit=crop&q=80',
+    cover_url: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80',
+    trusted: false,
+    status: 'active',
+    tier: 'basic',
+    created_at: '2026-02-01T00:00:00Z',
+    stats: {
+      views_count: 9420,
+      likes_count: 1680,
+      followers_count: 850,
+      reviews_count: 94,
+      avg_rating: 4.6,
+    },
+  },
+  // Mumbai Businesses
   {
     id: 'biz-elite-1',
     owner_id: 'usr-merch-elite',
@@ -309,6 +452,20 @@ export const SEED_BUSINESSES: Business[] = [
 // ==========================================
 export const SEED_STORIES: Story[] = [
   {
+    id: 'story-vad-1',
+    business_id: 'biz-vad-1',
+    media_url: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&auto=format&fit=crop&q=80',
+    expires_at: new Date(Date.now() + 22 * 3600 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
+  },
+  {
+    id: 'story-vad-3',
+    business_id: 'biz-vad-3',
+    media_url: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80',
+    expires_at: new Date(Date.now() + 16 * 3600 * 1000).toISOString(),
+    created_at: new Date(Date.now() - 8 * 3600 * 1000).toISOString(),
+  },
+  {
     id: 'story-1',
     business_id: 'biz-elite-1',
     media_url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&auto=format&fit=crop&q=80',
@@ -318,6 +475,42 @@ export const SEED_STORIES: Story[] = [
 ];
 
 export const SEED_POSTS: Post[] = [
+  {
+    id: 'post-vad-1',
+    business_id: 'biz-vad-1',
+    caption: '👑 Experience the Royal Heritage of Vadodara with our authentic Grand Gujarati Thali at Mandap, Express Hotel Alkapuri. Featuring steaming hot Puran Poli, Kaju Karela, and fresh Aamras! 🥘✨',
+    image_urls: [
+      'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80',
+    ],
+    likes_count: 894,
+    comments_count: 62,
+    created_at: '2026-08-25T07:30:00Z',
+  },
+  {
+    id: 'post-vad-2',
+    business_id: 'biz-vad-2',
+    caption: '🍬 Fresh Batch Alert! World-famous Vadodara special Crispy Bhakarwadi and pure Desi Ghee Mohan Thal freshly prepared today at Jagdish Farshan. Walk in or tap to order via WhatsApp! 🛍️',
+    image_urls: [
+      'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1505253758473-96b7015fcd40?w=800&auto=format&fit=crop&q=80',
+    ],
+    likes_count: 642,
+    comments_count: 45,
+    created_at: '2026-08-25T06:15:00Z',
+  },
+  {
+    id: 'post-vad-3',
+    business_id: 'biz-vad-3',
+    caption: '💎 Exclusive Solitaire Bridal Preview at C.H. Jewellers Alkapuri. Handcrafted 22KT antique Temple Gold jewellery inspired by the royal Gaekwads of Baroda. 👑✨',
+    image_urls: [
+      'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80',
+    ],
+    likes_count: 1250,
+    comments_count: 88,
+    created_at: '2026-08-24T14:20:00Z',
+  },
   {
     id: 'post-1',
     business_id: 'biz-elite-1',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
@@ -25,6 +25,22 @@ const RealtimeExploreMap = dynamic(
 export default function ExplorePage() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'split' | 'map'>('split');
+  const [locationName, setLocationName] = useState('Vadodara, Gujarat');
+
+  useEffect(() => {
+    const updateLoc = () => {
+      try {
+        const storedLoc = localStorage.getItem('adsspot_user_location');
+        if (storedLoc) {
+          const loc = JSON.parse(storedLoc);
+          setLocationName(`${loc.city} (${loc.pincode}) — ${loc.area}`);
+        }
+      } catch {}
+    };
+    updateLoc();
+    window.addEventListener('adsspot_location_changed', updateLoc);
+    return () => window.removeEventListener('adsspot_location_changed', updateLoc);
+  }, []);
 
   const filtered = SEED_BUSINESSES.filter((b) => {
     return selectedCat === 'all' || b.category_id === selectedCat;
@@ -36,7 +52,10 @@ export default function ExplorePage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black text-[#17181C] tracking-tight">Real-Time Hyperlocal Map</h1>
-          <p className="text-xs text-[#687182]">Live GPS coordinates, festival spot offers &amp; verified stores in Fort 400001</p>
+          <p className="text-xs text-[#687182] flex items-center gap-1 mt-0.5">
+            <MapPin className="w-3.5 h-3.5 text-[#4787F2]" />
+            <span>Showing verified spots around <strong className="text-[#17181C]">{locationName}</strong></span>
+          </p>
         </div>
 
         {/* View Mode Toggle */}

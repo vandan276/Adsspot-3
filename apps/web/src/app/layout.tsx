@@ -5,7 +5,7 @@ import { AuthProvider } from '@adsspot/api';
 import { Navbar } from '../components/Navbar';
 import { FloatingMobileNav } from '../components/FloatingMobileNav';
 
-import { PwaInstallPrompt } from '../components/PwaInstallPrompt';
+import { LocationPromptModal } from '../components/LocationPromptModal';
 
 export const metadata: Metadata = {
   title: 'Adsspot — Hyperlocal Business Discovery & Marketing Platform',
@@ -45,7 +45,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-[#F4F6FB] text-[#17181C] antialiased flex flex-col">
         <AuthProvider>
           <Navbar />
-          <PwaInstallPrompt />
+          <LocationPromptModal />
           <main className="flex-1 flex flex-col">{children}</main>
           <FloatingMobileNav />
         </AuthProvider>

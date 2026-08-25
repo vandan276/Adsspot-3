@@ -89,14 +89,27 @@ export default function HomePage() {
               <MapPin className="w-4 h-4 text-[#4787F2]" />
               <select
                 value={selectedCity}
-                onChange={(e) => setSelectedCity(e.target.value)}
+                onChange={(e) => {
+                  setSelectedCity(e.target.value);
+                  if (e.target.value === 'Vadodara') {
+                    localStorage.setItem('adsspot_user_location', JSON.stringify({
+                      city: 'Vadodara',
+                      pincode: '390007',
+                      area: 'Alkapuri & Old Padra Road',
+                      lat: 22.3106,
+                      lng: 73.1678
+                    }));
+                    window.dispatchEvent(new Event('adsspot_location_changed'));
+                  }
+                }}
                 aria-label="Select City"
                 className="bg-transparent text-sm font-bold text-[#17181C] outline-none cursor-pointer"
               >
+                <option value="Vadodara">Alkapuri, Vadodara 390007</option>
                 <option value="Mumbai">Fort, Mumbai 400001</option>
-                <option value="Delhi">Connaught Place, Delhi 110001</option>
-                <option value="Bengaluru">Indiranagar, Bengaluru 560038</option>
                 <option value="Ahmedabad">Navrangpura, Ahmedabad 380009</option>
+                <option value="Bengaluru">Indiranagar, Bengaluru 560038</option>
+                <option value="Delhi">Connaught Place, Delhi 110001</option>
               </select>
             </div>
 
