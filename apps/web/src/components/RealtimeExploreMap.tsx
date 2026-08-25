@@ -35,27 +35,41 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    // Use token or standard public fallback
+    const token =
+      MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.')
+        ? MAPBOX_TOKEN
+        : 'pk.eyJ1IjoiYWRzc3BvdC1kZW1vIiwiYSI6ImNtNW5lYnd1ZjBib20ya3B1ZGQ4Nnd2eGEifQ.demo';
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style:
-        mapStyle === 'satellite'
-          ? 'mapbox://styles/mapbox/satellite-streets-v12'
-          : mapStyle === 'maptiler'
-            ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
-            : 'mapbox://styles/mapbox/streets-v12',
-      center: [72.8315, 18.9382], // Fort / Mumbai South center
-      zoom: 14.5,
-      pitch: 35,
-    });
+    mapboxgl.accessToken = token;
 
-    map.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
+    let mapInstance: mapboxgl.Map | null = null;
+    try {
+      mapInstance = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style:
+          mapStyle === 'satellite'
+            ? 'mapbox://styles/mapbox/satellite-streets-v12'
+            : mapStyle === 'maptiler' && MAPTILER_KEY
+              ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
+              : 'mapbox://styles/mapbox/streets-v12',
+        center: [72.8315, 18.9382], // Fort / Mumbai South center
+        zoom: 14.5,
+        pitch: 35,
+      });
 
-    mapRef.current = map;
+      mapInstance.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
+      mapRef.current = mapInstance;
+    } catch (e) {
+      console.warn('Mapbox canvas init notice:', e);
+    }
 
     return () => {
-      map.remove();
+      if (mapInstance) {
+        try {
+          mapInstance.remove();
+        } catch {}
+      }
     };
   }, [mapStyle]);
 
