@@ -61,34 +61,34 @@ export const FloatingMobileNav: React.FC = () => {
   };
 
   const getProfileIcon = () => {
-    if (!user) return <User className="w-4 h-4 stroke-[1.8]" />;
+    if (!user) return <User className="w-5 h-5 stroke-[2]" />;
     switch (user.role) {
       case 'merchant':
-        return <Store className="w-4 h-4 stroke-[1.8]" />;
+        return <Store className="w-5 h-5 stroke-[2]" />;
       case 'super_admin':
-        return <Crown className="w-4 h-4 stroke-[1.8]" />;
+        return <Crown className="w-5 h-5 stroke-[2]" />;
       case 'sm':
-        return <MapPin className="w-4 h-4 stroke-[1.8]" />;
+        return <MapPin className="w-5 h-5 stroke-[2]" />;
       case 'ro':
       case 'zo':
-        return <Shield className="w-4 h-4 stroke-[1.8]" />;
+        return <Shield className="w-5 h-5 stroke-[2]" />;
       default:
-        return <User className="w-4 h-4 stroke-[1.8]" />;
+        return <User className="w-5 h-5 stroke-[2]" />;
     }
   };
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-40 flex justify-center px-4 pointer-events-none md:hidden">
-      <nav className="pointer-events-auto bg-white/95 backdrop-blur-md border border-[#E3E8EF] shadow-xl rounded-full px-2 py-1 w-full max-w-[310px] grid grid-cols-5 items-center">
+    <div className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none md:hidden">
+      <nav className="pointer-events-auto bg-white/95 backdrop-blur-xl border border-[#E3E8EF] shadow-[0_12px_36px_rgba(23,24,28,0.14)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center">
         {/* 1. Home */}
         <Link
           href="/feed"
-          className={`flex flex-col items-center justify-center py-0.5 transition-all group ${
+          className={`flex flex-col items-center justify-center py-1 transition-all group ${
             isHome ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <Home className={`w-4 h-4 transition-transform group-hover:scale-105 ${isHome ? 'stroke-[2.2]' : 'stroke-[1.8]'}`} />
-          <span className={`text-[9px] mt-0.5 ${isHome ? 'font-black text-[#4787F2]' : 'font-medium'}`}>
+          <Home className={`w-5 h-5 transition-transform group-hover:scale-110 ${isHome ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isHome ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
             Home
           </span>
         </Link>
@@ -96,49 +96,48 @@ export const FloatingMobileNav: React.FC = () => {
         {/* 2. Wallet */}
         <Link
           href="/wallet"
-          className={`flex flex-col items-center justify-center py-0.5 transition-all group ${
+          className={`flex flex-col items-center justify-center py-1 transition-all group ${
             isWallet ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <Wallet className={`w-4 h-4 transition-transform group-hover:scale-105 ${isWallet ? 'stroke-[2.2]' : 'stroke-[1.8]'}`} />
-          <span className={`text-[9px] mt-0.5 ${isWallet ? 'font-black text-[#4787F2]' : 'font-medium'}`}>
+          <Wallet className={`w-5 h-5 transition-transform group-hover:scale-110 ${isWallet ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isWallet ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
             Wallet
           </span>
         </Link>
 
-        {/* 3. Center Explore Button (Bigger, Elevated & Glowing with Spot Ring) */}
+        {/* 3. Center Explore Button (Elevated, Raised Spot Ring) */}
         <Link
           href="/explore"
-          className="relative -top-3.5 flex flex-col items-center justify-center group focus:outline-none"
+          className="relative -top-5 flex flex-col items-center justify-center group focus:outline-none"
         >
           <div
-            className={`w-12 h-12 rounded-full bg-white flex items-center justify-center transform transition-all group-hover:scale-110 group-active:scale-95 shadow-[0_4px_16px_rgba(71,135,242,0.4)] ${
+            className={`w-14 h-14 rounded-full bg-white flex items-center justify-center transform transition-all group-hover:scale-110 group-active:scale-95 shadow-[0_6px_22px_rgba(71,135,242,0.45)] border-2 ${
               isExplore
-                ? 'ring-3 ring-[#4787F2] shadow-[0_0_20px_rgba(71,135,242,0.6)] animate-pulse'
-                : 'ring-2 ring-[#4787F2]/60 hover:ring-[#4787F2]'
+                ? 'border-[#4787F2] ring-4 ring-[#4787F2]/25 shadow-[0_0_24px_rgba(71,135,242,0.65)]'
+                : 'border-white ring-2 ring-[#4787F2]/40 hover:ring-[#4787F2]'
             }`}
           >
-            <AdsspotLogoMark size={28} />
+            <AdsspotLogoMark size={34} />
           </div>
           <span
-            className={`text-[9px] mt-0.5 tracking-tight flex items-center gap-0.5 ${
-              isExplore ? 'font-black text-[#4787F2]' : 'font-bold text-[#17181C]'
+            className={`text-[11px] mt-1 font-black tracking-tight flex items-center gap-0.5 ${
+              isExplore ? 'text-[#4787F2]' : 'text-[#17181C]'
             }`}
           >
             Explore
           </span>
         </Link>
 
-
         {/* 4. Saved */}
         <Link
           href="/saved"
-          className={`flex flex-col items-center justify-center py-0.5 transition-all group ${
+          className={`flex flex-col items-center justify-center py-1 transition-all group ${
             isSaved ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <Bookmark className={`w-4 h-4 transition-transform group-hover:scale-105 ${isSaved ? 'stroke-[2.2]' : 'stroke-[1.8]'}`} />
-          <span className={`text-[9px] mt-0.5 ${isSaved ? 'font-black text-[#4787F2]' : 'font-medium'}`}>
+          <Bookmark className={`w-5 h-5 transition-transform group-hover:scale-110 ${isSaved ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isSaved ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
             Saved
           </span>
         </Link>
@@ -146,14 +145,14 @@ export const FloatingMobileNav: React.FC = () => {
         {/* 5. Role Portal / Profile */}
         <Link
           href={getProfileLink()}
-          className={`flex flex-col items-center justify-center py-0.5 transition-all group ${
+          className={`flex flex-col items-center justify-center py-1 transition-all group ${
             isProfile ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <div className="transition-transform group-hover:scale-105">
+          <div className="transition-transform group-hover:scale-110">
             {getProfileIcon()}
           </div>
-          <span className={`text-[9px] mt-0.5 ${isProfile ? 'font-black text-[#4787F2]' : 'font-medium'}`}>
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isProfile ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
             {getProfileLabel()}
           </span>
         </Link>
