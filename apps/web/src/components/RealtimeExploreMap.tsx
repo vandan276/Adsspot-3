@@ -11,9 +11,6 @@ import {
   Layers,
 } from 'lucide-react';
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
-const MAPTILER_KEY = process.env.NEXT_PUBLIC_MAPTILER_KEY || '';
-
 interface RealtimeExploreMapProps {
   businesses: Business[];
   selectedCategory?: string;
@@ -31,37 +28,73 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
   const [mapStyle, setMapStyle] = useState<'streets' | 'satellite' | 'maptiler'>('streets');
   const [isLocating, setIsLocating] = useState(false);
 
-  // Initialize Map
+  // Initialize Map with reliable standard tiles
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Use token or standard public fallback
-    const token =
-      MAPBOX_TOKEN && MAPBOX_TOKEN.startsWith('pk.')
-        ? MAPBOX_TOKEN
-        : 'pk.eyJ1IjoiYWRzc3BvdC1kZW1vIiwiYSI6ImNtNW5lYnd1ZjBib20ya3B1ZGQ4Nnd2eGEifQ.demo';
-
-    mapboxgl.accessToken = token;
-
     let mapInstance: mapboxgl.Map | null = null;
     try {
+      // Standard raster tile style (CartoDB / OpenStreetMap) for guaranteed crisp rendering
+      const mapboxStyle =
+        mapStyle === 'satellite'
+          ? {
+              version: 8 as const,
+              sources: {
+                'satellite-tiles': {
+                  type: 'raster' as const,
+                  tiles: [
+                    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                  ],
+                  tileSize: 256,
+                },
+              },
+              layers: [
+                {
+                  id: 'satellite-layer',
+                  type: 'raster' as const,
+                  source: 'satellite-tiles',
+                  minzoom: 0,
+                  maxzoom: 19,
+                },
+              ],
+            }
+          : {
+              version: 8 as const,
+              sources: {
+                'osm-tiles': {
+                  type: 'raster' as const,
+                  tiles: [
+                    'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+                    'https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+                    'https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+                  ],
+                  tileSize: 256,
+                  attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+                },
+              },
+              layers: [
+                {
+                  id: 'osm-layer',
+                  type: 'raster' as const,
+                  source: 'osm-tiles',
+                  minzoom: 0,
+                  maxzoom: 20,
+                },
+              ],
+            };
+
       mapInstance = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style:
-          mapStyle === 'satellite'
-            ? 'mapbox://styles/mapbox/satellite-streets-v12'
-            : mapStyle === 'maptiler' && MAPTILER_KEY
-              ? `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`
-              : 'mapbox://styles/mapbox/streets-v12',
-        center: [72.8315, 18.9382], // Fort / Mumbai South center
-        zoom: 14.5,
-        pitch: 35,
+        style: mapboxStyle as any,
+        center: [72.834, 18.933], // Fort / South Mumbai shopping hub
+        zoom: 14.8,
+        pitch: 0,
       });
 
       mapInstance.addControl(new mapboxgl.NavigationControl({ showCompass: true }), 'top-right');
       mapRef.current = mapInstance;
     } catch (e) {
-      console.warn('Mapbox canvas init notice:', e);
+      console.warn('Map canvas init notice:', e);
     }
 
     return () => {
@@ -212,37 +245,38 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full" />
 
-      {/* Top Map Controls */}
-      <div className="absolute top-3 left-3 z-10 flex gap-2">
-        {/* Style Switcher */}
-        <div className="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-neutral-200 flex items-center gap-1.5 text-xs font-bold">
-          <Layers className="w-3.5 h-3.5 text-[#4787F2]" />
-          <select
-            value={mapStyle}
-            onChange={(e) => setMapStyle(e.target.value as any)}
-            className="bg-transparent outline-none cursor-pointer text-[#17181C]"
+      {/* Top Map Controls - Responsively Stacked without Overlapping */}
+      <div className="absolute top-3 left-3 right-14 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Style Switcher */}
+          <div className="bg-white/95 backdrop-blur-md px-2.5 py-1.5 rounded-full shadow-lg border border-neutral-200 flex items-center gap-1.5 text-xs font-bold">
+            <Layers className="w-3.5 h-3.5 text-[#4787F2]" />
+            <select
+              value={mapStyle}
+              onChange={(e) => setMapStyle(e.target.value as any)}
+              className="bg-transparent outline-none cursor-pointer text-[#17181C] text-xs font-bold"
+            >
+              <option value="streets">Streets</option>
+              <option value="satellite">Satellite</option>
+            </select>
+          </div>
+
+          {/* Real-time GPS Locator */}
+          <button
+            onClick={handleLocateMe}
+            disabled={isLocating}
+            className="bg-white/95 hover:bg-white backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-neutral-200 flex items-center gap-1.5 text-xs font-bold text-[#4787F2] transition-transform active:scale-95 shrink-0"
           >
-            <option value="streets">Mapbox Streets</option>
-            <option value="satellite">Satellite Hybrid</option>
-            <option value="maptiler">MapTiler Vector</option>
-          </select>
+            <Navigation className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{isLocating ? 'Locating...' : 'Near Me'}</span>
+          </button>
         </div>
 
-        {/* Real-time GPS Locator */}
-        <button
-          onClick={handleLocateMe}
-          disabled={isLocating}
-          className="bg-white/95 hover:bg-white backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-lg border border-neutral-200 flex items-center gap-1.5 text-xs font-bold text-[#4787F2] transition-transform active:scale-95"
-        >
-          <Navigation className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
-          <span>{isLocating ? 'Locating...' : 'Near Me'}</span>
-        </button>
-      </div>
-
-      {/* Realtime Live Marker Pill */}
-      <div className="absolute top-3 right-12 z-10 bg-[#17181C]/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full shadow-lg text-[11px] font-extrabold flex items-center gap-2 border border-neutral-700">
-        <span className="w-2 h-2 rounded-full bg-[#35AB4E] animate-ping" />
-        <span>{businesses.length} Real-time Spots</span>
+        {/* Realtime Live Marker Pill */}
+        <div className="bg-[#17181C]/90 backdrop-blur-md text-white px-2.5 py-1 rounded-full shadow-lg text-[10px] font-extrabold flex items-center gap-1.5 border border-neutral-700 pointer-events-auto">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#35AB4E] animate-ping" />
+          <span>{businesses.length} Spots</span>
+        </div>
       </div>
 
       {/* Active Business Floating Card Popup */}
