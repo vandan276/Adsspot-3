@@ -17,6 +17,7 @@ applications:
             - cd ../..
             - turbo run build --filter=@adsspot/web...
             - cd apps/web
+            - if [ ! -d "node_modules/next" ]; then cp -rn ../../node_modules/* ./node_modules/ 2>/dev/null || true; fi
       artifacts:
         baseDirectory: .next
         files:
@@ -25,3 +26,4 @@ applications:
         paths:
           - ../../node_modules/**/*
           - .next/cache/**/*
+          - $(pnpm store path)
