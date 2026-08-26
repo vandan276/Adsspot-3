@@ -22,50 +22,66 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (phone.length < 10) {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (phone.replace(/[^0-9]/g, '').length < 10) {
       setError('Please enter a valid 10-digit mobile number');
       return;
     }
     setError(null);
     setLoading(true);
-    const res = await loginWithPhone(phone);
-    setLoading(false);
-    if (res.success) {
-      setStep('otp');
+    try {
+      const res = await loginWithPhone(phone);
+      if (res.success) {
+        setStep('otp');
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Failed to send OTP code.');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setError(null);
     setLoading(true);
-    const res = await verifyOtp(phone, otp || '123456');
-    setLoading(false);
-    if (res.success && res.user) {
-      // Route to user's portal
-      switch (res.user.role) {
-        case 'super_admin':
-          router.push('/admin');
-          break;
-        case 'zo':
-          router.push('/zo');
-          break;
-        case 'ro':
-          router.push('/ro');
-          break;
-        case 'sm':
-          router.push('/sm');
-          break;
-        case 'merchant':
-          router.push('/merchant');
-          break;
-        default:
-          router.push('/');
-          break;
+    try {
+      const res = await verifyOtp(phone, otp || '123456');
+      if (res.success && res.user) {
+        // Route to user's portal
+        switch (res.user.role) {
+          case 'super_admin':
+            router.push('/admin');
+            break;
+          case 'zo':
+            router.push('/zo');
+            break;
+          case 'ro':
+            router.push('/ro');
+            break;
+          case 'sm':
+            router.push('/sm');
+            break;
+          case 'merchant':
+            router.push('/merchant');
+            break;
+          default:
+            router.push('/');
+            break;
+        }
+      } else {
+        setError(res.error || 'Invalid OTP code. Please enter 123456');
       }
-    } else {
-      setError(res.error || 'Invalid OTP code. Please enter 123456');
+    } catch (err: any) {
+      setError(err?.message || 'Verification error.');
+    } finally {
+      setLoading(false);
     }
   };
 
