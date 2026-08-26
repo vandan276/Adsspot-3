@@ -21,7 +21,6 @@ import {
   Stethoscope,
   Printer,
   Calendar,
-  CheckCircle2,
 } from 'lucide-react';
 
 const B2B_QUICK_CATEGORIES = [
@@ -305,12 +304,64 @@ export default function B2BPortalPage() {
           </div>
         </div>
 
+        {/* 3.5 ⚡ LIVE RFQ BROADCASTER & GIDC TRUST SEAL (Features H & I) */}
+        <div className="bg-gradient-to-r from-[#17181C] to-[#252830] rounded-3xl p-4 text-white shadow-xl space-y-3 border border-neutral-700">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#35AB4E] animate-pulse" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-white">
+                ⚡ Live GIDC RFQ Broadcaster
+              </h3>
+            </div>
+            <span className="text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#35AB4E]/20 text-[#35AB4E] border border-[#35AB4E]/40">
+              Verified GIDC Hub
+            </span>
+          </div>
+
+          {/* Live scrolling requirement feed */}
+          <div className="space-y-2">
+            {[
+              { time: '3m ago', text: 'Requirement for 500 Tons TMT 550D Steel Bars', estate: 'Makarpura GIDC, Vadodara', budget: '₹28,50,000' },
+              { time: '12m ago', text: '5,000 Corrugated 5-Ply Shipping Cartons', estate: 'Manjusar GIDC, Savli', budget: '₹1,25,000' },
+              { time: '28m ago', text: 'Multi-layer FR4 PCB Fabrication (1,000 Pcs)', estate: 'Waghodia GIDC', budget: '₹3,40,000' },
+            ].map((rfq, idx) => (
+              <div key={idx} className="p-2.5 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between gap-2 hover:bg-white/10 transition-colors">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] text-[#F2B604] font-bold">{rfq.time}</span>
+                    <span className="text-[10px] text-neutral-400 font-medium truncate">{rfq.estate}</span>
+                  </div>
+                  <p className="text-xs font-bold text-neutral-100 truncate mt-0.5">{rfq.text}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-black text-[#35AB4E] block">{rfq.budget}</span>
+                  <button
+                    onClick={() => {
+                      alert(`Quote response initiated for: ${rfq.text}`);
+                    }}
+                    className="text-[9px] font-black px-2 py-0.5 rounded-lg bg-[#4787F2] text-white hover:bg-[#3972D4] transition-colors"
+                  >
+                    Submit Quote →
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust Seal Banner */}
+          <div className="pt-1 flex items-center justify-between text-[10px] text-neutral-400 border-t border-neutral-700/80">
+            <span className="flex items-center gap-1 text-neutral-300 font-bold">
+              🛡️ Adsspot Trust Seal: GST Verified • Physical Factory Audited • Escrow Protected
+            </span>
+          </div>
+        </div>
+
         {postSuccess && (
-          <div className="p-3.5 bg-[#EBF9F3] border border-[#35AB4E]/30 rounded-2xl flex items-center gap-2.5 text-xs font-bold text-[#00A86B] animate-slide-up shadow-sm">
-            <CheckCircle2 className="w-5 h-5 shrink-0" />
+          <div className="p-3.5 bg-[#EBF9EE] border border-[#35AB4E]/30 rounded-2xl text-xs font-bold text-[#1B6A2D] shadow-sm animate-fade-in flex items-center gap-2">
+            <span>✓</span>
             <div>
-              <span className="block font-black">RFQ Sent Successfully!</span>
-              <span className="text-[11px] text-[#00875A] font-medium">4 verified Makarpura & Manjusar GIDC suppliers notified with instant WhatsApp alerts.</span>
+              <span className="block font-black">RFQ Broadcasted Successfully!</span>
+              <span className="text-[11px] text-[#2A9641]">4 verified Makarpura &amp; Manjusar manufacturers alerted via WhatsApp.</span>
             </div>
           </div>
         )}

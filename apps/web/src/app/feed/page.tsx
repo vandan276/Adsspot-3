@@ -88,9 +88,53 @@ const STORY_DATA = [
   },
 ];
 
+const SPOT_DROPS = [
+  {
+    id: 'drop-1',
+    businessId: 'biz-vad-1',
+    businessName: 'Mandap Gujarati Thali',
+    logo: 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=200&auto=format&fit=crop&q=80',
+    title: '40% OFF Royal Grand Thali',
+    code: 'FLASH40',
+    totalClaims: 15,
+    claimedCount: 11,
+    endTime: '01:45:20',
+    location: 'Alkapuri, Vadodara',
+  },
+  {
+    id: 'drop-2',
+    businessId: 'biz-vad-2',
+    businessName: 'Jagdish Farshan & Sweets',
+    logo: 'https://images.unsplash.com/photo-1599785209707-a456fc1337bb?w=200&auto=format&fit=crop&q=80',
+    title: 'Buy 1kg Bhakarwadi Get 250g Free',
+    code: 'JAGDISHBOGO',
+    totalClaims: 20,
+    claimedCount: 17,
+    endTime: '02:10:45',
+    location: 'Jubilee Baug, Vadodara',
+  },
+  {
+    id: 'drop-3',
+    businessId: 'biz-vad-3',
+    businessName: 'C.H. Jewellers',
+    logo: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&auto=format&fit=crop&q=80',
+    title: 'Flat ₹2,500 Off Diamond Jewellery',
+    code: 'CH2500',
+    totalClaims: 10,
+    claimedCount: 6,
+    endTime: '03:30:15',
+    location: 'Alkapuri, Vadodara',
+  },
+];
+
 export default function MobileFeedPage() {
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [claimedDrops, setClaimedDrops] = useState<Record<string, boolean>>({});
+  const [activeClaimModal, setActiveClaimModal] = useState<typeof SPOT_DROPS[0] | null>(null);
+
   const [likedPosts, setLikedPosts] = useState<Record<string, boolean>>({});
   const [doubleTapHeart, setDoubleTapHeart] = useState<string | null>(null);
   const [likesCounts, setLikesCounts] = useState<Record<string, number>>(() => {
@@ -466,18 +510,71 @@ export default function MobileFeedPage() {
         </div>
       )}
 
-      {/* 1. TOP LOCATION STATUS BAR */}
-      <div className="bg-white px-3 sm:px-4 py-2.5 border-b border-[#E3E8EF] flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 text-xs text-[#17181C] font-bold min-w-0 flex-1 truncate">
-          <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
-          <span className="truncate">
-            {locationState.area}, {locationState.city}{' '}
-            <span className="text-neutral-400 font-normal">{locationState.pincode}</span>
+      {/* 1. TOP LOCATION & SEARCH BAR — Glassmorphic Universal Search */}
+      <div className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl px-3 sm:px-4 py-2 border-b border-black/[0.06] shadow-2xs space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-[#17181C] font-bold min-w-0 flex-1 truncate">
+            <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
+            <span className="truncate">
+              {locationState.area}, {locationState.city}{' '}
+              <span className="text-neutral-400 font-normal">({locationState.pincode})</span>
+            </span>
+          </div>
+          <span className="shrink-0 text-[10px] font-black text-[#E14D2A] bg-[#FFF1EE] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
+            🔥 3 Live Drops
           </span>
         </div>
-        <span className="shrink-0 text-[10px] font-bold text-[#1D53B8] bg-[#EDF4FF] px-2.5 py-0.5 rounded-full border border-[#4787F2]/20">
-          {filteredPosts.length} Live Spots
-        </span>
+
+        {/* Universal Search Bar */}
+        <div className="relative">
+          <div className="flex items-center bg-[#F4F6FB] border border-[#E3E8EF] rounded-2xl px-3 py-2 shadow-2xs focus-within:border-[#4787F2] focus-within:ring-2 focus-within:ring-[#4787F2]/15 transition-all">
+            <span className="text-neutral-400 mr-2">🔍</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+              placeholder="Search shops, thalis, doctors, B2B factories..."
+              className="w-full bg-transparent text-xs font-semibold text-[#17181C] placeholder:text-neutral-400 outline-none"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="text-neutral-400 text-xs font-bold hover:text-neutral-600">
+                ✕
+              </button>
+            )}
+          </div>
+
+          {/* Grouped Universal Search Dropdown */}
+          {isSearchFocused && searchQuery.trim() !== '' && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E3E8EF] rounded-2xl shadow-xl overflow-hidden z-40 p-2 space-y-2 animate-fade-in max-h-80 overflow-y-auto">
+              <div>
+                <span className="text-[9px] font-black uppercase text-[#687182] px-2 block">Verified Spots</span>
+                {SEED_BUSINESSES.filter((b) => b.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map((biz) => (
+                  <Link
+                    key={biz.id}
+                    href={`/card/${biz.slug}`}
+                    className="flex items-center justify-between p-2 rounded-xl hover:bg-[#F4F6FB] text-xs font-bold text-[#17181C] transition-colors"
+                  >
+                    <span>{biz.name}</span>
+                    <span className="text-[10px] text-[#4787F2] font-semibold">{biz.address}</span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="border-t border-neutral-100 pt-1">
+                <span className="text-[9px] font-black uppercase text-[#E14D2A] px-2 block">B2B Suppliers</span>
+                <Link
+                  href={`/b2b?q=${encodeURIComponent(searchQuery)}`}
+                  className="flex items-center justify-between p-2 rounded-xl bg-[#FFF1EE] hover:bg-[#FFE4DE] text-xs font-bold text-[#E14D2A] transition-colors"
+                >
+                  <span>Search &quot;{searchQuery}&quot; in B2B Factory Portal</span>
+                  <span className="text-[10px] font-black">1Cr+ →</span>
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* 2. STORIES RAIL */}
@@ -497,7 +594,7 @@ export default function MobileFeedPage() {
             <span className="text-[11px] text-neutral-600 font-semibold tracking-tight">Your Story</span>
           </div>
 
-          {/* Business Stories with Authentic 4-Segment Spot Ring (from adsspot-story-avatar-default.svg) */}
+          {/* Business Stories with Authentic 4-Segment Spot Ring */}
           {STORY_DATA.map((story, idx) => (
             <div
               key={story.id}
@@ -514,6 +611,116 @@ export default function MobileFeedPage() {
           ))}
         </div>
       </div>
+
+      {/* 2.5 🔥 SPOT DROPS FLASH HOURLY DEALS (Feature A) */}
+      <div className="bg-gradient-to-r from-[#FFF5F2] via-[#FFF1EE] to-[#FFEFEA] p-3 border-b border-[#FECDD3] space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-[#E11D48] animate-ping" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#9F1239]">
+              ⚡ Spot Drops — Hourly Flash Offers
+            </h3>
+          </div>
+          <span className="text-[10px] font-bold text-[#E11D48] bg-white px-2 py-0.5 rounded-full border border-[#FECDD3] shadow-2xs">
+            Limited Stock
+          </span>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+          {SPOT_DROPS.map((drop) => {
+            const isClaimed = !!claimedDrops[drop.id];
+            const pct = Math.round((drop.claimedCount / drop.totalClaims) * 100);
+
+            return (
+              <div
+                key={drop.id}
+                className="min-w-[260px] sm:min-w-[280px] bg-white rounded-2xl p-3 border border-[#FECDD3] shadow-2xs flex flex-col justify-between space-y-2 hover:shadow-md transition-shadow"
+              >
+                <div className="flex items-start gap-2.5">
+                  <img src={drop.logo} alt={drop.businessName} className="w-10 h-10 rounded-xl object-cover border border-neutral-100" />
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[10px] text-[#687182] font-semibold block truncate">{drop.businessName}</span>
+                    <h4 className="text-xs font-black text-[#17181C] leading-tight truncate">{drop.title}</h4>
+                    <span className="text-[9px] text-[#E11D48] font-bold">Ends in {drop.endTime}</span>
+                  </div>
+                </div>
+
+                {/* Progress bar */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[9px] font-bold text-[#687182]">
+                    <span>Claimed: {drop.claimedCount}/{drop.totalClaims}</span>
+                    <span>{pct}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-[#E14D2A] to-[#E11D48] rounded-full" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setClaimedDrops((prev) => ({ ...prev, [drop.id]: true }));
+                    setActiveClaimModal(drop);
+                  }}
+                  className={`w-full py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs ${
+                    isClaimed
+                      ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
+                      : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
+                  }`}
+                >
+                  {isClaimed ? (
+                    <>
+                      <CheckCircle className="w-3.5 h-3.5" /> Coupon Active ({drop.code})
+                    </>
+                  ) : (
+                    <>
+                      <span>Claim Spot Drop</span>
+                      <Gift className="w-3.5 h-3.5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Spot Drop Claim Modal */}
+      {activeClaimModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white w-full max-w-sm rounded-3xl p-5 border border-[#E3E8EF] shadow-2xl text-center space-y-4 animate-scale-up">
+            <div className="w-12 h-12 rounded-full bg-[#EBF9EE] text-[#35AB4E] flex items-center justify-center mx-auto shadow-sm">
+              <Gift className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-[10px] font-black uppercase text-[#35AB4E] tracking-wider">Spot Drop Claimed!</span>
+              <h3 className="text-base font-black text-[#17181C] mt-0.5">{activeClaimModal.title}</h3>
+              <p className="text-xs text-[#687182] mt-1">{activeClaimModal.businessName} — {activeClaimModal.location}</p>
+            </div>
+
+            <div className="p-3 bg-[#F4F6FB] border border-dashed border-[#4787F2] rounded-2xl space-y-1">
+              <span className="text-[10px] font-bold text-[#687182] block">Show this voucher code at store:</span>
+              <span className="text-lg font-black text-[#4787F2] tracking-widest block font-mono">{activeClaimModal.code}</span>
+            </div>
+
+            <div className="flex gap-2">
+              <a
+                href={`https://wa.me/919876543210?text=Hi%20${encodeURIComponent(activeClaimModal.businessName)},%20I%20claimed%20the%20Spot%20Drop%20voucher%20${activeClaimModal.code}%20on%20Adsspot.`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 py-2.5 bg-[#25D366] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1 shadow-xs"
+              >
+                <span>WhatsApp Store</span>
+              </a>
+              <button
+                onClick={() => setActiveClaimModal(null)}
+                className="px-4 py-2.5 bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-200"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 3. CATEGORY PILLS */}
       <div className="py-2.5 px-3 sm:px-4 flex gap-1.5 overflow-x-auto no-scrollbar">

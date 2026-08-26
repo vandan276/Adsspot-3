@@ -186,28 +186,111 @@ export default function SMSalesPortalPage() {
           </div>
         </div>
 
-        {/* TAB 1: TERRITORY & OVERVIEW */}
+        {/* TAB 1: TERRITORY & OVERVIEW WITH LIVE GPS RADAR (Feature L) */}
         {activeTab === 'territory' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card padding="md">
-              <span className="text-xs font-bold text-[#687182] uppercase">Monthly Target</span>
-              <p className="text-2xl font-black text-[#17181C] mt-2">₹1,50,000</p>
-              <span className="text-xs font-bold text-[#35AB4E] mt-1 block">75% Achieved (₹1.12L)</span>
-            </Card>
-            <Card padding="md">
-              <span className="text-xs font-bold text-[#687182] uppercase">Visits Logged Today</span>
-              <p className="text-2xl font-black text-[#17181C] mt-2">6 Visits</p>
-              <span className="text-xs text-[#687182] mt-1 block">GPS location tagged</span>
-            </Card>
-            <Card padding="md">
-              <span className="text-xs font-bold text-[#687182] uppercase">Pipeline Leads</span>
-              <p className="text-2xl font-black text-[#17181C] mt-2">{leads.length} Leads</p>
-              <span className="text-xs font-bold text-[#4787F2] mt-1 block">3 Ready for closing</span>
-            </Card>
-            <Card padding="md">
-              <span className="text-xs font-bold text-[#687182] uppercase">Est. Commission</span>
-              <p className="text-2xl font-black text-[#17181C] mt-2">₹22,400</p>
-              <span className="text-xs text-[#687182] mt-1 block">Paid on 1st of month</span>
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card padding="md">
+                <span className="text-xs font-bold text-[#687182] uppercase">Monthly Target</span>
+                <p className="text-2xl font-black text-[#17181C] mt-2">₹1,50,000</p>
+                <span className="text-xs font-bold text-[#35AB4E] mt-1 block">75% Achieved (₹1.12L)</span>
+              </Card>
+              <Card padding="md">
+                <span className="text-xs font-bold text-[#687182] uppercase">Visits Logged Today</span>
+                <p className="text-2xl font-black text-[#17181C] mt-2">6 Visits</p>
+                <span className="text-xs text-[#687182] mt-1 block">GPS location tagged</span>
+              </Card>
+              <Card padding="md">
+                <span className="text-xs font-bold text-[#687182] uppercase">Pipeline Leads</span>
+                <p className="text-2xl font-black text-[#17181C] mt-2">{leads.length} Leads</p>
+                <span className="text-xs font-bold text-[#4787F2] mt-1 block">3 Ready for closing</span>
+              </Card>
+              <Card padding="md">
+                <span className="text-xs font-bold text-[#687182] uppercase">Est. Commission</span>
+                <p className="text-2xl font-black text-[#17181C] mt-2">₹22,400</p>
+                <span className="text-xs text-[#687182] mt-1 block">Paid on 1st of month</span>
+              </Card>
+            </div>
+
+            {/* Live Field GPS Radar & Route Optimizer */}
+            <Card padding="lg" className="space-y-4 border border-[#E3E8EF] shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#E3E8EF] pb-3">
+                <div>
+                  <h3 className="text-base font-black text-[#17181C] flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#4787F2] animate-ping" />
+                    🛰️ Live GPS Field Radar &amp; Smart Route Optimizer
+                  </h3>
+                  <p className="text-xs text-[#687182]">Optimized path ordered by walking proximity in Fort 400001 territory</p>
+                </div>
+                <span className="text-xs font-bold px-3 py-1 bg-[#EDF4FF] text-[#4787F2] rounded-full">
+                  📍 4 Nearby Stops Remaining
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Route stops sequence */}
+                <div className="space-y-2.5">
+                  <span className="text-[11px] font-black uppercase text-[#687182] block tracking-wider">
+                    Recommended Visit Sequence
+                  </span>
+                  {[
+                    { seq: 1, name: 'Royal Heritage Jewellers', dist: '150m (🚶 2 min)', status: 'Pending Visit', tier: 'Elite Target' },
+                    { seq: 2, name: 'Joshi Kirana & General Store', dist: '350m (🚶 4 min)', status: 'Follow Up', tier: 'Basic Target' },
+                    { seq: 3, name: 'Bombay Cafe & Irani Chai', dist: '600m (🚶 7 min)', status: 'Payment Due', tier: 'Premium Target' },
+                    { seq: 4, name: 'Alka Sarees & Bridal Studio', dist: '900m (🚶 11 min)', status: 'New Lead', tier: 'Elite Target' },
+                  ].map((stop) => (
+                    <div key={stop.seq} className="p-3 bg-[#F4F6FB] rounded-2xl border border-[#E3E8EF] flex items-center justify-between gap-3 hover:bg-[#EDF4FF]/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded-full bg-[#17181C] text-white text-xs font-black flex items-center justify-center">
+                          {stop.seq}
+                        </span>
+                        <div>
+                          <h4 className="text-xs font-bold text-[#17181C]">{stop.name}</h4>
+                          <span className="text-[10px] text-[#4787F2] font-semibold">{stop.dist}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#E3E8EF] block mb-1">
+                          {stop.tier}
+                        </span>
+                        <button
+                          onClick={() => {
+                            showToast(`GPS Check-in Logged at ${stop.name}!`);
+                          }}
+                          className="text-[9px] font-black text-[#35AB4E] hover:underline"
+                        >
+                          Log GPS Visit ✓
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Simulated Radar Visualizer */}
+                <div className="bg-[#17181C] rounded-3xl p-6 text-white flex flex-col justify-between relative overflow-hidden min-h-[220px]">
+                  <div className="relative z-10">
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-[#35AB4E]">Radar Active</span>
+                    <h4 className="text-sm font-black text-white mt-1">Fort 400001 Micro-Territory</h4>
+                    <p className="text-[11px] text-neutral-400">Current GPS: 18.9322° N, 72.8344° E</p>
+                  </div>
+
+                  {/* Animated radar rings */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                    <div className="w-48 h-48 rounded-full border border-emerald-400 animate-ping" />
+                    <div className="w-32 h-32 rounded-full border border-blue-400" />
+                  </div>
+
+                  <div className="relative z-10 pt-4 flex items-center justify-between text-xs border-t border-neutral-800">
+                    <span className="text-neutral-400">Efficiency Score: <strong className="text-white">96%</strong></span>
+                    <button
+                      onClick={() => showToast('Route synchronized with Google Maps')}
+                      className="px-3 py-1 rounded-xl bg-[#4787F2] hover:bg-[#3972D4] text-white text-[11px] font-bold"
+                    >
+                      Open Navigation 🗺️
+                    </button>
+                  </div>
+                </div>
+              </div>
             </Card>
           </div>
         )}

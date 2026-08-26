@@ -137,26 +137,45 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* 2. 🔍 SEARCH BAR ABOVE MAP */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-          <Search className="w-4 h-4 text-[#4787F2]" />
+      {/* 2. 🔍 SEARCH BAR ABOVE MAP & RADIUS FILTER (Feature C) */}
+      <div className="space-y-2">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+            <Search className="w-4 h-4 text-[#4787F2]" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search restaurants, doctors, shops, services in Vadodara..."
+            className="w-full pl-10 pr-4 py-3 bg-white border border-[#E3E8EF] rounded-2xl text-xs sm:text-sm font-semibold text-[#17181C] placeholder:text-neutral-400 shadow-xs outline-none focus:border-[#4787F2] focus:ring-2 focus:ring-[#4787F2]/10 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-neutral-400 hover:text-neutral-700"
+            >
+              Clear
+            </button>
+          )}
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search restaurants, doctors, shops, services in Vadodara..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-[#E3E8EF] rounded-2xl text-xs sm:text-sm font-semibold text-[#17181C] placeholder:text-neutral-400 shadow-xs outline-none focus:border-[#4787F2] focus:ring-2 focus:ring-[#4787F2]/10 transition-all"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-neutral-400 hover:text-neutral-700"
-          >
-            Clear
-          </button>
-        )}
+
+        {/* Live Proximity Radius Chips with Dynamic ETA indicators */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[10px] font-bold text-[#687182] px-1">Radius:</span>
+          {['1 km (🚶 5 min)', '3 km (🚗 8 min)', '5 km (🚗 15 min)', 'Whole City'].map((rad, idx) => (
+            <button
+              key={idx}
+              className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 transition-all active:scale-95 ${
+                idx === 1
+                  ? 'bg-[#17181C] text-white shadow-xs'
+                  : 'bg-white text-neutral-600 border border-[#E3E8EF] hover:border-neutral-300'
+              }`}
+            >
+              {rad}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 3. 🗺️ REAL-TIME INTERACTIVE MAP */}

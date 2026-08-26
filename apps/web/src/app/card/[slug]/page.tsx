@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { SEED_BUSINESSES } from '@adsspot/api';
@@ -8,10 +8,12 @@ import { Card, Avatar, TierBadge, TrustedBadge } from '@adsspot/ui';
 import {
   Phone,
   MessageCircle,
-  Navigation,
   Share2,
   ChevronLeft,
   MapPin,
+  Download,
+  Star,
+  QrCode,
 } from 'lucide-react';
 
 export default function DigitalCardPage() {
@@ -19,18 +21,59 @@ export default function DigitalCardPage() {
   const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params?.slug[0] : '';
   const biz = SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!;
 
+  const [copied, setCopied] = useState(false);
+  const [showUpiModal, setShowUpiModal] = useState(false);
+
+  // Generate & Download Authentic .VCF Virtual Contact File
+  const handleSaveContact = () => {
+    const vCardContent = `BEGIN:VCARD
+VERSION:3.0
+FN:${biz.name}
+ORG:${biz.name}
+TEL;TYPE=WORK,VOICE:${biz.phone}
+TEL;TYPE=CELL,VOICE:${biz.whatsapp}
+ADR;TYPE=WORK:;;${biz.address};Vadodara;Gujarat;${biz.pincode};India
+URL:https://adsspot.in/card/${biz.slug}
+NOTE:Verified Merchant on Adsspot (${biz.tier.toUpperCase()} Tier)
+END:VCARD`;
+
+    const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${biz.slug}-contact.vcf`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  const handleShareCard = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: biz.name,
+        text: `View digital visiting card of ${biz.name} on Adsspot`,
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      alert('Card link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] py-10 px-4 flex items-center justify-center">
-      <div className="max-w-md w-full">
+      <div className="max-w-md w-full space-y-4">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[#687182] hover:text-[#4787F2] mb-4 transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-[#687182] hover:text-[#4787F2] transition-colors"
         >
           <ChevronLeft className="w-4 h-4" /> Back to Discover
         </Link>
 
         {/* Digital Visiting Card */}
-        <Card padding="none" className="overflow-hidden shadow-xl border border-[#E3E8EF] bg-white">
+        <Card padding="none" className="overflow-hidden shadow-2xl border border-[#E3E8EF] bg-white rounded-3xl">
           {/* Cover Header */}
           <div className="relative h-44 bg-neutral-200">
             <img
@@ -45,8 +88,8 @@ export default function DigitalCardPage() {
           </div>
 
           {/* Business Profile Content */}
-          <div className="p-6 text-center -mt-12 relative z-10">
-            <div className="inline-block p-1 bg-white rounded-2xl shadow-md mb-3">
+          <div className="p-6 text-center -mt-14 relative z-10 space-y-4">
+            <div className="inline-block p-1 bg-white rounded-2xl shadow-lg">
               <Avatar
                 src={biz.logo_url}
                 name={biz.name}
@@ -55,59 +98,115 @@ export default function DigitalCardPage() {
               />
             </div>
 
-            <h1 className="text-xl font-extrabold text-[#17181C]">{biz.name}</h1>
-            <p className="text-xs text-[#687182] flex items-center justify-center gap-1 mt-1">
-              <MapPin className="w-3.5 h-3.5 text-[#4787F2]" /> {biz.address}
-            </p>
+            <div>
+              <h1 className="text-xl font-extrabold text-[#17181C] tracking-tight">{biz.name}</h1>
+              <p className="text-xs text-[#687182] flex items-center justify-center gap-1 mt-1 font-medium">
+                <MapPin className="w-3.5 h-3.5 text-[#4787F2]" /> {biz.address}
+              </p>
+            </div>
 
-            <div className="flex items-center justify-center gap-2 mt-3 mb-6">
-              <span className="text-xs font-bold text-[#17181C] bg-[#F4F6FB] px-2.5 py-1 rounded-full border border-[#E3E8EF]">
+            <div className="flex items-center justify-center gap-2">
+              <span className="text-xs font-bold text-[#17181C] bg-[#F4F6FB] px-3 py-1 rounded-full border border-[#E3E8EF]">
                 ⭐ {biz.stats?.avg_rating || '4.9'} ({biz.stats?.reviews_count || 128} reviews)
               </span>
-              <span className="text-xs font-bold text-[#1B6A2D] bg-[#EBF9EE] px-2.5 py-1 rounded-full">
+              <span className="text-xs font-bold text-[#1B6A2D] bg-[#EBF9EE] px-3 py-1 rounded-full border border-[#35AB4E]/30">
                 Open Now
               </span>
             </div>
 
-            <p className="text-xs text-[#4A5260] leading-relaxed mb-6">
+            <p className="text-xs text-[#4A5260] leading-relaxed">
               {biz.description}
             </p>
 
             {/* Quick Action Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            <div className="grid grid-cols-2 gap-2.5">
               <a
                 href={`tel:${biz.phone}`}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#4787F2] text-white text-xs font-bold shadow-sm hover:bg-[#3373E0] transition-colors"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#4787F2] text-white text-xs font-black shadow-xs hover:bg-[#3373E0] active:scale-95 transition-all"
               >
                 <Phone className="w-4 h-4" /> Call Now
               </a>
               <a
-                href={`https://wa.me/${biz.whatsapp.replace(/[^0-9]/g, '')}`}
+                href={`https://wa.me/${biz.whatsapp.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20am%20viewing%20your%20digital%20card%20on%20Adsspot.`}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#35AB4E] text-white text-xs font-bold shadow-sm hover:bg-[#2A9641] transition-colors"
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#25D366] text-white text-xs font-black shadow-xs hover:bg-[#1EBE5D] active:scale-95 transition-all"
               >
                 <MessageCircle className="w-4 h-4" /> WhatsApp
               </a>
             </div>
 
-            {/* Directions & Save Contact */}
-            <div className="grid grid-cols-2 gap-3">
+            {/* Save Contact (.vcf) & UPI Pay Trigger (Feature F) */}
+            <div className="grid grid-cols-2 gap-2.5">
               <button
-                onClick={() => alert(`Directions to: ${biz.address}`)}
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#17181C] hover:bg-[#F4F6FB] transition-colors"
+                onClick={handleSaveContact}
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#17181C] text-white text-xs font-black shadow-xs hover:bg-neutral-800 active:scale-95 transition-all"
               >
-                <Navigation className="w-3.5 h-3.5 text-[#4787F2]" /> Directions
+                <Download className="w-4 h-4 text-[#F2B604]" />
+                <span>{copied ? 'Saved! ✓' : 'Save Contact'}</span>
               </button>
+
               <button
-                onClick={() => alert('Contact saved to your phonebook!')}
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#17181C] hover:bg-[#F4F6FB] transition-colors"
+                onClick={() => setShowUpiModal(true)}
+                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#FFF8E7] text-[#925F00] border border-[#F2B604]/40 text-xs font-black shadow-2xs hover:bg-[#FFF1CC] active:scale-95 transition-all"
+              >
+                <QrCode className="w-4 h-4 text-[#925F00]" />
+                <span>UPI Pay QR</span>
+              </button>
+            </div>
+
+            {/* Google Review Booster & Directions */}
+            <div className="grid grid-cols-2 gap-2.5 pt-1">
+              <a
+                href={`https://search.google.com/local/writereview?placeid=${biz.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-xs font-bold text-[#B45309] hover:bg-[#FEF3C7] active:scale-95 transition-all"
+              >
+                <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" /> Rate on Google
+              </a>
+
+              <button
+                onClick={handleShareCard}
+                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#17181C] hover:bg-[#F4F6FB] active:scale-95 transition-all"
               >
                 <Share2 className="w-3.5 h-3.5 text-[#687182]" /> Share Card
               </button>
             </div>
           </div>
         </Card>
+
+        {/* UPI Payment Modal */}
+        {showUpiModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-white w-full max-w-sm rounded-3xl p-6 border border-[#E3E8EF] shadow-2xl text-center space-y-4 animate-scale-up">
+              <div className="w-12 h-12 rounded-full bg-[#FFF8E7] text-[#925F00] flex items-center justify-center mx-auto shadow-sm">
+                <QrCode className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-black uppercase text-[#925F00] tracking-wider">Direct UPI Store Payment</span>
+                <h3 className="text-base font-black text-[#17181C] mt-0.5">{biz.name}</h3>
+                <p className="text-xs text-[#687182] mt-1">Scan via GPay, PhonePe, Paytm, or BHIM</p>
+              </div>
+
+              {/* Sample QR Container */}
+              <div className="p-4 bg-white border-2 border-neutral-200 rounded-2xl inline-block shadow-inner">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=merchant@adsspot&pn=${encodeURIComponent(biz.name)}&cu=INR`}
+                  alt="UPI QR"
+                  className="w-40 h-40 object-contain mx-auto"
+                />
+              </div>
+
+              <button
+                onClick={() => setShowUpiModal(false)}
+                className="w-full py-2.5 bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-200"
+              >
+                Close QR Code
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

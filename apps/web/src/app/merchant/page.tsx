@@ -27,11 +27,45 @@ export default function MerchantStudioPage() {
   const { user } = useAuth();
   const currentBiz = user?.business_profile || SEED_BUSINESSES[0]!;
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'posts' | 'banners' | 'reviews' | 'billing'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'crm' | 'posts' | 'banners' | 'reviews' | 'billing'>('overview');
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [replyInput, setReplyInput] = useState<Record<string, string>>({});
   const [selectedTemplate, setSelectedTemplate] = useState<string>('diwali');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // CRM Leads Pipeline State (Feature G)
+  const [leads, setLeads] = useState([
+    {
+      id: 'lead-1',
+      name: 'Priya Sharma',
+      phone: '+919876500111',
+      requirement: 'Inquiry for 25 Bridal Kundan jewellery gift sets for wedding on Nov 15.',
+      source: 'Digital Visiting Card (/card)',
+      status: 'new',
+      time: '15 mins ago',
+      value: '₹1,50,000',
+    },
+    {
+      id: 'lead-2',
+      name: 'Rohan Patel',
+      phone: '+919876500222',
+      requirement: 'Claimed Spot Drop FLASH40 coupon for 4 Royal Gujarati Thalis.',
+      source: 'Spot Drop Voucher',
+      status: 'contacted',
+      time: '1 hour ago',
+      value: '₹3,200',
+    },
+    {
+      id: 'lead-3',
+      name: 'Vertex Media Systems',
+      phone: '+919876500333',
+      requirement: 'Looking for 50 branded festival gift hampers for corporate clients.',
+      source: 'B2B RFQ Portal',
+      status: 'converted',
+      time: 'Yesterday',
+      value: '₹45,000',
+    },
+  ]);
 
   // New Post & Story State
   const [newPostCaption, setNewPostCaption] = useState('');
@@ -100,6 +134,14 @@ export default function MerchantStudioPage() {
               <Store className="w-4 h-4" /> Business Overview
             </button>
             <button
+              onClick={() => setActiveTab('crm')}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
+                activeTab === 'crm' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+              }`}
+            >
+              <Users className="w-4 h-4 text-[#35AB4E]" /> Customer Leads CRM
+            </button>
+            <button
               onClick={() => setActiveTab('posts')}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
                 activeTab === 'posts' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
@@ -113,7 +155,7 @@ export default function MerchantStudioPage() {
                 activeTab === 'banners' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
               }`}
             >
-              <Sparkles className="w-4 h-4" /> Auto Banner Studio
+              <Sparkles className="w-4 h-4" /> Banner Studio AI
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
@@ -381,6 +423,141 @@ export default function MerchantStudioPage() {
                   )}
                 </div>
               </Card>
+            </div>
+          </div>
+        )}
+
+        {/* TAB: CUSTOMER LEADS CRM (Feature G) */}
+        {activeTab === 'crm' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-3xl border border-[#E3E8EF] shadow-2xs">
+              <div>
+                <h2 className="text-base font-black text-[#17181C] flex items-center gap-2">
+                  <Users className="w-5 h-5 text-[#35AB4E]" /> Customer Leads &amp; Inquiries CRM
+                </h2>
+                <p className="text-xs text-[#687182]">Real-time inbound inquiries from your digital visiting card, Spot Drops, and B2B RFQs.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold px-3 py-1 bg-[#EBF9EE] text-[#35AB4E] rounded-full border border-[#35AB4E]/30">
+                  ⚡ 3 Active Leads
+                </span>
+              </div>
+            </div>
+
+            {/* Kanban Columns */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Column 1: New Inquiries */}
+              <div className="space-y-3 bg-[#F4F6FB] p-4 rounded-3xl border border-[#E3E8EF]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-[#4787F2] tracking-wider">
+                    ● New Inquiries ({leads.filter((l) => l.status === 'new').length})
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-[#4787F2] animate-ping" />
+                </div>
+
+                {leads.filter((l) => l.status === 'new').map((lead) => (
+                  <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#4787F2]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
+                        <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                      </div>
+                      <span className="text-[10px] font-black text-[#4787F2] bg-[#EDF4FF] px-2 py-0.5 rounded-full">{lead.value}</span>
+                    </div>
+
+                    <p className="text-xs text-neutral-700 bg-[#F4F6FB] p-2.5 rounded-xl border border-[#E3E8EF]">{lead.requirement}</p>
+                    <span className="text-[9px] text-[#687182] font-bold block">Source: {lead.source}</span>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
+                      <a
+                        href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20thank%20you%20for%20contacting%20${encodeURIComponent(currentBiz?.name)}!`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-xl flex items-center justify-center gap-1 shadow-2xs"
+                      >
+                        WhatsApp Reply
+                      </a>
+                      <button
+                        onClick={() => {
+                          setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'contacted' } : l)));
+                          showToast('Lead moved to Contacted!');
+                        }}
+                        className="px-2.5 py-1.5 bg-[#F4F6FB] text-neutral-700 text-[10px] font-bold rounded-xl border border-[#E3E8EF]"
+                      >
+                        Mark Contacted →
+                      </button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Column 2: Contacted / In Progress */}
+              <div className="space-y-3 bg-[#F4F6FB] p-4 rounded-3xl border border-[#E3E8EF]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-[#F59E0B] tracking-wider">
+                    ● Contacted ({leads.filter((l) => l.status === 'contacted').length})
+                  </span>
+                </div>
+
+                {leads.filter((l) => l.status === 'contacted').map((lead) => (
+                  <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#F59E0B]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
+                        <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                      </div>
+                      <span className="text-[10px] font-black text-[#B45309] bg-[#FEF3C7] px-2 py-0.5 rounded-full">{lead.value}</span>
+                    </div>
+
+                    <p className="text-xs text-neutral-700 bg-[#F4F6FB] p-2.5 rounded-xl border border-[#E3E8EF]">{lead.requirement}</p>
+                    <span className="text-[9px] text-[#687182] font-bold block">Source: {lead.source}</span>
+
+                    <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
+                      <a
+                        href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20following%20up%20on%20your%20order%20with%20${encodeURIComponent(currentBiz?.name)}.`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-xl flex items-center justify-center gap-1 shadow-2xs"
+                      >
+                        Follow Up
+                      </a>
+                      <button
+                        onClick={() => {
+                          setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'converted' } : l)));
+                          showToast('Lead Marked Converted! 🎉');
+                        }}
+                        className="px-2.5 py-1.5 bg-[#EBF9EE] text-[#35AB4E] text-[10px] font-black rounded-xl border border-[#35AB4E]/30"
+                      >
+                        Win / Converted 🎉
+                      </button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Column 3: Converted / Completed */}
+              <div className="space-y-3 bg-[#F4F6FB] p-4 rounded-3xl border border-[#E3E8EF]">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black uppercase text-[#35AB4E] tracking-wider">
+                    ● Won &amp; Converted ({leads.filter((l) => l.status === 'converted').length})
+                  </span>
+                </div>
+
+                {leads.filter((l) => l.status === 'converted').map((lead) => (
+                  <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#35AB4E]">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
+                        <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                      </div>
+                      <span className="text-[10px] font-black text-[#1B6A2D] bg-[#EBF9EE] px-2 py-0.5 rounded-full">{lead.value}</span>
+                    </div>
+
+                    <p className="text-xs text-neutral-700 bg-[#EBF9EE]/50 p-2.5 rounded-xl border border-[#35AB4E]/20">{lead.requirement}</p>
+                    <span className="text-[9px] text-[#35AB4E] font-bold block">✓ Order Completed</span>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         )}
