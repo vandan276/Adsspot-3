@@ -112,13 +112,18 @@ export const FloatingMobileNav: React.FC = () => {
           className="relative -top-5 flex flex-col items-center justify-center group focus:outline-none"
         >
           <div
-            className={`w-14 h-14 rounded-full bg-white flex items-center justify-center transform transition-all group-hover:scale-110 group-active:scale-95 shadow-[0_6px_22px_rgba(71,135,242,0.45)] border-2 ${
+            className={`w-14 h-14 rounded-full flex items-center justify-center transform transition-all group-hover:scale-110 group-active:scale-95 shadow-[0_8px_24px_rgba(71,135,242,0.35)] p-[2.5px] ${
               isExplore
-                ? 'border-[#4787F2] ring-4 ring-[#4787F2]/25 shadow-[0_0_24px_rgba(71,135,242,0.65)]'
-                : 'border-white ring-2 ring-[#4787F2]/40 hover:ring-[#4787F2]'
+                ? 'ring-4 ring-[#4787F2]/30 shadow-[0_0_28px_rgba(71,135,242,0.65)]'
+                : 'hover:shadow-[0_8px_28px_rgba(71,135,242,0.45)]'
             }`}
+            style={{
+              background: 'conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2)',
+            }}
           >
-            <AdsspotLogoMark size={34} />
+            <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+              <AdsspotLogoMark size={32} />
+            </div>
           </div>
           <span
             className={`text-[11px] mt-1 font-black tracking-tight flex items-center gap-0.5 ${
