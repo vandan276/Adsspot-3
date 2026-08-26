@@ -25,13 +25,25 @@ import {
 // ==========================================
 export const SEED_CATEGORIES: Category[] = [
   { id: 'cat-1', name: 'Food & Dining', slug: 'food-dining', icon: 'UtensilsCrossed', sort_order: 1 },
-  { id: 'cat-2', name: 'Fashion & Apparel', slug: 'fashion-apparel', icon: 'Shirt', sort_order: 2 },
-  { id: 'cat-3', name: 'Electronics & Gadgets', slug: 'electronics', icon: 'Smartphone', sort_order: 3 },
-  { id: 'cat-4', name: 'Healthcare & Wellness', slug: 'healthcare', icon: 'HeartPulse', sort_order: 4 },
-  { id: 'cat-5', name: 'Beauty & Salon', slug: 'beauty-salon', icon: 'Sparkles', sort_order: 5 },
-  { id: 'cat-6', name: 'Fitness & Gym', slug: 'fitness-gym', icon: 'Dumbbell', sort_order: 6 },
-  { id: 'cat-7', name: 'Jewellery & Gold', slug: 'jewellery', icon: 'Gem', sort_order: 7 },
-  { id: 'cat-8', name: 'Automobile & Care', slug: 'automobile', icon: 'Car', sort_order: 8 },
+  { id: 'cat-biz', name: 'My Business', slug: 'my-business', icon: 'Briefcase', sort_order: 2 },
+  { id: 'cat-b2b', name: 'B2b', slug: 'b2b', icon: 'Building2', sort_order: 3 },
+  { id: 'cat-doc', name: 'Doctors', slug: 'doctors', icon: 'Stethoscope', sort_order: 4 },
+  { id: 'cat-travel', name: 'Travel', slug: 'travel', icon: 'Plane', sort_order: 5 },
+  { id: 'cat-beauty', name: 'Beauty', slug: 'beauty', icon: 'Sparkles', sort_order: 6 },
+  { id: 'cat-astro', name: 'Ask Astro', slug: 'ask-astro', icon: 'Sun', sort_order: 7 },
+  { id: 'cat-wedding', name: 'Wedding Planning', slug: 'wedding-planning', icon: 'HeartHandshake', sort_order: 8 },
+  { id: 'cat-edu', name: 'Education', slug: 'education', icon: 'GraduationCap', sort_order: 9 },
+  { id: 'cat-packers', name: 'Packers & Movers', slug: 'packers-movers', icon: 'Truck', sort_order: 10 },
+  { id: 'cat-repairs', name: 'Repairs & Services', slug: 'repairs-services', icon: 'Wrench', sort_order: 11 },
+  { id: 'cat-gym', name: 'Gym', slug: 'gym', icon: 'Dumbbell', sort_order: 12 },
+  { id: 'cat-jobs', name: 'Jobs', slug: 'jobs', icon: 'Users', sort_order: 13 },
+  { id: 'cat-loans', name: 'Loans', slug: 'loans', icon: 'Banknote', sort_order: 14 },
+  { id: 'cat-realestate', name: 'Real Estate', slug: 'real-estate', icon: 'Home', sort_order: 15 },
+  { id: 'cat-hostel', name: 'PG/Hostel', slug: 'pg-hostel', icon: 'Bed', sort_order: 16 },
+  { id: 'cat-2', name: 'Fashion & Apparel', slug: 'fashion-apparel', icon: 'Shirt', sort_order: 17 },
+  { id: 'cat-3', name: 'Electronics & Gadgets', slug: 'electronics', icon: 'Smartphone', sort_order: 18 },
+  { id: 'cat-7', name: 'Jewellery & Gold', slug: 'jewellery', icon: 'Gem', sort_order: 19 },
+  { id: 'cat-8', name: 'Automobile & Care', slug: 'automobile', icon: 'Car', sort_order: 20 },
 ];
 
 // ==========================================
