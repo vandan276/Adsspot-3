@@ -34,10 +34,11 @@ export function ApkDownloadPromptModal({
   useEffect(() => {
     // 1. Check if user is ALREADY running inside the standalone PWA / APK installed app
     const isStandalone =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      // @ts-expect-error navigator.standalone is iOS Safari specific
-      window.navigator.standalone === true ||
-      document.referrer.includes('android-app://');
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(display-mode: standalone)').matches ||
+        // @ts-expect-error navigator.standalone is iOS Safari specific
+        window.navigator.standalone === true ||
+        document.referrer.includes('android-app://'));
 
     if (isStandalone) {
       // Never show install prompt when already in the installed App / APK variant!
@@ -50,11 +51,7 @@ export function ApkDownloadPromptModal({
       return;
     }
 
-    // 2. Check if already dismissed in this browser session
-    const dismissed = sessionStorage.getItem('adsspot_apk_prompt_dismissed');
-    if (dismissed) return;
-
-    // 3. Catch native browser PWA beforeinstallprompt event
+    // 2. Catch native browser PWA beforeinstallprompt event
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -63,12 +60,10 @@ export function ApkDownloadPromptModal({
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // 4. Timer fallback to show popup after 2.5 seconds on web browser
+    // 3. Show popup after 800ms on web browsers (no restrictive sessionStorage lock so user can always see it on fresh reload/test)
     const timer = setTimeout(() => {
-      if (!sessionStorage.getItem('adsspot_apk_prompt_dismissed')) {
-        setIsOpen(true);
-      }
-    }, 2500);
+      setIsOpen(true);
+    }, 800);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
