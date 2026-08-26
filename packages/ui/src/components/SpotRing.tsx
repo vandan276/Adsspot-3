@@ -9,6 +9,7 @@ export interface SpotRingProps {
   imageSrc?: string;
   alt?: string;
   animate?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export const StorySpotRing: React.FC<SpotRingProps> = ({
@@ -16,6 +17,7 @@ export const StorySpotRing: React.FC<SpotRingProps> = ({
   size = 'md',
   className = '',
   imageSrc,
+  onClick,
 }) => {
   const clipId = React.useId().replace(/:/g, '_');
 
@@ -34,14 +36,15 @@ export const StorySpotRing: React.FC<SpotRingProps> = ({
 
   return (
     <div
-      className={`relative inline-flex items-center justify-center shrink-0 select-none ${className}`}
+      onClick={onClick}
+      className={`relative inline-flex items-center justify-center shrink-0 select-none ${onClick ? 'cursor-pointer' : ''} ${className}`}
       style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
     >
       <svg
         viewBox="0 0 80 80"
         width={pixelSize}
         height={pixelSize}
-        className="w-full h-full overflow-visible"
+        className="w-full h-full overflow-visible pointer-events-none"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -75,7 +78,7 @@ export const StorySpotRing: React.FC<SpotRingProps> = ({
       {/* Render children inside clip area if no imageSrc */}
       {!imageSrc && children && (
         <div
-          className="absolute inset-[11%] rounded-[14px] overflow-hidden flex items-center justify-center"
+          className="absolute inset-[11%] rounded-[14px] overflow-hidden flex items-center justify-center pointer-events-none"
         >
           {children}
         </div>

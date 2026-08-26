@@ -335,8 +335,13 @@ export default function MobileFeedPage() {
 
       {/* 🌟 IMMERSIVE FULL-SCREEN STORY VIEWER */}
       {currentActiveStory && (
-        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-0 sm:p-4">
-          <div className="relative w-full h-full sm:h-[88vh] sm:max-w-sm bg-[#17181C] sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between">
+        <div
+          className="fixed inset-0 z-[9999] bg-black/95 backdrop-blur-md flex items-center justify-center p-0 sm:p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setActiveStoryIndex(null);
+          }}
+        >
+          <div className="relative w-full h-full sm:h-[90vh] sm:max-w-sm bg-[#17181C] sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between select-none">
             {/* Story Floating Reactions Animation */}
             {storyReactions.map((r) => (
               <div
@@ -348,7 +353,7 @@ export default function MobileFeedPage() {
             ))}
 
             {/* Story Progress Segments */}
-            <div className="absolute top-3 left-3 right-3 z-30 flex gap-1.5">
+            <div className="absolute top-3 left-3 right-3 z-30 flex gap-1.5 pointer-events-none">
               {STORY_DATA.map((s, idx) => (
                 <div key={s.id} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden backdrop-blur-xs">
                   <div
@@ -367,14 +372,14 @@ export default function MobileFeedPage() {
             </div>
 
             {/* Story Header */}
-            <div className="relative z-30 flex items-center justify-between px-4 pt-7 pb-3 bg-gradient-to-b from-black/85 via-black/40 to-transparent">
+            <div className="relative z-30 flex items-center justify-between px-4 pt-7 pb-3 bg-gradient-to-b from-black/90 via-black/50 to-transparent">
               <div className="flex items-center gap-2.5">
-                <img src={currentActiveStory.logo} alt={currentActiveStory.name} className="w-9 h-9 rounded-xl object-cover border-2 border-white/60 shadow-md" />
-                <div>
-                  <h4 className="text-xs font-extrabold text-white leading-tight flex items-center gap-1.5">
-                    {currentActiveStory.name}
+                <img src={currentActiveStory.logo} alt={currentActiveStory.name} className="w-9 h-9 rounded-xl object-cover border-2 border-white/60 shadow-md shrink-0" />
+                <div className="min-w-0">
+                  <h4 className="text-xs font-extrabold text-white leading-tight flex items-center gap-1.5 truncate">
+                    <span>{currentActiveStory.name}</span>
                     {currentActiveStory.tag && (
-                      <span className="bg-[#4787F2] text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full">
+                      <span className="bg-[#4787F2] text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full shrink-0">
                         {currentActiveStory.tag}
                       </span>
                     )}
@@ -387,40 +392,43 @@ export default function MobileFeedPage() {
 
               <button
                 onClick={() => setActiveStoryIndex(null)}
-                className="text-white hover:bg-white/20 p-1.5 rounded-full bg-black/40 backdrop-blur-md transition-colors"
+                className="text-white hover:bg-white/20 p-2 rounded-full bg-black/40 backdrop-blur-md transition-all active:scale-95 shrink-0"
+                aria-label="Close story"
               >
                 <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
 
             {/* Story Image */}
-            <div className="absolute inset-0 w-full h-full overflow-hidden">
+            <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
               <img
                 src={currentActiveStory.image}
-                alt="Story"
+                alt={currentActiveStory.name}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-transparent to-black/40" />
             </div>
 
-            {/* Tap Zones */}
+            {/* Tap Zones: Left (Previous) & Right (Next) */}
             <div
-              className="absolute left-0 top-16 bottom-32 w-1/3 z-20 cursor-pointer"
+              className="absolute left-0 top-16 bottom-36 w-1/2 z-20 cursor-pointer"
               onClick={() => {
                 if (activeStoryIndex! > 0) setActiveStoryIndex(activeStoryIndex! - 1);
               }}
+              title="Previous Story"
             />
             <div
-              className="absolute right-0 top-16 bottom-32 w-1/3 z-20 cursor-pointer"
+              className="absolute right-0 top-16 bottom-36 w-1/2 z-20 cursor-pointer"
               onClick={() => {
                 if (activeStoryIndex! < STORY_DATA.length - 1) setActiveStoryIndex(activeStoryIndex! + 1);
                 else setActiveStoryIndex(null);
               }}
+              title="Next Story"
             />
 
             {/* Story Caption & Action */}
-            <div className="relative z-30 p-4 space-y-3 bg-gradient-to-t from-black via-black/80 to-transparent">
-              <p className="text-xs text-white leading-relaxed font-medium bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg">
+            <div className="relative z-30 p-4 space-y-3 bg-gradient-to-t from-black via-black/85 to-transparent">
+              <p className="text-xs text-white leading-relaxed font-medium bg-black/50 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg">
                 {currentActiveStory.caption}
               </p>
 
