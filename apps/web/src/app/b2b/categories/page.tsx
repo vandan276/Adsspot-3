@@ -287,13 +287,13 @@ function B2BCategoriesContent() {
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] text-[#17181C] pb-28">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-[#E3E8EF] shadow-2xs">
+      {/* Top Header — Glassmorphic Floating */}
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-black/[0.06] shadow-2xs">
         <div className="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="p-1 rounded-full hover:bg-neutral-100 transition-colors"
+              className="p-1.5 rounded-full hover:bg-neutral-100/80 active:scale-95 transition-all"
             >
               <ArrowLeft className="w-5 h-5 stroke-[2.5]" />
             </button>
@@ -301,14 +301,14 @@ function B2BCategoriesContent() {
               All Categories
             </h1>
           </div>
-          <span className="text-[10px] font-bold text-[#E14D2A] bg-[#FFF1EE] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
-            B2B Marketplace
+          <span className="text-[10px] font-bold text-[#E14D2A] bg-gradient-to-r from-[#FFF1EE] to-[#FFE4DE] px-3 py-1 rounded-full border border-[#E14D2A]/30 shadow-2xs">
+            ⚡ 20+ B2B Sectors
           </span>
         </div>
 
         {/* Search */}
         <div className="max-w-xl mx-auto px-4 pb-3">
-          <div className="relative flex items-center bg-[#F4F6FB] border border-[#E3E8EF] rounded-2xl p-1 shadow-2xs">
+          <div className="relative flex items-center bg-[#F4F6FB]/90 backdrop-blur-md border border-[#E3E8EF] rounded-2xl p-1 shadow-2xs focus-within:border-[#4787F2] focus-within:ring-2 focus-within:ring-[#4787F2]/15 transition-all">
             <div className="pl-2.5 pr-1.5 text-[#687182]">
               <Search className="w-4 h-4 text-[#4787F2]" />
             </div>
@@ -332,7 +332,7 @@ function B2BCategoriesContent() {
             return (
               <div
                 key={cat.id}
-                className="col-span-1 flex flex-col bg-white rounded-2xl border border-[#E3E8EF] shadow-2xs overflow-hidden transition-all hover:border-[#4787F2]"
+                className="col-span-1 flex flex-col bg-white rounded-2xl border border-[#E3E8EF] shadow-2xs overflow-hidden transition-all hover:border-[#4787F2] hover:shadow-xs"
               >
                 {/* Visual Category Card */}
                 <div
@@ -342,7 +342,7 @@ function B2BCategoriesContent() {
                   <img
                     src={cat.image}
                     alt={cat.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
@@ -363,18 +363,27 @@ function B2BCategoriesContent() {
                 {isExpanded && (
                   <div className="p-2.5 bg-[#FAFBFD] border-t border-neutral-100 space-y-1.5 animate-fade-in">
                     <span className="text-[9px] font-black uppercase text-[#687182] block tracking-wider">
-                      Verified B2B Suppliers
+                      Verified Vadodara Suppliers
                     </span>
                     <div className="space-y-1">
                       {cat.subcategories.map((sub, idx) => (
-                        <Link
+                        <div
                           key={idx}
-                          href={`/b2b?q=${encodeURIComponent(sub)}`}
-                          className="flex items-center justify-between p-1.5 rounded-lg bg-white border border-[#E3E8EF] text-[10px] font-bold text-[#17181C] hover:text-[#4787F2] hover:border-[#4787F2] transition-colors"
+                          className="flex items-center justify-between p-1.5 rounded-lg bg-white border border-[#E3E8EF] text-[10px] font-bold text-[#17181C] hover:border-[#4787F2] transition-colors group"
                         >
-                          <span className="truncate">{sub}</span>
-                          <ChevronRight className="w-2.5 h-2.5 text-neutral-300 shrink-0" />
-                        </Link>
+                          <Link href={`/b2b?q=${encodeURIComponent(sub)}`} className="truncate flex-1 hover:text-[#4787F2]">
+                            {sub}
+                          </Link>
+                          <a
+                            href={`https://wa.me/919876543210?text=Hi,%20I%20am%20looking%20for%20verified%20suppliers%20for%20${encodeURIComponent(sub)}%20on%20Adsspot.`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="p-1 px-1.5 rounded-md bg-[#25D366]/10 hover:bg-[#25D366] text-[#1EBE5D] hover:text-white transition-all text-[9px] font-black shrink-0"
+                            title="Chat with suppliers"
+                          >
+                            RFQ ⚡
+                          </a>
+                        </div>
                       ))}
                     </div>
                   </div>

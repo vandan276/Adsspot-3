@@ -306,14 +306,32 @@ export default function ExplorePage() {
                 </div>
 
                 <div className="flex flex-col gap-1 shrink-0">
+                  <div className="flex items-center gap-1">
+                    <a
+                      href={`https://wa.me/${biz.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20found%20you%20on%20Adsspot.`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-7 h-7 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+                      title="Chat on WhatsApp"
+                    >
+                      <span className="text-[10px] font-black">WA</span>
+                    </a>
+                    <a
+                      href={`tel:${biz.phone}`}
+                      className="w-7 h-7 rounded-full bg-[#F4F6FB] hover:bg-neutral-200 text-[#17181C] border border-[#E3E8EF] flex items-center justify-center transition-all active:scale-95 shadow-2xs text-[10px] font-black"
+                      title="Call Store"
+                    >
+                      📞
+                    </a>
+                  </div>
                   <Link href={`/card/${biz.slug}`}>
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" className="w-full text-[10px] py-1">
                       Card
                     </Button>
                   </Link>
                   {biz.tier === 'elite' && (
                     <Link href={`/b/${biz.slug}`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="w-full text-[10px] py-1">
                         Site
                       </Button>
                     </Link>
