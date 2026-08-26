@@ -71,8 +71,7 @@ export async function POST(req: Request) {
       ON CONFLICT (slug) DO UPDATE 
       SET name = EXCLUDED.name, 
           tier = EXCLUDED.tier, 
-          phone = EXCLUDED.phone, 
-          updated_at = NOW()
+          phone = EXCLUDED.phone
       RETURNING *`,
       [
         businessId,

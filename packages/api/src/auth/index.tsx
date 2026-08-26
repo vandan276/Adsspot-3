@@ -110,87 +110,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   };
 
-  // Load custom stored staff and merchants on mount
+  // Load user and real database profile on mount
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined') {
-        let currentPersonas = DEMO_PERSONAS;
-        let currentStaff = SEED_STAFF_PROFILES;
-        let currentMerchants = SEED_BUSINESSES;
-
-        const storedPersonas = localStorage.getItem(CUSTOM_USERS_KEY);
-        const storedStaff = localStorage.getItem(CUSTOM_STAFF_KEY);
-        const storedMerchants = localStorage.getItem(CUSTOM_MERCHANTS_KEY);
-
-        if (storedPersonas) {
-          try {
-            currentPersonas = JSON.parse(storedPersonas);
-            setPersonas(currentPersonas);
-          } catch {}
-        }
-        if (storedStaff) {
-          try {
-            currentStaff = JSON.parse(storedStaff);
-            setStaffList(currentStaff);
-          } catch {}
-        }
-        if (storedMerchants) {
-          try {
-            currentMerchants = JSON.parse(storedMerchants);
-            setMerchantList(currentMerchants);
-          } catch {}
-        }
-
-        const savedUserId = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (savedUserId) {
-          // Look up in loaded personas and seed users
-          const baseUser =
-            currentPersonas.find((p) => p.id === savedUserId) ||
-            SEED_USERS.find((u) => u.id === savedUserId);
-
-          if (baseUser) {
-            const staffProfile = currentStaff.find((s) => s.user_id === savedUserId) || null;
-            const businessProfile = currentMerchants.find((b) => b.owner_id === savedUserId) || null;
-
-            let userBalance = 0.0;
-            const storedWallet = localStorage.getItem(`adsspot_wallet_${savedUserId}`);
-            if (storedWallet !== null) {
-              userBalance = parseFloat(storedWallet);
-            } else {
-              userBalance = savedUserId === 'usr-consumer-1' ? 1540.0 : 0.0;
+    async function initAuth() {
+      try {
+        if (typeof window !== 'undefined') {
+          const savedUserId = localStorage.getItem(AUTH_STORAGE_KEY);
+          if (savedUserId) {
+            // 1. Fetch real user & merchant business profile from AWS Aurora DB
+            try {
+              const res = await fetch(`/api/user/me?userId=${encodeURIComponent(savedUserId)}`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.success && data.user) {
+                  setUser(data.user);
+                  setIsLoading(false);
+                  return;
+                }
+              }
+            } catch (apiErr) {
+              console.warn('[AuthProvider] Direct DB fetch fallback to local storage:', apiErr);
             }
 
-            const hydratedUser: AuthUser = {
-              id: baseUser.id,
-              phone: baseUser.phone,
-              full_name: (baseUser as any).name || (baseUser as any).full_name || 'User',
-              avatar_url: baseUser.avatar_url,
-              role: baseUser.role,
-              created_at: (baseUser as any).created_at || new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              staff_profile: staffProfile,
-              business_profile: businessProfile,
-              wallet: {
-                id: `wallet-${savedUserId}`,
-                user_id: savedUserId,
-                balance: userBalance,
-                currency: 'INR',
-                updated_at: new Date().toISOString(),
-              },
-            };
-            setUser(hydratedUser);
+            // Fallback to local persona if offline or DB syncing
+            const fullUser = buildAuthUser(savedUserId);
+            if (fullUser) {
+              setUser(fullUser);
+            } else {
+              setUser(null);
+            }
           } else {
             setUser(null);
           }
-        } else {
-          setUser(null);
         }
+      } catch {
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-    } catch {
-      setUser(null);
-    } finally {
-      setIsLoading(false);
     }
+
+    initAuth();
   }, []);
 
   const loginWithPhone = async (phone: string): Promise<{ success: boolean; message: string }> => {
