@@ -135,7 +135,7 @@ h1, h2, h3, h4, h5, h6 {
   );
   filter: blur(1px);
   transform: rotate(-3deg);
-  pointer-events-none;
+  pointer-events: none;
 }
 
 /* Notification Pill Badge matching the red "12" bubble from the reference */
