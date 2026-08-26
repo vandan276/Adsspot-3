@@ -19,10 +19,28 @@ import {
 export default function DigitalCardPage() {
   const params = useParams();
   const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params?.slug[0] : '';
-  const biz = SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!;
-
+  
+  const [biz, setBiz] = useState(SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!);
   const [copied, setCopied] = useState(false);
   const [showUpiModal, setShowUpiModal] = useState(false);
+
+  React.useEffect(() => {
+    async function loadRealBiz() {
+      if (!slug) return;
+      try {
+        const res = await fetch(`/api/business/get-by-slug?slug=${encodeURIComponent(slug)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.business) {
+            setBiz(data.business);
+          }
+        }
+      } catch (err) {
+        console.warn('[CardPage] DB fetch error, using fallback:', err);
+      }
+    }
+    loadRealBiz();
+  }, [slug]);
 
   // Generate & Download Authentic .VCF Virtual Contact File
   const handleSaveContact = () => {

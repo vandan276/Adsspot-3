@@ -18,9 +18,28 @@ import {
 
 export default function EliteMicrositePage() {
   const params = useParams();
-  const slug = params?.slug as string;
+  const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params?.slug[0] : '';
 
-  const biz = SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!;
+  const [biz, setBiz] = React.useState(SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!);
+
+  React.useEffect(() => {
+    async function loadRealBiz() {
+      if (!slug) return;
+      try {
+        const res = await fetch(`/api/business/get-by-slug?slug=${encodeURIComponent(slug)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.business) {
+            setBiz(data.business);
+          }
+        }
+      } catch (err) {
+        console.warn('[MicrositePage] DB fetch error, using fallback:', err);
+      }
+    }
+    loadRealBiz();
+  }, [slug]);
+
   const bizPosts = SEED_POSTS.filter((p) => p.business_id === biz.id);
   const bizReviews = SEED_REVIEWS.filter((r) => r.business_id === biz.id);
 
