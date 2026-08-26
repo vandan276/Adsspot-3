@@ -205,10 +205,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { success: false, error: 'Invalid OTP code. Please enter 123456 for instant verification.' };
     }
 
-    // Check if user already exists
+    try {
+      // 1. Sync with AWS Aurora PostgreSQL Database via API
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          const dbUser: AuthUser = data.user;
+          setUser(dbUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(AUTH_STORAGE_KEY, dbUser.id);
+            localStorage.setItem(`adsspot_wallet_${dbUser.id}`, (dbUser.wallet?.balance || 0).toString());
+          }
+          return { success: true, user: dbUser };
+        }
+      }
+    } catch (e) {
+      console.warn('[AuthProvider] Failed to reach /api/auth/verify-otp, falling back to local session:', e);
+    }
+
+    // Fallback: Check if user already exists in persona list
     let matchedPersona = personas.find((p) => p.phone === phone || p.phone.replace(/[^0-9]/g, '') === phone.replace(/[^0-9]/g, ''));
 
-    // If new real user, dynamically register them as a Consumer
     if (!matchedPersona) {
       const newUserId = `usr-real-${Date.now()}`;
       matchedPersona = {

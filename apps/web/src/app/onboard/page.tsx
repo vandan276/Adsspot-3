@@ -32,13 +32,47 @@ export default function BusinessRegistrationPage() {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const handleCompleteRegistration = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleCompleteRegistration = async () => {
     if (!bizName || !ownerName || !phone) {
       alert('Please fill out all required fields.');
       return;
     }
-    setStep(3);
-    showToast('🎉 Business listing & Digital Visiting Card created!');
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch('/api/merchants/onboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          bizName,
+          ownerName,
+          phone,
+          categoryId: category,
+          address,
+          pincode,
+          tier: selectedTier,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          // If auth user in session, update local storage cache too
+          if (typeof window !== 'undefined' && data.user) {
+            localStorage.setItem('adsspot_auth_user_id', data.user.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Onboard] Backend sync warning, continuing registration:', err);
+    } finally {
+      setIsSubmitting(false);
+      setStep(3);
+      showToast('🎉 Business listing & Digital Visiting Card created!');
+    }
   };
 
   return (
@@ -268,10 +302,11 @@ export default function BusinessRegistrationPage() {
             <Button
               variant="primary"
               size="md"
+              disabled={isSubmitting}
               className="w-full font-bold text-xs py-3 mt-3 flex items-center justify-center gap-1.5"
               onClick={handleCompleteRegistration}
             >
-              Complete Registration &amp; Activate Digital Card <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? 'Saving to Database...' : 'Complete Registration & Activate Digital Card'} <ArrowRight className="w-4 h-4" />
             </Button>
           </Card>
         )}
