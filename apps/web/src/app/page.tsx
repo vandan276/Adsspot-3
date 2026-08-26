@@ -372,9 +372,6 @@ export default function HomePage() {
       <section id="mobile-app" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative">
         {/* Authentic 3D Liquid Glass Pill Container Directly on Clean Canvas */}
         <div className="pure-liquid-glass-card p-8 sm:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 relative overflow-hidden">
-          {/* Top-Left Specular Refraction Flare */}
-          <div className="glass-specular-flare" />
-
           {/* Notification Badge Bubble (Matching "12" Red Bubble in Reference) */}
           <div className="absolute -top-2 -right-2 sm:top-6 sm:right-8 liquid-glass-badge w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-xl z-20">
             NEW

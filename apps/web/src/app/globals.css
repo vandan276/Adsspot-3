@@ -85,96 +85,76 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* =========================================================================
-   TRUE 3D LIQUID GLASS (BentoMotion After Effects / Ray-Traced Glass Lens)
+   TRUE 3D LIQUID GLASS (Clean Optics & Smooth Lens Curves)
    ========================================================================= */
 
 .pure-liquid-glass {
   position: relative;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.28) 0%,
-    rgba(255, 255, 255, 0.04) 40%,
-    rgba(255, 255, 255, 0.01) 70%,
-    rgba(255, 255, 255, 0.15) 100%
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.12) 40%,
+    rgba(255, 255, 255, 0.05) 70%,
+    rgba(255, 255, 255, 0.25) 100%
   );
-  backdrop-filter: blur(8px) saturate(160%);
-  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   box-shadow: 
-    0 15px 35px -8px rgba(30, 20, 70, 0.18),
-    inset 0 2px 3px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -2px 3px 0 rgba(100, 90, 160, 0.2);
+    0 15px 35px -8px rgba(30, 20, 70, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px 0 rgba(100, 90, 160, 0.15);
 }
 
 .pure-liquid-glass-card {
   position: relative;
   background: linear-gradient(
     140deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(255, 255, 255, 0.03) 30%,
-    rgba(255, 255, 255, 0.01) 65%,
-    rgba(255, 255, 255, 0.12) 100%
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 255, 255, 0.15) 30%,
+    rgba(255, 255, 255, 0.08) 65%,
+    rgba(255, 255, 255, 0.3) 100%
   );
-  backdrop-filter: blur(6px) saturate(170%);
-  -webkit-backdrop-filter: blur(6px) saturate(170%);
-  border-radius: 44px;
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border-radius: 40px;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
   box-shadow: 
     /* Soft ambient drop shadow */
-    0 40px 80px -15px rgba(60, 45, 120, 0.28),
-    0 15px 30px -5px rgba(0, 0, 0, 0.08),
+    0 30px 60px -12px rgba(60, 45, 120, 0.16),
+    0 10px 20px -5px rgba(0, 0, 0, 0.05),
     /* Top & Left bright specular refraction sheen */
-    inset 0 3px 6px 0 rgba(255, 255, 255, 0.95),
-    inset 3px 4px 12px 0 rgba(255, 255, 255, 0.5),
-    /* Bottom & Right dark lens edge refraction (Creates realistic curved glass body) */
-    inset -3px -4px 12px 0 rgba(100, 80, 160, 0.25),
-    inset 0 -2px 4px 0 rgba(60, 40, 110, 0.35);
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.95),
+    inset 2px 3px 8px 0 rgba(255, 255, 255, 0.4),
+    /* Bottom & Right subtle lens edge refraction */
+    inset -2px -3px 8px 0 rgba(100, 80, 160, 0.15),
+    inset 0 -1.5px 3px 0 rgba(60, 40, 110, 0.2);
 }
 
-/* 3D Liquid Glass Top-Left Specular Reflection Flare (As seen in BentoMotion) */
-.glass-specular-flare {
-  display: block !important;
-  position: absolute;
-  top: 8px;
-  left: 28px;
-  width: 180px;
-  height: 22px;
-  border-radius: 9999px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.98) 0%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  filter: blur(0.5px);
-  transform: rotate(-1.5deg);
-  pointer-events: none;
-}
-
-/* BentoMotion Spherical 3D Red Badge */
+/* Notification Pill Badge */
 .liquid-glass-badge {
   background: radial-gradient(circle at 35% 30%, #FF6B6B 0%, #E60023 55%, #8B0014 100%);
   box-shadow: 
-    0 12px 28px -4px rgba(230, 0, 35, 0.55),
+    0 10px 24px -4px rgba(230, 0, 35, 0.45),
     inset 0 2px 4px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -2px 5px 0 rgba(0, 0, 0, 0.4);
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
+    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
 }
 
 .liquid-glass-subtle {
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.2) 0%,
-    rgba(255, 255, 255, 0.02) 100%
+    rgba(255, 255, 255, 0.35) 0%,
+    rgba(255, 255, 255, 0.1) 100%
   );
-  backdrop-filter: blur(6px) saturate(160%);
-  -webkit-backdrop-filter: blur(6px) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
   box-shadow: 
-    0 15px 35px -8px rgba(0, 0, 0, 0.12),
-    inset 0 2px 4px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -2px 4px 0 rgba(100, 80, 160, 0.2);
+    0 15px 35px -8px rgba(0, 0, 0, 0.08),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px 0 rgba(100, 80, 160, 0.12);
 }
 
 .liquid-glass-btn-primary {
@@ -185,41 +165,48 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .liquid-glass-btn-secondary {
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(8px) saturate(160%);
   -webkit-backdrop-filter: blur(8px) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
   color: #17181C;
   box-shadow: 
-    0 8px 20px -4px rgba(0, 0, 0, 0.08),
-    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.9);
+    0 8px 20px -4px rgba(0, 0, 0, 0.06),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.95);
 }
 
+/* Applied globally across all cards (ios-glass-card) */
 .ios-glass-card {
   position: relative;
   background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.15) 100%
+    140deg,
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0.6) 100%
   );
   backdrop-filter: blur(10px) saturate(160%);
   -webkit-backdrop-filter: blur(10px) saturate(160%);
-  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  border-radius: 24px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
   box-shadow: 
-    0 12px 30px -6px rgba(0, 0, 0, 0.06),
-    inset 0 2px 3px 0 rgba(255, 255, 255, 0.9),
-    inset 0 -2px 3px 0 rgba(100, 90, 160, 0.12);
+    0 18px 40px -10px rgba(60, 45, 120, 0.1),
+    0 4px 12px -2px rgba(0, 0, 0, 0.04),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1.5px 3px 0 rgba(100, 90, 160, 0.1);
 }
 
 .ios-glass-card:hover {
   background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(255, 255, 255, 0.25) 100%
+    140deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0.75) 100%
   );
   border-color: rgba(71, 135, 242, 0.45);
   box-shadow: 
-    0 20px 40px -8px rgba(71, 135, 242, 0.18),
-    inset 0 2px 4px 0 rgba(255, 255, 255, 1);
+    0 24px 50px -10px rgba(71, 135, 242, 0.16),
+    0 6px 16px -2px rgba(0, 0, 0, 0.05),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 1),
+    inset 0 -1.5px 3px 0 rgba(71, 135, 242, 0.15);
 }
 
