@@ -28,7 +28,7 @@ export function ApkDownloadPromptModal({
   preventDismiss = false,
   onDismiss,
 }: ApkDownloadPromptModalProps = {}) {
-  const [isOpen, setIsOpen] = useState(forceOpen);
+  const [isOpen, setIsOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
