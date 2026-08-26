@@ -80,7 +80,11 @@ export default function ExplorePage() {
       </div>
 
       {/* 1. REAL-TIME INTERACTIVE MAP */}
-      <RealtimeExploreMap businesses={filtered} selectedCategory={selectedCat} />
+      <RealtimeExploreMap
+        businesses={filtered}
+        selectedCategory={selectedCat}
+        isFullScreen={viewMode === 'map'}
+      />
 
       {/* 2. CATEGORY FILTER CHIPS */}
       <div className="space-y-2">

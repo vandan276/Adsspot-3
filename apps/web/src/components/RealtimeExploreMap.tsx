@@ -15,11 +15,15 @@ interface RealtimeExploreMapProps {
   businesses: Business[];
   selectedCategory?: string;
   onSelectBusiness?: (biz: Business) => void;
+  className?: string;
+  isFullScreen?: boolean;
 }
 
 export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
   businesses,
   onSelectBusiness,
+  className = '',
+  isFullScreen = false,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -90,6 +94,16 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
       mapRef.current = null;
     };
   }, []);
+
+  // Invalidate Leaflet size when height toggles between Split and Full Map
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    }, 320);
+    return () => clearTimeout(timer);
+  }, [isFullScreen]);
 
   // 2. Handle Map Style Switch
   useEffect(() => {
@@ -245,8 +259,12 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
     }
   };
 
+  const heightClass = isFullScreen
+    ? 'h-[75vh] min-h-[500px]'
+    : 'h-[250px] sm:h-[360px] min-h-[220px]';
+
   return (
-    <div className="relative w-full h-[65vh] min-h-[420px] rounded-3xl overflow-hidden shadow-xl border border-[#E3E8EF] bg-[#F4F6FB]">
+    <div className={`relative w-full rounded-3xl overflow-hidden shadow-lg border border-[#E3E8EF] bg-[#F4F6FB] transition-all duration-300 ${heightClass} ${className}`}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full z-0" />
 
