@@ -1,4 +1,4 @@
-import React from 'react';
+import { AnimatedLogoMark } from './AnimatedLogoMark';
 
 export interface LogoProps {
   size?: number | 'sm' | 'md' | 'lg' | 'xl';
@@ -11,7 +11,12 @@ export interface LogoProps {
 export const AdsspotLogoMark: React.FC<{ size?: number; className?: string; animated?: boolean }> = ({
   size = 44,
   className = '',
+  animated = true,
 }) => {
+  if (animated) {
+    return <AnimatedLogoMark size={size} className={className} loop={true} />;
+  }
+
   return (
     <svg
       width={size}
@@ -162,7 +167,7 @@ export const AdsspotLogoMark: React.FC<{ size?: number; className?: string; anim
   );
 };
 
-// 2. Complete Brand Logo Component (Animated Icon + Seamless ADSSPOT Typography)
+// 2. Complete Brand Logo Component (Animated Icon + Exact DIN Condensed / Bebas Neue Brand Name from "Logo name .svg")
 export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   withText = true,
@@ -184,24 +189,31 @@ export const Logo: React.FC<LogoProps> = ({
     return <AdsspotLogoMark size={pixelHeight} className={className} animated={animated} />;
   }
 
-  // Calculate icon size matching proportion in 280x70 banner (58/70 of height)
+  // Calculate icon size matching 1:1 proportion in 280x70 banner (92% of height)
   const iconSize = Math.round(pixelHeight * 0.92);
-  const fontSize = Math.round(pixelHeight * 0.8);
+  const fontSize = Math.round(pixelHeight * 0.82);
 
   return (
-    <div className={`inline-flex items-center gap-2.5 shrink-0 select-none ${className}`}>
-      {/* 1. Brand Logo Mark */}
+    <div className={`inline-flex items-center gap-2 shrink-0 select-none ${className}`}>
+      {/* 1. Animated Brand Logo Mark */}
       <div className="shrink-0 flex items-center justify-center">
-        <AdsspotLogoMark size={iconSize} />
+        {animated ? (
+          <AnimatedLogoMark size={iconSize} loop={true} />
+        ) : (
+          <AdsspotLogoMark size={iconSize} animated={false} />
+        )}
       </div>
 
-      {/* 2. Seamless ADSSPOT Brand Name */}
+      {/* 2. Exact DIN Condensed / Bebas Neue Typography from "Logo name .svg" */}
       <div
-        className="font-['Plus_Jakarta_Sans',sans-serif] font-black uppercase tracking-tight flex items-center leading-none"
-        style={{ fontSize: `${fontSize}px` }}
+        className="font-['Bebas_Neue','DINCondensed-Bold','DIN_Condensed',sans-serif] font-black uppercase tracking-wider flex items-center leading-none select-none"
+        style={{
+          fontSize: `${fontSize}px`,
+          letterSpacing: '0.04em',
+        }}
       >
-        <span className="text-[#4787F2]">ADS</span>
-        <span className="text-[#981837]">SPOT</span>
+        <span style={{ color: '#4787F2' }}>ADS</span>
+        <span style={{ color: '#981837' }}>SPOT</span>
       </div>
     </div>
   );

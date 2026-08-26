@@ -138,23 +138,32 @@ const DOTS = [
   },
 ];
 
+function easeOutBack(t: number): number {
+  const c1 = 1.70158;
+  const c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+}
+
 export const AnimatedLogoMark: React.FC<AnimatedLogoMarkProps> = ({
   size = 110,
   className = '',
   loop = true,
 }) => {
-  const [time, setTime] = useState(0);
+  const [time, setTime] = useState(1.2);
 
-  // Total loop cycle duration = 4.0s (Gentle pulse & shimmer without disappearing)
-  const TOTAL = 4.0;
+  // Total loop cycle: 3.6s (0-1.2s: Assemble bloom, 1.2-3.0s: Hold & breath, 3.0-3.6s: Micro-contract)
+  const TOTAL = 3.6;
+  const CUE_ASSEMBLE = 0;
+  const CUE_HOLD = 1.2;
+  const CUE_CONTRACT = 3.0;
 
   useEffect(() => {
     let animFrame: number;
-    const startStamp = performance.now();
+    const startStamp = performance.now() - (CUE_HOLD * 1000); // Start fully visible
 
     const frame = (now: number) => {
       const elapsed = (now - startStamp) / 1000;
-      const t = loop ? elapsed % TOTAL : 0;
+      const t = loop ? elapsed % TOTAL : CUE_HOLD;
       setTime(t);
       animFrame = requestAnimationFrame(frame);
     };
@@ -163,16 +172,43 @@ export const AnimatedLogoMark: React.FC<AnimatedLogoMarkProps> = ({
     return () => cancelAnimationFrame(animFrame);
   }, [loop]);
 
-  // Hold breathing and slight rock
-  const pulse = 1 + 0.025 * Math.sin((2 * Math.PI * time) / TOTAL);
-  const rockDeg = 1.2 * Math.sin((2 * Math.PI * time) / TOTAL);
+  // Gentle pulse while assembled
+  const isHolding = time >= CUE_HOLD && time <= CUE_CONTRACT;
+  const pulse = isHolding ? 1 + 0.035 * Math.sin((2 * Math.PI * 1.5 * (time - CUE_HOLD)) / (CUE_CONTRACT - CUE_HOLD)) : 1;
+  const rockDeg = isHolding ? 1.5 * Math.sin((2 * Math.PI * 1.5 * (time - CUE_HOLD)) / (CUE_CONTRACT - CUE_HOLD)) : 0;
 
-  const getTransform = () => {
-    // Keep fully assembled (p = 1) with subtle organic micro-motions
+  const getTransform = (
+    item: { dir: [number, number] | number[]; mag: number; rot: number; delay: number },
+    isDot: boolean
+  ) => {
+    const dur = isDot ? 0.4 : 0.7;
+    const enterStart = CUE_ASSEMBLE + item.delay;
+    const enterEnd = enterStart + dur;
+
+    let p = 1;
+    if (time < enterStart) {
+      p = 0.15; // Keep minimum visibility
+    } else if (time <= enterEnd) {
+      p = 0.15 + 0.85 * easeOutBack((time - enterStart) / dur);
+    } else if (time < CUE_CONTRACT) {
+      p = 1;
+    } else {
+      const contractProgress = (time - CUE_CONTRACT) / (TOTAL - CUE_CONTRACT);
+      p = 1 - 0.25 * Math.sin(Math.PI * contractProgress); // Subtle breath contract
+    }
+
+    const dirX = item.dir[0] ?? 0;
+    const dirY = item.dir[1] ?? 0;
+    const dx = dirX * item.mag * (1 - Math.min(1, p)) * 0.5;
+    const dy = dirY * item.mag * (1 - Math.min(1, p)) * 0.5;
+    const rot = item.rot * (1 - Math.min(1, p)) * 0.4;
+    const scale = 0.75 + 0.25 * Math.min(1, p);
+    const opacity = 0.65 + 0.35 * Math.min(1, p);
+
     return {
-      transform: 'translate(0px, 0px) rotate(0deg) scale(1)',
+      transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${scale})`,
       transformOrigin: '55px 55px',
-      opacity: 1,
+      opacity,
     };
   };
 
@@ -193,12 +229,12 @@ export const AnimatedLogoMark: React.FC<AnimatedLogoMarkProps> = ({
       }}
     >
       {GROUPS.map((g) => (
-        <g key={g.key} style={getTransform()}>
+        <g key={g.key} style={getTransform(g, false)}>
           {g.el}
         </g>
       ))}
       {DOTS.map((d) => (
-        <g key={d.key} style={getTransform()}>
+        <g key={d.key} style={getTransform(d, true)}>
           {d.el}
         </g>
       ))}
