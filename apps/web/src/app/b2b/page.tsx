@@ -26,7 +26,7 @@ import {
 
 const B2B_QUICK_CATEGORIES = [
   {
-    id: 'construction',
+    id: 'construction-real-estate',
     name: 'Construction & Real Estate',
     image: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?w=200&auto=format&fit=crop&q=80',
     icon: Building,
@@ -38,7 +38,7 @@ const B2B_QUICK_CATEGORIES = [
     icon: Factory,
   },
   {
-    id: 'electronic-components',
+    id: 'electronic-component',
     name: 'Electronic Component',
     image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&auto=format&fit=crop&q=80',
     icon: Cpu,
@@ -62,15 +62,15 @@ const B2B_QUICK_CATEGORIES = [
     icon: Stethoscope,
   },
   {
-    id: 'packaging-printing',
-    name: 'Packaging & Printing',
-    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=200&auto=format&fit=crop&q=80',
+    id: 'chemicals',
+    name: 'Chemicals & Pharma',
+    image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=200&auto=format&fit=crop&q=80',
     icon: Printer,
   },
   {
-    id: 'b2b-events',
-    name: 'B2B Events & Expo',
-    image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?w=200&auto=format&fit=crop&q=80',
+    id: 'energy',
+    name: 'Energy & Solar Power',
+    image: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?w=200&auto=format&fit=crop&q=80',
     icon: Calendar,
     badge: 'NEW',
   },
