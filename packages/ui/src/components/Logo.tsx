@@ -210,3 +210,29 @@ export const Logo: React.FC<LogoProps> = ({
   );
 };
 
+// 3. Signature 4-Segment Brand Line from 'logo line.svg' (Yellow -> Green -> Blue -> Crimson)
+export const AdsspotBrandLine: React.FC<{ width?: number | string; className?: string }> = ({
+  width = 240,
+  className = '',
+}) => {
+  return (
+    <svg
+      width={width}
+      height="8"
+      viewBox="20 90 250 10"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={`overflow-visible ${className}`}
+    >
+      {/* Crimson Segment */}
+      <path d="M263.562 95.0929L224.067 95.0929L209.713 95.0929" stroke="#981837" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Blue Segment */}
+      <path d="M209.713 95.0929L166.249 95.0929L150.453 95.0929" stroke="#4787F2" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Green Segment */}
+      <path d="M150.453 95.0929L107.036 95.0929L91.2566 95.0929" stroke="#35AB4E" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      {/* Yellow Segment */}
+      <path d="M91.2566 95.0929L47.8252 95.0929L32.0407 95.0929" stroke="#F2B604" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+};
+

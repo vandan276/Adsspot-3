@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
-import { Button, Card, Avatar, TrustedBadge, TierBadge, Logo, AnimatedLogoMark } from '@adsspot/ui';
+import { Button, Card, Avatar, TrustedBadge, TierBadge, Logo, AnimatedLogoMark, AdsspotBrandLine } from '@adsspot/ui';
 import { WebSplashScreen } from '../components/WebSplashScreen';
 
 import {
@@ -76,8 +76,9 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto text-center">
           {/* Prominent Animated Brand Logo Showcase */}
           <div className="flex flex-col items-center justify-center mb-6">
-            <div className="p-3 sm:p-4 rounded-3xl bg-gradient-to-b from-[#EDF4FF] to-white border border-[#4787F2]/20 shadow-lg shadow-[#4787F2]/10 mb-4 transform hover:scale-105 transition-transform">
+            <div className="p-3 sm:p-4 rounded-3xl bg-gradient-to-b from-[#EDF4FF] to-white border border-[#4787F2]/20 shadow-lg shadow-[#4787F2]/10 mb-4 transform hover:scale-105 transition-transform flex flex-col items-center gap-2">
               <Logo size={78} withText={true} animated={true} />
+              <AdsspotBrandLine width={220} className="mt-1" />
             </div>
             {/* Tagline Pill */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF4FF] border border-[#4787F2]/20">
