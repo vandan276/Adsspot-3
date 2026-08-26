@@ -741,83 +741,138 @@ export default function MerchantStudioPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   onClick={() => setSelectedTemplate('diwali')}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
-                    selectedTemplate === 'diwali' ? 'border-[#4787F2] bg-[#EDF4FF]' : 'border-[#E3E8EF] bg-white'
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                    selectedTemplate === 'diwali' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
                   }`}
                 >
-                  <span className="text-xs font-bold block text-[#17181C]">Diwali Festival Dhamaka</span>
+                  <span className="text-xs font-black block text-[#17181C]">🪔 Diwali Festival Dhamaka</span>
                   <span className="text-[10px] text-[#687182]">All tiers • Auto-stamped</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedTemplate('ganesh')}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
-                    selectedTemplate === 'ganesh' ? 'border-[#4787F2] bg-[#EDF4FF]' : 'border-[#E3E8EF] bg-white'
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                    selectedTemplate === 'ganesh' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
                   }`}
                 >
-                  <span className="text-xs font-bold block text-[#17181C]">Ganesh Chaturthi Special</span>
+                  <span className="text-xs font-black block text-[#17181C]">🐘 Ganesh Chaturthi Special</span>
                   <span className="text-[10px] text-[#687182]">Premium &amp; Elite</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedTemplate('gold')}
-                  className={`p-3 rounded-2xl border text-left transition-all ${
-                    selectedTemplate === 'gold' ? 'border-[#4787F2] bg-[#EDF4FF]' : 'border-[#E3E8EF] bg-white'
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${
+                    selectedTemplate === 'gold' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
                   }`}
                 >
-                  <span className="text-xs font-bold block text-[#17181C]">Luxury Bridal Showcase</span>
+                  <span className="text-xs font-black block text-[#17181C]">✨ Weekend Flash Sale / Mega Offer</span>
                   <span className="text-[10px] text-[#687182]">Elite Daily Template</span>
                 </button>
               </div>
 
-              {/* Preview Box */}
-              <div className="relative rounded-3xl overflow-hidden border border-[#E3E8EF] shadow-lg max-w-lg mx-auto bg-neutral-900">
+              {/* Banner Text Customization Inputs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-[#F4F6FB] rounded-2xl border border-[#E3E8EF]">
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17181C] uppercase tracking-wider mb-1">
+                    Festival Headline / Promo Title
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue="Grand Festive Season Celebration"
+                    id="banner-headline-input"
+                    className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-semibold bg-white outline-none focus:border-[#4787F2]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-[#17181C] uppercase tracking-wider mb-1">
+                    Offer Tag / Special Discount
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue="Flat 25% OFF on Entire Stock"
+                    id="banner-subtext-input"
+                    className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#981837] bg-white outline-none focus:border-[#4787F2]"
+                  />
+                </div>
+              </div>
+
+              {/* Live Rendered Canvas Banner Box */}
+              <div className="relative rounded-3xl overflow-hidden border border-[#E3E8EF] shadow-2xl max-w-xl mx-auto bg-neutral-900 aspect-[16/9] flex flex-col justify-between p-6">
                 <img
                   src={
                     selectedTemplate === 'diwali'
-                      ? 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800'
+                      ? 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1000&auto=format&fit=crop&q=80'
                       : selectedTemplate === 'ganesh'
-                        ? 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800'
-                        : 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800'
+                        ? 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1000&auto=format&fit=crop&q=80'
+                        : 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1000&auto=format&fit=crop&q=80'
                   }
-                  alt="Template"
-                  className="w-full h-64 object-cover opacity-85"
+                  alt="Template Background"
+                  className="absolute inset-0 w-full h-full object-cover opacity-60"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/60" />
+
+                {/* Top Banner Tag */}
+                <div className="relative z-10 flex items-center justify-between">
+                  <span className="bg-[#981837] text-white text-[11px] font-black uppercase px-3.5 py-1 rounded-full shadow-lg border border-red-400/30">
+                    {selectedTemplate === 'diwali' ? '🪔 Diwali Dhamaka' : selectedTemplate === 'ganesh' ? '🐘 Festive Blessings' : '🔥 Exclusive Mega Offer'}
+                  </span>
+                  <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-bold px-3 py-1 rounded-full border border-white/20">
+                    Hyperlocal Offer • Vadodara
+                  </span>
+                </div>
+
+                {/* Center Headline */}
+                <div className="relative z-10 text-center space-y-1.5 my-auto">
+                  <h2 className="text-xl sm:text-2xl font-black text-white drop-shadow-md tracking-tight">
+                    Grand Festive Season Celebration
+                  </h2>
+                  <div className="inline-block bg-[#F2B604] text-[#17181C] font-black text-xs sm:text-sm px-4 py-1.5 rounded-full shadow-lg">
+                    Flat 25% OFF on Entire Stock
+                  </div>
+                </div>
 
                 {/* Stamped Watermark Brand Badge */}
-                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between shadow-xl border border-neutral-200">
-                  <div className="flex items-center gap-2.5">
-                    <img src={currentBiz?.logo_url || ''} alt="Logo" className="w-10 h-10 rounded-xl object-cover" />
-                    <div>
-                      <h4 className="text-xs font-black text-[#17181C] leading-none">{currentBiz?.name}</h4>
+                <div className="relative z-10 bg-white/95 backdrop-blur-md p-3 rounded-2xl flex items-center justify-between shadow-2xl border border-white/40">
+                  <div className="flex items-center gap-3">
+                    <img src={currentBiz?.logo_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150'} alt="Logo" className="w-10 h-10 rounded-xl object-cover border border-neutral-200" />
+                    <div className="text-left">
+                      <h4 className="text-xs font-black text-[#17181C] leading-tight">{currentBiz?.name}</h4>
                       <p className="text-[10px] text-[#687182] mt-0.5">{currentBiz?.address} • {currentBiz?.phone}</p>
                     </div>
                   </div>
-                  <span className="text-[10px] font-extrabold bg-[#4787F2] text-white px-2 py-0.5 rounded-full">
-                    Verified
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-extrabold bg-[#4787F2] text-white px-2.5 py-0.5 rounded-full shadow-xs">
+                      Verified Store
+                    </span>
+                  </div>
                 </div>
               </div>
 
               {/* Download & Share Actions */}
-              <div className="flex gap-2 max-w-lg mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3 max-w-xl mx-auto pt-2">
                 <Button
                   variant="secondary"
                   size="md"
-                  className="flex-1 font-bold"
-                  leftIcon={<Download className="w-4 h-4" />}
-                  onClick={() => showToast('High-res banner downloaded to device!')}
+                  className="flex-1 font-bold shadow-sm"
+                  leftIcon={<Download className="w-4 h-4 text-[#4787F2]" />}
+                  onClick={() => {
+                    showToast('🎉 High-Res 1080p Festival Banner generated and saved!');
+                  }}
                 >
-                  Download HD Banner
+                  Download HD Banner (1080p)
                 </Button>
                 <Button
                   variant="primary"
                   size="md"
-                  className="flex-1 font-bold bg-[#25D366] hover:bg-[#1EBE5D]"
-                  leftIcon={<Share2 className="w-4 h-4" />}
-                  onClick={() => showToast('Banner ready to share on WhatsApp Business Status!')}
+                  className="flex-1 font-bold bg-[#25D366] hover:bg-[#1EBE5D] shadow-sm"
+                  leftIcon={<Share2 className="w-4 h-4 text-white" />}
+                  onClick={() => {
+                    const text = encodeURIComponent(`Check out our festive special offer at ${currentBiz?.name}! Visit our card: https://adsspot.in/card/${currentBiz?.slug}`);
+                    window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank');
+                    showToast('Opening WhatsApp to share banner...');
+                  }}
                 >
-                  Share to WhatsApp
+                  Share to WhatsApp Status
                 </Button>
               </div>
             </Card>
