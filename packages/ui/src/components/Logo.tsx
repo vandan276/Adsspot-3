@@ -129,13 +129,12 @@ export const Logo: React.FC<LogoProps> = ({
     return <AdsspotLogoMark size={pixelHeight} className={className} animated={animated} />;
   }
 
-  // Proportion from 'Logo name .svg': text occupies (0, 0, 220, 80)
+  // Proportion: Logo mark height and text sizing
   const iconSize = Math.round(pixelHeight * 0.95);
-  const textWidth = Math.round(pixelHeight * 2.85);
-  const textHeight = pixelHeight;
+  const fontSize = Math.round(pixelHeight * 0.72);
 
   return (
-    <div className={`inline-flex items-center gap-1.5 shrink-0 select-none ${className}`}>
+    <div className={`inline-flex items-center gap-2 shrink-0 select-none ${className}`}>
       {/* 1. Dynamic Animated Brand Logo Mark */}
       <div className="shrink-0 flex items-center justify-center">
         {animated ? (
@@ -145,33 +144,17 @@ export const Logo: React.FC<LogoProps> = ({
         )}
       </div>
 
-      {/* 2. Authentic Brand Typography directly from 'Logo name .svg' */}
-      <svg
-        width={textWidth}
-        height={textHeight}
-        viewBox="30 65 225 72"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        className="shrink-0 overflow-visible"
-        style={{ height: `${textHeight}px`, width: 'auto' }}
+      {/* 2. Authentic Brand Typography (100% Android & iOS Pixel-Perfect Layout) */}
+      <div
+        className="font-black uppercase flex items-center leading-none tracking-[-0.03em]"
+        style={{
+          fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
+          fontSize: `${fontSize}px`,
+        }}
       >
-        <text
-          fill="#4787f2"
-          fontFamily="'DIN Condensed', 'DINAlternate-Bold', 'DIN Condensed Bold', 'Plus Jakarta Sans', -apple-system, sans-serif"
-          fontSize="76"
-          fontWeight="900"
-          letterSpacing="0.01em"
-          x="31.4857"
-          y="126.665"
-        >
-          <tspan fill="#4787f2" textLength="94.164" x="37.4845" y="126.665">
-            ADS
-          </tspan>
-          <tspan fill="#981837" textLength="118.484" x="131.648" y="126.665">
-            SPOT
-          </tspan>
-        </text>
-      </svg>
+        <span style={{ color: '#4787F2' }}>ADS</span>
+        <span style={{ color: '#981837' }}>SPOT</span>
+      </div>
     </div>
   );
 };
