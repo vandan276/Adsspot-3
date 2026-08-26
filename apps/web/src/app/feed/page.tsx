@@ -621,7 +621,7 @@ export default function MobileFeedPage() {
       </div>
 
       {/* 2.5 🔥 SPOT DROPS FLASH HOURLY DEALS (Feature A) */}
-      <div className="bg-gradient-to-r from-[#FFF5F2] via-[#FFF1EE] to-[#FFEFEA] p-3 border-b border-[#FECDD3] space-y-2">
+      <div className="bg-gradient-to-r from-[#FFF5F2]/80 via-[#FFF1EE]/80 to-[#FFEFEA]/80 p-3 border-b border-[#FECDD3] space-y-2 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#E11D48] animate-ping" />
@@ -642,7 +642,7 @@ export default function MobileFeedPage() {
             return (
               <div
                 key={drop.id}
-                className="min-w-[260px] sm:min-w-[280px] bg-white rounded-2xl p-3 border border-[#FECDD3] shadow-2xs flex flex-col justify-between space-y-2 hover:shadow-md transition-shadow"
+                className="min-w-[260px] sm:min-w-[280px] ios-glass-card rounded-2xl p-3 border border-[#FECDD3] shadow-sm flex flex-col justify-between space-y-2 hover:shadow-md transition-all"
               >
                 <div className="flex items-start gap-2.5">
                   <img src={drop.logo} alt={drop.businessName} className="w-10 h-10 rounded-xl object-cover border border-neutral-100" />
@@ -695,7 +695,7 @@ export default function MobileFeedPage() {
       {/* Spot Drop Claim Modal */}
       {activeClaimModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-white w-full max-w-sm rounded-3xl p-5 border border-[#E3E8EF] shadow-2xl text-center space-y-4 animate-scale-up">
+          <div className="ios-glass-card bg-white/95 w-full max-w-sm rounded-3xl p-5 border border-white/80 shadow-2xl text-center space-y-4 animate-scale-up">
             <div className="w-12 h-12 rounded-full bg-[#EBF9EE] text-[#35AB4E] flex items-center justify-center mx-auto shadow-sm">
               <Gift className="w-6 h-6" />
             </div>
@@ -737,7 +737,7 @@ export default function MobileFeedPage() {
           className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
             selectedCategory === 'all'
               ? 'bg-[#17181C] text-white shadow-xs'
-              : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
+              : 'ios-glass-card text-neutral-700'
           }`}
         >
           All
@@ -763,7 +763,7 @@ export default function MobileFeedPage() {
               className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-[#17181C] text-white shadow-xs'
-                  : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
+                  : 'ios-glass-card text-neutral-700'
               }`}
             >
               {cat.name}
@@ -786,7 +786,7 @@ export default function MobileFeedPage() {
           return (
             <div
               key={post.id}
-              className="bg-white rounded-2xl overflow-hidden border border-[#E3E8EF] shadow-sm"
+              className="ios-glass-card rounded-3xl overflow-hidden"
             >
               {/* Post Header with Compact Follow Icon Button */}
               <div className="p-3 flex items-center justify-between gap-2.5">

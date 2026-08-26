@@ -1,11 +1,11 @@
 import React from 'react';
-import { colors, radii, shadows } from '../tokens';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   elevated?: boolean;
   bordered?: boolean;
   hoverable?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  glass?: boolean;
 }
 
 const paddingStyles = {
@@ -21,18 +21,19 @@ export const Card: React.FC<CardProps> = ({
   bordered = true,
   hoverable = false,
   padding = 'md',
+  glass = true,
   className = '',
   style,
   ...props
 }) => {
   return (
     <div
-      className={`bg-white transition-all duration-200 ${paddingStyles[padding]} ${hoverable ? 'hover:-translate-y-0.5' : ''} ${className}`}
+      className={`transition-all duration-300 rounded-[24px] ${
+        glass
+          ? 'ios-glass-card'
+          : 'bg-white border border-[#E3E8EF] shadow-card'
+      } ${paddingStyles[padding]} ${hoverable ? 'hover:-translate-y-1 hover:shadow-xl' : ''} ${className}`}
       style={{
-        borderRadius: radii.card, // STRICT: 16px border-radius
-        backgroundColor: colors.card,
-        border: bordered ? `1px solid ${colors.border}` : 'none',
-        boxShadow: elevated ? shadows.card : 'none',
         ...style,
       }}
       {...props}
