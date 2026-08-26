@@ -527,19 +527,34 @@ export default function MobileFeedPage() {
         >
           All
         </button>
-        {SEED_CATEGORIES.map((cat) => (
-          <button
-            key={cat.id}
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
-              selectedCategory === cat.id
-                ? 'bg-[#17181C] text-white shadow-xs'
-                : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
-            }`}
-          >
-            {cat.name}
-          </button>
-        ))}
+        {SEED_CATEGORIES.map((cat) => {
+          if (cat.id === 'cat-b2b') {
+            return (
+              <Link
+                key={cat.id}
+                href="/b2b"
+                className="px-3 sm:px-3.5 py-1 rounded-full text-xs font-black shrink-0 transition-all bg-[#FFF1EE] text-[#E14D2A] border border-[#E14D2A]/30 hover:bg-[#FFE4DE] flex items-center gap-1 shadow-2xs"
+              >
+                <span>B2b</span>
+                <span className="bg-[#E14D2A] text-white text-[8px] px-1 rounded-full">1Cr+</span>
+              </Link>
+            );
+          }
+
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
+                selectedCategory === cat.id
+                  ? 'bg-[#17181C] text-white shadow-xs'
+                  : 'bg-white text-neutral-600 border border-neutral-200 hover:border-neutral-300'
+              }`}
+            >
+              {cat.name}
+            </button>
+          );
+        })}
       </div>
 
       {/* 4. POSTS WITH AUTHENTIC ICONS */}
