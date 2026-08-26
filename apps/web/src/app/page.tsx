@@ -368,82 +368,94 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 5. APP DOWNLOAD CTA SECTION — Liquid Glass Masterpiece */}
+      {/* 5. APP DOWNLOAD CTA SECTION — Ultra-Glossy iOS Liquid Glass */}
       <section id="mobile-app" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative">
-        <div className="liquid-glass-container text-white rounded-[36px] p-8 sm:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 relative overflow-hidden">
-          {/* Top Liquid Specular Light Sheen */}
-          <div className="absolute top-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none" />
+        {/* Background Mesh Gradient Emitter behind the Glass */}
+        <div className="relative rounded-[40px] p-1 bg-gradient-to-br from-white/30 via-white/5 to-white/20 shadow-[0_30px_90px_-15px_rgba(71,135,242,0.2)]">
+          <div className="liquid-glass-container text-white rounded-[38px] p-8 sm:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 relative overflow-hidden">
+            {/* iOS Specular Prismatic Top Sheen */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
 
-          {/* Chromatic Liquid Orbs Behind the Glass */}
-          <div
-            className="absolute -right-16 -top-20 w-[420px] h-[420px] rounded-full pointer-events-none animate-liquid-orb-1"
-            style={{
-              background: 'radial-gradient(circle, rgba(71, 135, 242, 0.45) 0%, rgba(53, 171, 78, 0.25) 45%, transparent 70%)',
-              filter: 'blur(60px)',
-            }}
-          />
-          <div
-            className="absolute -left-20 -bottom-24 w-[400px] h-[400px] rounded-full pointer-events-none animate-liquid-orb-2"
-            style={{
-              background: 'radial-gradient(circle, rgba(242, 182, 4, 0.3) 0%, rgba(152, 24, 55, 0.25) 50%, transparent 70%)',
-              filter: 'blur(60px)',
-            }}
-          />
+            {/* Glowing Liquid Orbs with iOS Fluid Mesh Dynamics */}
+            <div
+              className="absolute -right-20 -top-24 w-[480px] h-[480px] rounded-full pointer-events-none animate-liquid-orb-1"
+              style={{
+                background: 'radial-gradient(circle, rgba(71, 135, 242, 0.55) 0%, rgba(53, 171, 78, 0.35) 45%, transparent 70%)',
+                filter: 'blur(70px)',
+              }}
+            />
+            <div
+              className="absolute -left-28 -bottom-28 w-[460px] h-[460px] rounded-full pointer-events-none animate-liquid-orb-2"
+              style={{
+                background: 'radial-gradient(circle, rgba(242, 182, 4, 0.4) 0%, rgba(152, 24, 55, 0.35) 50%, transparent 70%)',
+                filter: 'blur(70px)',
+              }}
+            />
+            <div
+              className="absolute left-1/3 top-1/4 w-[350px] h-[350px] rounded-full pointer-events-none animate-liquid-orb-3 opacity-60"
+              style={{
+                background: 'radial-gradient(circle, rgba(71, 135, 242, 0.3) 0%, rgba(131, 56, 236, 0.25) 50%, transparent 70%)',
+                filter: 'blur(60px)',
+              }}
+            />
 
-          <div className="max-w-xl z-10 space-y-6">
-            <div className="flex items-center gap-3">
-              <Logo size={44} withText={true} />
-            </div>
-
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-white text-xs font-bold backdrop-blur-xl border border-white/20 shadow-inner">
-              <Smartphone className="w-3.5 h-3.5 text-[#4787F2]" />
-              <span>Free Mobile App for iOS &amp; Android</span>
-            </div>
-
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.1] font-['Plus_Jakarta_Sans',sans-serif] drop-shadow-sm">
-              Take Adsspot with you everywhere you go.
-            </h2>
-
-            <p className="text-sm sm:text-base text-neutral-200 leading-relaxed font-normal">
-              Explore live shop maps with category sheets, watch Elite 24-hour stories, manage your hyperlocal wallet, and book local event tickets with QR codes.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                href="/download"
-                className="inline-flex items-center gap-3 bg-white/95 hover:bg-white text-[#17181C] px-7 py-3.5 rounded-full font-black text-sm transition-all shadow-[0_10px_25px_-5px_rgba(255,255,255,0.3)] hover:shadow-[0_15px_35px_-5px_rgba(255,255,255,0.4)] hover:scale-105 active:scale-95 border border-white/60"
-              >
-                <Download className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
-                <span>Download for iOS</span>
-              </Link>
-              <Link
-                href="/download"
-                className="inline-flex items-center gap-3 bg-white/10 hover:bg-white/15 text-white px-7 py-3.5 rounded-full font-black text-sm transition-all border border-white/20 shadow-lg hover:scale-105 active:scale-95 backdrop-blur-xl hover:border-white/40"
-              >
-                <Download className="w-4 h-4 text-[#35AB4E] stroke-[2.5]" />
-                <span>Download for Android</span>
-              </Link>
-            </div>
-          </div>
-
-          {/* Liquid Glass QR Code Capsule with Holographic Border */}
-          <div className="w-full lg:w-auto flex-shrink-0 flex items-center justify-center z-10">
-            <div className="liquid-glass-subtle p-7 rounded-[32px] flex flex-col items-center gap-4 max-w-[290px] text-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/25 relative overflow-hidden group hover:border-white/40 transition-all">
-              {/* Inner ambient glow on hover */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-[#4787F2]/10 via-transparent to-[#35AB4E]/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-              <div className="relative w-44 h-44 bg-white/95 rounded-2xl p-2.5 flex items-center justify-center shadow-lg border border-white/80">
-                <QrCode className="w-40 h-40 text-[#17181C]" />
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="w-11 h-11 rounded-2xl bg-white shadow-xl flex items-center justify-center p-1 border border-neutral-200">
-                    <AnimatedLogoMark size={30} loop={true} />
-                  </div>
-                </div>
+            <div className="max-w-xl z-10 space-y-6">
+              <div className="flex items-center gap-3">
+                <Logo size={46} withText={true} />
               </div>
 
-              <div>
-                <span className="text-sm font-black text-white block tracking-tight">Scan to Install Mobile App</span>
-                <span className="text-xs text-neutral-300 mt-1 block font-medium">Available on App Store &amp; Google Play</span>
+              {/* iOS Frosted Pill Badge */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 text-white text-xs font-black backdrop-blur-2xl border border-white/30 shadow-[0_4px_15px_rgba(0,0,0,0.1)]">
+                <Smartphone className="w-3.5 h-3.5 text-[#4787F2] drop-shadow-sm" />
+                <span>Free Mobile App for iOS &amp; Android</span>
+              </div>
+
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.08] font-['Plus_Jakarta_Sans',sans-serif] drop-shadow-[0_2px_10px_rgba(0,0,0,0.3)]">
+                Take Adsspot with you everywhere you go.
+              </h2>
+
+              <p className="text-sm sm:text-base text-neutral-200 leading-relaxed font-medium drop-shadow-xs">
+                Explore live shop maps with category sheets, watch Elite 24-hour stories, manage your hyperlocal wallet, and book local event tickets with QR codes.
+              </p>
+
+              {/* iOS Frosted Glass Buttons */}
+              <div className="flex flex-wrap items-center gap-4 pt-2">
+                <Link
+                  href="/download"
+                  className="liquid-glass-btn-primary inline-flex items-center gap-3 text-[#17181C] px-8 py-3.5 rounded-full font-black text-sm transition-all hover:scale-105 active:scale-95"
+                >
+                  <Download className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
+                  <span>Download for iOS</span>
+                </Link>
+                <Link
+                  href="/download"
+                  className="liquid-glass-btn-secondary inline-flex items-center gap-3 text-white px-8 py-3.5 rounded-full font-black text-sm transition-all hover:scale-105 active:scale-95 hover:bg-white/20"
+                >
+                  <Download className="w-4 h-4 text-[#35AB4E] stroke-[2.5]" />
+                  <span>Download for Android</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Liquid Glass QR Code Capsule with Holographic Border */}
+            <div className="w-full lg:w-auto flex-shrink-0 flex items-center justify-center z-10">
+              <div className="liquid-glass-subtle p-7 rounded-[34px] flex flex-col items-center gap-4 max-w-[290px] text-center shadow-[0_25px_60px_rgba(0,0,0,0.4)] relative overflow-hidden group hover:border-white/50 transition-all">
+                {/* Inner ambient dynamic glow */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-[#4787F2]/15 via-transparent to-[#35AB4E]/15 opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
+                <div className="relative w-44 h-44 bg-white/95 rounded-[22px] p-2.5 flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.2)] border border-white/90">
+                  <QrCode className="w-40 h-40 text-[#17181C]" />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-11 h-11 rounded-2xl bg-white shadow-xl flex items-center justify-center p-1 border border-neutral-200">
+                      <AnimatedLogoMark size={30} loop={true} />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-sm font-black text-white block tracking-tight">Scan to Install Mobile App</span>
+                  <span className="text-xs text-neutral-200 mt-1 block font-semibold">Available on App Store &amp; Google Play</span>
+                </div>
               </div>
             </div>
           </div>
