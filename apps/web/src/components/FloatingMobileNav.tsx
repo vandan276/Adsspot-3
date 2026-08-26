@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@adsspot/api';
 import { AdsspotLogoMark } from '@adsspot/ui';
-import { Home, Wallet, Bookmark, User, Store, Crown, Shield, MapPin } from 'lucide-react';
+import { Newspaper, Handshake, Bookmark, User, Store, Crown, Shield, MapPin } from 'lucide-react';
 
 export const FloatingMobileNav: React.FC = () => {
   const pathname = usePathname();
@@ -20,9 +20,9 @@ export const FloatingMobileNav: React.FC = () => {
     return () => window.removeEventListener('adsspot_story_active' as any, handleStoryChange);
   }, []);
 
-  const isHome = pathname === '/feed' || pathname === '/';
-  const isWallet = pathname === '/wallet';
-  const isExplore = pathname === '/explore';
+  const isFeed = pathname === '/feed' || pathname === '/';
+  const isPartner = pathname === '/partner' || pathname === '/wallet';
+  const isBusiness = pathname === '/explore' || pathname === '/categories';
   const isSaved = pathname === '/saved';
   const isProfile =
     pathname === '/profile' ||
@@ -93,40 +93,40 @@ export const FloatingMobileNav: React.FC = () => {
       }`}
     >
       <nav className="pointer-events-auto bg-white/95 backdrop-blur-xl border border-[#E3E8EF] shadow-[0_12px_36px_rgba(23,24,28,0.14)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center">
-        {/* 1. Home */}
+        {/* 1. Feed (formerly Home) */}
         <Link
           href="/feed"
           className={`flex flex-col items-center justify-center py-1 transition-all group ${
-            isHome ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
+            isFeed ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <Home className={`w-5 h-5 transition-transform group-hover:scale-110 ${isHome ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isHome ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
-            Home
+          <Newspaper className={`w-5 h-5 transition-transform group-hover:scale-110 ${isFeed ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isFeed ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+            Feed
           </span>
         </Link>
 
-        {/* 2. Wallet */}
+        {/* 2. Partner (formerly Wallet + Referral Hub) */}
         <Link
-          href="/wallet"
+          href="/partner"
           className={`flex flex-col items-center justify-center py-1 transition-all group ${
-            isWallet ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
+            isPartner ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <Wallet className={`w-5 h-5 transition-transform group-hover:scale-110 ${isWallet ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isWallet ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
-            Wallet
+          <Handshake className={`w-5 h-5 transition-transform group-hover:scale-110 ${isPartner ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isPartner ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+            Partner
           </span>
         </Link>
 
-        {/* 3. Center Explore Button (Elevated, Raised Spot Ring) */}
+        {/* 3. Center Business Button (formerly Explore) */}
         <Link
           href="/explore"
           className="relative -top-5 flex flex-col items-center justify-center group focus:outline-none"
         >
           <div
             className={`w-14 h-14 rounded-full flex items-center justify-center transform transition-all group-hover:scale-110 group-active:scale-95 shadow-[0_8px_24px_rgba(71,135,242,0.35)] p-[2.5px] ${
-              isExplore
+              isBusiness
                 ? 'ring-4 ring-[#4787F2]/30 shadow-[0_0_28px_rgba(71,135,242,0.65)]'
                 : 'hover:shadow-[0_8px_28px_rgba(71,135,242,0.45)]'
             }`}
@@ -140,10 +140,10 @@ export const FloatingMobileNav: React.FC = () => {
           </div>
           <span
             className={`text-[11px] mt-1 font-black tracking-tight flex items-center gap-0.5 ${
-              isExplore ? 'text-[#4787F2]' : 'text-[#17181C]'
+              isBusiness ? 'text-[#4787F2]' : 'text-[#17181C]'
             }`}
           >
-            Explore
+            Business
           </span>
         </Link>
 
@@ -167,7 +167,7 @@ export const FloatingMobileNav: React.FC = () => {
             isProfile ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
           }`}
         >
-          <div className="transition-transform group-hover:scale-110">
+          <div className={`transition-transform group-hover:scale-110 ${isProfile ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
             {getProfileIcon()}
           </div>
           <span className={`text-[11px] font-bold mt-1 tracking-tight ${isProfile ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
