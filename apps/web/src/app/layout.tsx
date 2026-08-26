@@ -7,6 +7,7 @@ import { FloatingMobileNav } from '../components/FloatingMobileNav';
 
 import { LocationPromptModal } from '../components/LocationPromptModal';
 import { AppSplashScreenWrapper } from '../components/AppSplashScreenWrapper';
+import { ApkDownloadPromptModal } from '../components/ApkDownloadPromptModal';
 
 export const metadata: Metadata = {
   title: 'Adsspot — Hyperlocal Business Discovery & Marketing Platform',
@@ -48,6 +49,7 @@ export default function RootLayout({
           <AppSplashScreenWrapper />
           <Navbar />
           <LocationPromptModal />
+          <ApkDownloadPromptModal />
           <main className="flex-1 flex flex-col">{children}</main>
           <FloatingMobileNav />
         </AuthProvider>
