@@ -26,7 +26,6 @@ import {
   Home,
   Bed,
   ChevronDown,
-  ChevronUp,
   UtensilsCrossed,
   Shirt,
   Smartphone,
@@ -76,7 +75,6 @@ export default function ExplorePage() {
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'split' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showAllCategories, setShowAllCategories] = useState(false);
   const [locationName, setLocationName] = useState('Vadodara, Gujarat');
 
   useEffect(() => {
@@ -104,9 +102,7 @@ export default function ExplorePage() {
     return matchesCat && matchesSearch;
   });
 
-  const visibleCategoryItems = showAllCategories
-    ? CATEGORY_GRID_ITEMS
-    : CATEGORY_GRID_ITEMS.slice(0, 15);
+  const visibleCategoryItems = CATEGORY_GRID_ITEMS.slice(0, 15);
 
   return (
     <div className="flex-1 bg-[#F4F6FB] pb-24 max-w-4xl mx-auto w-full min-h-screen p-4 space-y-4">
@@ -237,22 +233,18 @@ export default function ExplorePage() {
             );
           })}
 
-          {/* Show More / Show Less Button */}
-          <button
-            onClick={() => setShowAllCategories(!showAllCategories)}
+          {/* Show More -> Links to All Categories Full Page */}
+          <Link
+            href="/categories"
             className="flex flex-col items-center gap-1.5 p-1 rounded-2xl hover:bg-neutral-50 transition-all group active:scale-95"
           >
             <div className="w-12 h-12 rounded-full bg-[#4787F2] text-white flex items-center justify-center transition-transform group-hover:scale-110 shadow-sm">
-              {showAllCategories ? (
-                <ChevronUp className="w-6 h-6 stroke-[2.5]" />
-              ) : (
-                <ChevronDown className="w-6 h-6 stroke-[2.5]" />
-              )}
+              <ChevronDown className="w-6 h-6 stroke-[2.5]" />
             </div>
             <span className="text-[11px] text-center font-bold text-[#17181C] group-hover:text-[#4787F2] leading-tight tracking-tight">
-              {showAllCategories ? 'Show Less' : 'Show More'}
+              Show More
             </span>
-          </button>
+          </Link>
         </div>
       </div>
 
