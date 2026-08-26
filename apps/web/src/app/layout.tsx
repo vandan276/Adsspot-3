@@ -6,6 +6,7 @@ import { Navbar } from '../components/Navbar';
 import { FloatingMobileNav } from '../components/FloatingMobileNav';
 
 import { LocationPromptModal } from '../components/LocationPromptModal';
+import { AppSplashScreenWrapper } from '../components/AppSplashScreenWrapper';
 
 export const metadata: Metadata = {
   title: 'Adsspot — Hyperlocal Business Discovery & Marketing Platform',
@@ -44,6 +45,7 @@ export default function RootLayout({
 
       <body className="min-h-screen bg-[#F4F6FB] text-[#17181C] antialiased flex flex-col">
         <AuthProvider>
+          <AppSplashScreenWrapper />
           <Navbar />
           <LocationPromptModal />
           <main className="flex-1 flex flex-col">{children}</main>

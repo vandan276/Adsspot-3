@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
 import { Button, Card, Avatar, TrustedBadge, TierBadge, Logo, AnimatedLogoMark, AdsspotBrandLine } from '@adsspot/ui';
-import { WebSplashScreen } from '../components/WebSplashScreen';
 
 import {
   Search,
@@ -32,7 +31,6 @@ import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
   const router = useRouter();
-  const [showSplash, setShowSplash] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedCity, setSelectedCity] = useState('Vadodara');
@@ -41,19 +39,7 @@ export default function HomePage() {
     // 📱 Mobile Redirect: On mobile screens (<768px), redirect directly to /feed for authentic app UX
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       router.replace('/feed');
-      return;
     }
-
-    // Show splash screen on first visit in the session
-    const hasSeenSplash = sessionStorage.getItem('adsspot_has_seen_splash');
-    if (!hasSeenSplash) {
-      setShowSplash(true);
-      sessionStorage.setItem('adsspot_has_seen_splash', 'true');
-    }
-
-    const handleTrigger = () => setShowSplash(true);
-    window.addEventListener('adsspot:trigger-splash', handleTrigger);
-    return () => window.removeEventListener('adsspot:trigger-splash', handleTrigger);
   }, [router]);
 
   const filteredBusinesses = SEED_BUSINESSES.filter((b) => {
@@ -68,8 +54,6 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col bg-[#F4F6FB] min-h-screen relative">
-      {showSplash && <WebSplashScreen onFinish={() => setShowSplash(false)} />}
-
       {/* 1. MODERN CONSUMER HERO SECTION */}
 
       <section className="bg-white border-b border-[#E3E8EF] pt-14 pb-20 px-4 sm:px-6 lg:px-8">
