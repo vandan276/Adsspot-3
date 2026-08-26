@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth, SEED_BUSINESSES, SEED_POSTS, SEED_CATEGORIES } from '@adsspot/api';
-import { Avatar } from '@adsspot/ui';
+import { Avatar, StorySpotRing } from '@adsspot/ui';
 import {
   Heart,
   MessageCircle,
@@ -488,7 +488,7 @@ export default function MobileFeedPage() {
             onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
             className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
           >
-            <div className="relative w-[56px] h-[56px] rounded-2xl border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 group-hover:border-[#3972D4] transition-all group-active:scale-95">
+            <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 group-hover:border-[#3972D4] transition-all group-active:scale-95">
               <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white shadow-sm">
                 <Plus className="w-3 h-3 stroke-[3]" />
@@ -497,23 +497,17 @@ export default function MobileFeedPage() {
             <span className="text-[11px] text-neutral-600 font-semibold tracking-tight">Your Story</span>
           </div>
 
-          {/* Business Stories with Clean Solid Brand Accent Ring */}
+          {/* Business Stories with Authentic 4-Segment Spot Ring (from adsspot-story-avatar-default.svg) */}
           {STORY_DATA.map((story, idx) => (
             <div
               key={story.id}
               onClick={() => setActiveStoryIndex(idx)}
               className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
             >
-              <div className="w-[56px] h-[56px] rounded-2xl p-[2px] bg-[#4787F2] shrink-0 transform group-hover:scale-105 group-active:scale-95 transition-all shadow-sm flex items-center justify-center">
-                <div className="w-full h-full rounded-[14px] bg-white p-[1px] overflow-hidden flex items-center justify-center">
-                  <img
-                    src={story.logo}
-                    alt={story.name}
-                    className="w-full h-full object-cover rounded-xl"
-                  />
-                </div>
+              <div className="transform group-hover:scale-105 group-active:scale-95 transition-transform drop-shadow-sm">
+                <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
               </div>
-              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[60px] text-center leading-tight tracking-tight">
+              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
                 {story.name.split(' ')[0]}
               </span>
             </div>
