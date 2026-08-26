@@ -107,7 +107,17 @@ export const AdsspotLogoMark: React.FC<{ size?: number; className?: string; anim
   );
 };
 
-// 2. Complete Brand Logo Component (Animated Icon + Seamless ADSSPOT Typography)
+// Exact DIN Condensed Bold glyph vector geometries extracted from the original brand asset
+const GLYPHS = {
+  A: { d: "M254 249 204 507H202L152 249ZM2 0 161 712H246L405 0H303L273 153H134L104 0Z", w: 407 },
+  D: { d: "M48 0V712H199Q287 712 332.5 664.0Q378 616 378 528V195Q378 95 329.5 47.5Q281 0 190 0ZM150 616V96H197Q240 96 258.0 117.5Q276 139 276 185V528Q276 570 259.0 593.0Q242 616 197 616Z", w: 426 },
+  S: { d: "M378 507H276V530Q276 565 259.5 590.5Q243 616 204 616Q183 616 170.0 608.0Q157 600 149 588Q141 575 138.0 558.5Q135 542 135 524Q135 503 136.5 489.0Q138 475 144 464Q150 453 161.5 445.0Q173 437 193 429L271 398Q305 385 326.0 367.5Q347 350 359 327Q370 303 374.0 272.5Q378 242 378 203Q378 158 369.0 119.5Q360 81 340 54Q319 26 285.0 10.0Q251 -6 202 -6Q165 -6 133.0 7.0Q101 20 78 43Q55 66 41.5 96.5Q28 127 28 163V201H130V169Q130 141 146.5 118.5Q163 96 202 96Q228 96 242.5 103.5Q257 111 265 125Q273 139 274.5 158.5Q276 178 276 202Q276 230 274.0 248.0Q272 266 266 277Q259 288 247.5 295.0Q236 302 217 310L144 340Q78 367 55.5 411.5Q33 456 33 523Q33 563 44.0 599.0Q55 635 77 661Q98 687 130.5 702.5Q163 718 208 718Q246 718 277.5 704.0Q309 690 332 667Q378 619 378 557Z", w: 406 },
+  P: { d: "M48 0V712H201Q243 712 275.0 701.0Q307 690 333 662Q359 634 369.0 596.5Q379 559 379 495Q379 447 373.5 414.0Q368 381 350 352Q329 317 294.0 297.5Q259 278 202 278H150V0ZM150 616V374H199Q230 374 247.0 383.0Q264 392 272 408Q280 423 281.5 445.0Q283 467 283 494Q283 519 282.0 541.5Q281 564 273 581Q265 598 249.0 607.0Q233 616 203 616Z", w: 407 },
+  O: { d: "M42 544Q42 587 57.0 620.0Q72 653 97 675Q121 696 151.5 707.0Q182 718 213 718Q244 718 274.5 707.0Q305 696 330 675Q354 653 369.0 620.0Q384 587 384 544V168Q384 123 369.0 91.0Q354 59 330 38Q305 16 274.5 5.0Q244 -6 213 -6Q182 -6 151.5 5.0Q121 16 97 38Q72 59 57.0 91.0Q42 123 42 168ZM144 168Q144 131 164.5 113.5Q185 96 213 96Q241 96 261.5 113.5Q282 131 282 168V544Q282 581 261.5 598.5Q241 616 213 616Q185 616 164.5 598.5Q144 581 144 544Z", w: 426 },
+  T: { d: "M115 0V616H-3V712H335V616H217V0Z", w: 332 },
+};
+
+// 2. Complete Brand Logo Component (Animated Icon + Pure Vector Geometry from Logo name .svg)
 export const Logo: React.FC<LogoProps> = ({
   size = 'md',
   withText = true,
@@ -129,12 +139,15 @@ export const Logo: React.FC<LogoProps> = ({
     return <AdsspotLogoMark size={pixelHeight} className={className} animated={animated} />;
   }
 
-  // Proportion: Logo mark height and text sizing
   const iconSize = Math.round(pixelHeight * 0.95);
-  const fontSize = Math.round(pixelHeight * 0.72);
+  // Total vector text width = (407 + 426 + 406) + (407 + 426 + 332) = 1239 + 1165 = 2810 units
+  // UPM = 1000, Ascender = 712, Descender = -288 -> Height = 1000
+  // ViewBox: 0 0 2810 1000 scaled to pixelHeight
+  const textWidth = Math.round((pixelHeight * 2810) / 1000);
+  const textHeight = pixelHeight;
 
   return (
-    <div className={`inline-flex items-center gap-2 shrink-0 select-none ${className}`}>
+    <div className={`inline-flex items-center gap-1.5 shrink-0 select-none ${className}`}>
       {/* 1. Dynamic Animated Brand Logo Mark */}
       <div className="shrink-0 flex items-center justify-center">
         {animated ? (
@@ -144,17 +157,55 @@ export const Logo: React.FC<LogoProps> = ({
         )}
       </div>
 
-      {/* 2. Authentic Brand Typography (100% Android & iOS Pixel-Perfect Layout) */}
-      <div
-        className="font-black uppercase flex items-center leading-none tracking-[-0.03em]"
-        style={{
-          fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, Roboto, sans-serif",
-          fontSize: `${fontSize}px`,
-        }}
+      {/* 2. Authentic Pure Vector Brand Name from 'Logo name .svg' (100% Identical on Android, iOS, Windows, Mac) */}
+      <svg
+        width={textWidth}
+        height={textHeight}
+        viewBox="0 0 2810 1000"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="shrink-0 overflow-visible"
+        style={{ height: `${textHeight}px`, width: 'auto' }}
       >
-        <span style={{ color: '#4787F2' }}>ADS</span>
-        <span style={{ color: '#981837' }}>SPOT</span>
-      </div>
+        {/* Transform: Flip Y from font baseline to SVG coordinates */}
+        <g transform="translate(0, 800) scale(1, -1)">
+          {/* ADS in Spot Blue (#4787F2) */}
+          <g fill="#4787F2">
+            {/* A */}
+            <g transform="translate(0, 0)">
+              <path d={GLYPHS.A.d} />
+            </g>
+            {/* D */}
+            <g transform="translate(407, 0)">
+              <path d={GLYPHS.D.d} />
+            </g>
+            {/* S */}
+            <g transform="translate(833, 0)">
+              <path d={GLYPHS.S.d} />
+            </g>
+          </g>
+
+          {/* SPOT in Deep Crimson (#981837) */}
+          <g fill="#981837">
+            {/* S */}
+            <g transform="translate(1239, 0)">
+              <path d={GLYPHS.S.d} />
+            </g>
+            {/* P */}
+            <g transform="translate(1645, 0)">
+              <path d={GLYPHS.P.d} />
+            </g>
+            {/* O */}
+            <g transform="translate(2052, 0)">
+              <path d={GLYPHS.O.d} />
+            </g>
+            {/* T */}
+            <g transform="translate(2478, 0)">
+              <path d={GLYPHS.T.d} />
+            </g>
+          </g>
+        </g>
+      </svg>
     </div>
   );
 };
