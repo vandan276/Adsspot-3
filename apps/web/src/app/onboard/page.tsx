@@ -60,7 +60,7 @@ export default function BusinessRegistrationPage() {
   };
 
   return (
-    <div className="flex-1 bg-[#F4F6FB] min-h-screen py-8 px-4 flex items-center justify-center">
+    <div className="flex-1 bg-[#F4F6FB] min-h-screen py-8 pb-32 px-4 flex items-center justify-center">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-neutral-700 animate-fade-in whitespace-nowrap">
