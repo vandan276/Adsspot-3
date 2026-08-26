@@ -85,136 +85,86 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* =========================================================================
-   AUTHENTIC 3D LIQUID GLASS (BentoMotion / Apple VisionOS Specular Style)
+   AUTHENTIC iOS / APPLE VISIONOS FROSTED GLASS
    ========================================================================= */
 
 .pure-liquid-glass {
   position: relative;
-  background: radial-gradient(
-    120% 120% at 20% 10%,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.15) 30%,
-    rgba(255, 255, 255, 0.04) 65%,
-    rgba(200, 215, 240, 0.12) 100%
-  );
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
   border-radius: 9999px;
-  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 
-    /* Outer soft ambient drop shadow */
-    0 35px 70px -15px rgba(50, 70, 120, 0.22),
-    0 15px 30px -5px rgba(0, 0, 0, 0.1),
-    /* Inner top-left intense specular reflection flare */
-    inset 0 3px 6px 0 rgba(255, 255, 255, 0.95),
-    inset 4px 6px 16px 0 rgba(255, 255, 255, 0.6),
-    /* Inner bottom-right dark refraction edge (curved glass lens effect) */
-    inset -4px -6px 14px 0 rgba(100, 130, 180, 0.25),
-    inset 0 -2px 4px 0 rgba(70, 90, 130, 0.35);
+    0 10px 30px -5px rgba(0, 0, 0, 0.08),
+    0 1px 2px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 .pure-liquid-glass-card {
   position: relative;
-  background: radial-gradient(
-    130% 130% at 15% 10%,
-    rgba(255, 255, 255, 0.5) 0%,
-    rgba(255, 255, 255, 0.18) 35%,
-    rgba(255, 255, 255, 0.06) 70%,
-    rgba(220, 235, 255, 0.15) 100%
-  );
-  backdrop-filter: blur(32px) saturate(190%);
-  -webkit-backdrop-filter: blur(32px) saturate(190%);
-  border-radius: 40px;
-  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(30px) saturate(210%);
+  -webkit-backdrop-filter: blur(30px) saturate(210%);
+  border-radius: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
   box-shadow: 
-    0 40px 90px -20px rgba(50, 70, 120, 0.25),
-    0 20px 40px -10px rgba(0, 0, 0, 0.08),
-    inset 0 3px 8px 0 rgba(255, 255, 255, 1),
-    inset 6px 8px 22px 0 rgba(255, 255, 255, 0.55),
-    inset -6px -8px 20px 0 rgba(100, 130, 180, 0.2),
-    inset 0 -2px 5px 0 rgba(70, 90, 130, 0.3);
+    0 25px 50px -12px rgba(0, 0, 0, 0.12),
+    0 4px 12px 0 rgba(0, 0, 0, 0.04),
+    0 1px 1px 0 rgba(255, 255, 255, 0.9) inset;
 }
 
-/* Specular Corner Flare (Top-Left Highlight) */
+/* Specular Corner Flare (Clean iOS Glint) */
 .glass-specular-flare {
-  position: absolute;
-  top: 6px;
-  left: 24px;
-  width: 140px;
-  height: 28px;
-  border-radius: 9999px;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 255, 255, 0.4) 60%,
-    transparent 100%
-  );
-  filter: blur(1px);
-  transform: rotate(-3deg);
-  pointer-events: none;
+  display: none;
 }
 
-/* Notification Pill Badge matching the red "12" bubble from the reference */
+/* Notification Pill Badge matching iOS app notification bubble */
 .liquid-glass-badge {
-  background: radial-gradient(circle at 35% 30%, #FF5252 0%, #E60023 60%, #990014 100%);
-  box-shadow: 
-    0 10px 25px -4px rgba(230, 0, 35, 0.5),
-    inset 0 2px 4px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: #FF3B30;
+  box-shadow: 0 4px 12px rgba(255, 59, 48, 0.4);
+  border: 1.5px solid #FFFFFF;
 }
 
 .liquid-glass-subtle {
-  background: radial-gradient(
-    120% 120% at 20% 15%,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.12) 60%,
-    rgba(255, 255, 255, 0.05) 100%
-  );
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1.5px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 
-    0 15px 35px -8px rgba(0, 0, 0, 0.1),
-    inset 0 2px 4px 0 rgba(255, 255, 255, 0.8),
-    inset -2px -3px 8px 0 rgba(100, 130, 180, 0.15);
+  background: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.06);
 }
 
 .liquid-glass-btn-primary {
   background: #17181C;
   color: #FFFFFF;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.2);
 }
 
 .liquid-glass-btn-secondary {
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   color: #17181C;
-  box-shadow: 
-    0 10px 25px -5px rgba(0, 0, 0, 0.08),
-    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.06);
 }
 
 .ios-glass-card {
   position: relative;
-  background: rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
   box-shadow: 
-    0 20px 45px -10px rgba(50, 70, 120, 0.08),
-    inset 0 2px 4px 0 rgba(255, 255, 255, 0.9),
-    inset -2px -3px 8px 0 rgba(100, 130, 180, 0.08);
+    0 10px 25px -5px rgba(0, 0, 0, 0.05),
+    0 1px 2px 0 rgba(255, 255, 255, 0.9) inset;
 }
 
 .ios-glass-card:hover {
-  background: rgba(255, 255, 255, 0.82);
-  border-color: rgba(71, 135, 242, 0.5);
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(71, 135, 242, 0.4);
   box-shadow: 
-    0 25px 55px -10px rgba(71, 135, 242, 0.18),
-    inset 0 2px 5px 0 rgba(255, 255, 255, 1);
+    0 16px 35px -8px rgba(71, 135, 242, 0.15),
+    0 1px 2px 0 rgba(255, 255, 255, 1) inset;
 }
 
