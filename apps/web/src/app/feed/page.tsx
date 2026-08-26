@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth, SEED_BUSINESSES, SEED_POSTS, SEED_CATEGORIES } from '@adsspot/api';
+import {
+  useAuth,
+  SEED_BUSINESSES,
+  SEED_POSTS,
+  SEED_CATEGORIES,
+  toggleLikePost,
+  addCommentToPost,
+  fetchPostComments,
+  toggleSavePost,
+  toggleFollowBusiness,
+} from '@adsspot/api';
 import { Avatar, StorySpotRing } from '@adsspot/ui';
 import {
   Heart,
@@ -181,15 +191,26 @@ export default function MobileFeedPage() {
     return () => clearInterval(interval);
   }, [activeStoryIndex]);
 
-  const handleToggleLike = (postId: string) => {
+  const handleToggleLike = async (postId: string) => {
+    const isCurrentlyLiked = !!likedPosts[postId];
+    const newLikedState = !isCurrentlyLiked;
+
+    // Optimistic UI update
     setLikedPosts((prev) => {
-      const isLiked = !prev[postId];
-      setLikesCounts((c) => ({
-        ...c,
-        [postId]: (c[postId] || 0) + (isLiked ? 1 : -1),
-      }));
-      return { ...prev, [postId]: isLiked };
+      const nextMap = { ...prev, [postId]: newLikedState };
+      const key = user ? `adsspot_likes_${user.id}` : 'adsspot_likes_guest';
+      localStorage.setItem(key, JSON.stringify(nextMap));
+      return nextMap;
     });
+
+    setLikesCounts((c) => ({
+      ...c,
+      [postId]: (c[postId] || 0) + (newLikedState ? 1 : -1),
+    }));
+
+    if (user?.id) {
+      await toggleLikePost(user.id, postId, isCurrentlyLiked);
+    }
   };
 
   const handleDoubleTapPost = (postId: string) => {
@@ -200,13 +221,114 @@ export default function MobileFeedPage() {
     setTimeout(() => setDoubleTapHeart(null), 800);
   };
 
-  const handleToggleFollow = (bizId: string, bizName: string) => {
-    setFollowingBiz((prev) => {
-      const isFollowing = !prev[bizId];
-      showToast(isFollowing ? `Following ${bizName}` : `Unfollowed ${bizName}`);
-      return { ...prev, [bizId]: isFollowing };
-    });
+  const handleToggleFollow = async (bizId: string, bizName: string) => {
+    const isCurrentlyFollowing = !!followingBiz[bizId];
+    const newFollowingState = !isCurrentlyFollowing;
+
+    setFollowingBiz((prev) => ({ ...prev, [bizId]: newFollowingState }));
+    showToast(newFollowingState ? `Following ${bizName}` : `Unfollowed ${bizName}`);
+
+    if (user?.id) {
+      await toggleFollowBusiness(user.id, bizId, isCurrentlyFollowing);
+    }
   };
+
+  // Helper function to format comment timestamps into readable relative time (e.g., 4:48 PM)
+  const formatCommentTime = (rawTime?: string, timestamp?: number) => {
+    if (timestamp) {
+      const diffSecs = Math.floor((Date.now() - timestamp) / 1000);
+      if (diffSecs < 30) return 'Just now';
+      if (diffSecs < 3600) return `${Math.floor(diffSecs / 60)}m ago`;
+      if (diffSecs < 86400) return `${Math.floor(diffSecs / 3600)}h ago`;
+      return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+    if (rawTime && rawTime !== 'Just now') return rawTime;
+    return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Load comments from localStorage & Cloud whenever comments drawer opens
+  useEffect(() => {
+    if (!openCommentsPostId) return;
+    const targetPostId: string = openCommentsPostId;
+
+    // 1. First load local cached comments for this post
+    const stored = localStorage.getItem('adsspot_comments_data');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && parsed[targetPostId]) {
+          setPostComments((prev) => ({
+            ...prev,
+            [targetPostId]: parsed[targetPostId],
+          }));
+        }
+      } catch {}
+    }
+
+    // 2. Fetch Cloud Comments from Supabase and merge
+    async function loadCloudComments() {
+      const cloudComments = await fetchPostComments(targetPostId);
+      if (cloudComments && cloudComments.length > 0) {
+        const formatted = cloudComments.map((c) => ({
+          id: c.id,
+          author: c.user?.full_name || 'Verified User',
+          text: c.content,
+          time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          timestamp: new Date(c.created_at).getTime(),
+        }));
+        setPostComments((prev) => {
+          const existing = prev[targetPostId] || [];
+          const merged = [...existing];
+          formatted.forEach((fc) => {
+            if (!merged.some((m) => m.id === fc.id)) {
+              merged.push(fc);
+            }
+          });
+          return { ...prev, [targetPostId]: merged };
+        });
+      }
+    }
+    loadCloudComments();
+  }, [openCommentsPostId]);
+
+  // Load all stored local comments on initial page load so comment count badges are instantly accurate
+  useEffect(() => {
+    const stored = localStorage.getItem('adsspot_comments_data');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          setPostComments(parsed);
+        }
+      } catch {}
+    }
+  }, []);
+
+  // Load user liked posts from localStorage and calculate exact like count
+  useEffect(() => {
+    const key = user ? `adsspot_likes_${user.id}` : 'adsspot_likes_guest';
+    const stored = localStorage.getItem(key);
+    if (stored) {
+      try {
+        const parsed: Record<string, boolean> = JSON.parse(stored);
+        setLikedPosts(parsed);
+        
+        // Recalculate exact total counts considering persisted user likes
+        setLikesCounts((prev) => {
+          const nextCounts = { ...prev };
+          SEED_POSTS.forEach((p) => {
+            const initialSeedCount = p.likes_count;
+            if (parsed[p.id]) {
+              nextCounts[p.id] = initialSeedCount + 1;
+            } else {
+              nextCounts[p.id] = initialSeedCount;
+            }
+          });
+          return nextCounts;
+        });
+      } catch {}
+    }
+  }, [user]);
 
   // Load user saved posts from localStorage
   useEffect(() => {
@@ -231,36 +353,55 @@ export default function MobileFeedPage() {
     }
   }, [user]);
 
-  const handleToggleSave = (postId: string) => {
+  const handleToggleSave = async (postId: string) => {
     if (!user) {
       showToast('Please sign in to bookmark deals.');
       return;
     }
-    setSavedPosts((prev) => {
-      const isSaved = !prev[postId];
-      showToast(isSaved ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
-      const nextMap = { ...prev, [postId]: isSaved };
+    const isCurrentlySaved = !!savedPosts[postId];
+    const newSavedState = !isCurrentlySaved;
 
+    setSavedPosts((prev) => {
+      const nextMap = { ...prev, [postId]: newSavedState };
       const activeIds = Object.keys(nextMap).filter((k) => nextMap[k]);
       localStorage.setItem(`adsspot_saved_${user.id}`, JSON.stringify(activeIds));
       return nextMap;
     });
+
+    showToast(newSavedState ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
+
+    await toggleSavePost(user.id, postId, isCurrentlySaved);
   };
 
-  const handleAddComment = (postId: string) => {
+  const handleAddComment = async (postId: string) => {
     if (!newCommentText.trim()) return;
-    const newComment = {
+    const text = newCommentText.trim();
+    setNewCommentText('');
+
+    const now = new Date();
+    const formattedTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const newCommentObj = {
       id: `comm-${Date.now()}`,
       author: user?.full_name || 'Aarav Sharma',
-      text: newCommentText.trim(),
-      time: 'Just now',
+      text,
+      time: formattedTime,
+      timestamp: Date.now(),
     };
-    setPostComments((prev) => ({
-      ...prev,
-      [postId]: [...(prev[postId] || []), newComment],
-    }));
-    setNewCommentText('');
+
+    setPostComments((prev) => {
+      const nextMap = {
+        ...prev,
+        [postId]: [...(prev[postId] || []), newCommentObj],
+      };
+      localStorage.setItem('adsspot_comments_data', JSON.stringify(nextMap));
+      return nextMap;
+    });
+
     showToast('Comment posted!');
+
+    if (user?.id) {
+      await addCommentToPost(user.id, postId, text);
+    }
   };
 
   const handleSendStoryReaction = (emoji: string) => {
@@ -420,8 +561,8 @@ export default function MobileFeedPage() {
 
       {/* 🌟 COMMENTS DRAWER */}
       {openCommentsPostId && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-4 shadow-xl border border-[#E3E8EF] max-h-[70vh] flex flex-col justify-between animate-slide-up">
+        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-4 pb-24 sm:pb-4 shadow-2xl border border-[#E3E8EF] max-h-[80vh] flex flex-col justify-between animate-slide-up">
             <div className="flex items-center justify-between pb-2.5 border-b border-[#E3E8EF]">
               <div className="flex items-center gap-1.5">
                 <MessageCircle className="w-3.5 h-3.5 text-[#4787F2]" />
@@ -432,19 +573,25 @@ export default function MobileFeedPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-2.5 py-3 pr-1">
-              {(postComments[openCommentsPostId] || []).map((comm) => (
-                <div key={comm.id} className="p-2.5 bg-[#F4F6FB] rounded-xl text-xs space-y-0.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#17181C] text-[11px]">{comm.author}</span>
-                    <span className="text-[9px] text-[#687182]">{comm.time}</span>
-                  </div>
-                  <p className="text-[#4A5260] text-[11px]">{comm.text}</p>
+            <div className="flex-1 overflow-y-auto space-y-2.5 py-3 pr-1 min-h-[140px]">
+              {(postComments[openCommentsPostId] || []).length === 0 ? (
+                <div className="text-center py-8 text-neutral-400 text-xs font-medium">
+                  No comments yet. Be the first to comment!
                 </div>
-              ))}
+              ) : (
+                (postComments[openCommentsPostId] || []).map((comm: any) => (
+                  <div key={comm.id} className="p-2.5 bg-[#F4F6FB] rounded-xl text-xs space-y-0.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-[#17181C] text-[11px]">{comm.author}</span>
+                      <span className="text-[9px] text-[#687182]">{formatCommentTime(comm.time, comm.timestamp)}</span>
+                    </div>
+                    <p className="text-[#4A5260] text-[11px]">{comm.text}</p>
+                  </div>
+                ))
+              )}
             </div>
 
-            <div className="pt-2 border-t border-[#E3E8EF] flex gap-1.5">
+            <div className="pt-2 border-t border-[#E3E8EF] flex items-center gap-2">
               <input
                 type="text"
                 value={newCommentText}
@@ -453,13 +600,15 @@ export default function MobileFeedPage() {
                   if (e.key === 'Enter') handleAddComment(openCommentsPostId);
                 }}
                 placeholder="Write a comment..."
-                className="flex-1 px-3 py-1.5 rounded-full border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
+                className="flex-1 px-3.5 py-2.5 rounded-full border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2] text-[#17181C] placeholder:text-neutral-400 bg-[#F8FAFC]"
               />
               <button
+                type="button"
                 onClick={() => handleAddComment(openCommentsPostId)}
-                className="p-1.5 rounded-full bg-[#4787F2] text-white"
+                className="w-9 h-9 rounded-full bg-[#4787F2] hover:bg-[#3972D4] text-white flex items-center justify-center shrink-0 cursor-pointer transition-all active:scale-95 shadow-xs"
+                title="Post Comment"
               >
-                <Send className="w-3.5 h-3.5" />
+                <Send className="w-4 h-4 ml-0.5" />
               </button>
             </div>
           </div>

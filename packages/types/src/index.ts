@@ -233,6 +233,12 @@ export interface Follow {
   created_at: string;
 }
 
+export interface SavedPost {
+  user_id: string;
+  post_id: string;
+  created_at: string;
+}
+
 export interface BannerPlaceholderBox {
   x: number;
   y: number;
