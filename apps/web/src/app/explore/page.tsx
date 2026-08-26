@@ -188,6 +188,34 @@ export default function ExplorePage() {
             const Icon = cat.icon;
             const isSelected = selectedCat === cat.id;
 
+            if (cat.id === 'cat-b2b') {
+              return (
+                <Link
+                  key={cat.id}
+                  href="/b2b"
+                  className="flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 hover:bg-neutral-50"
+                >
+                  {/* Top Badge (1Cr+) */}
+                  {cat.badge && (
+                    <span className="absolute -top-1.5 text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full border shadow-2xs bg-orange-50 text-orange-600 border-orange-200">
+                      {cat.badge}
+                    </span>
+                  )}
+                  {/* Icon Container */}
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs"
+                    style={{ backgroundColor: cat.bg }}
+                  >
+                    <Icon className="w-6 h-6" style={{ color: cat.color }} />
+                  </div>
+                  {/* Label */}
+                  <span className="text-[11px] text-center leading-tight tracking-tight max-w-[70px] font-bold text-[#17181C] group-hover:text-[#E14D2A]">
+                    {cat.name}
+                  </span>
+                </Link>
+              );
+            }
+
             return (
               <button
                 key={cat.id}
