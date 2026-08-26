@@ -138,41 +138,23 @@ const DOTS = [
   },
 ];
 
-function easeOutBack(t: number): number {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-}
-
-function easeInBack(t: number): number {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return c3 * t * t * t - c1 * t * t;
-}
-
 export const AnimatedLogoMark: React.FC<AnimatedLogoMarkProps> = ({
   size = 110,
   className = '',
   loop = true,
 }) => {
-  // Start at 1.5 (fully assembled) on mount/SSR so it is immediately visible
-  const [time, setTime] = useState(1.5);
-  const [mounted, setMounted] = useState(false);
+  const [time, setTime] = useState(0);
 
-  // Total loop cycle duration = 2.7s (Assemble: 1.5s, Hold: 0.8s, Disperse: 0.4s)
-  const TOTAL = 2.7;
-  const CUE_ASSEMBLE = 0;
-  const CUE_HOLD = 1.5;
-  const CUE_DISPERSE = 2.3;
+  // Total loop cycle duration = 4.0s (Gentle pulse & shimmer without disappearing)
+  const TOTAL = 4.0;
 
   useEffect(() => {
-    setMounted(true);
     let animFrame: number;
     const startStamp = performance.now();
 
     const frame = (now: number) => {
       const elapsed = (now - startStamp) / 1000;
-      const t = loop ? elapsed % TOTAL : Math.min(elapsed, CUE_HOLD + 0.3);
+      const t = loop ? elapsed % TOTAL : 0;
       setTime(t);
       animFrame = requestAnimationFrame(frame);
     };
@@ -182,52 +164,15 @@ export const AnimatedLogoMark: React.FC<AnimatedLogoMarkProps> = ({
   }, [loop]);
 
   // Hold breathing and slight rock
-  const holdLen = CUE_DISPERSE - CUE_HOLD;
-  const holdActive = time >= CUE_HOLD - 0.05 && time <= CUE_DISPERSE + 0.05;
-  const pulse = holdActive ? 1 + 0.022 * Math.sin((2 * Math.PI * 2 * (time - CUE_HOLD)) / holdLen) : 1;
-  const rockDeg = holdActive ? 1.4 * Math.sin((2 * Math.PI * 2 * (time - CUE_HOLD)) / holdLen) : 0;
+  const pulse = 1 + 0.025 * Math.sin((2 * Math.PI * time) / TOTAL);
+  const rockDeg = 1.2 * Math.sin((2 * Math.PI * time) / TOTAL);
 
-  const getTransform = (
-    item: { dir: [number, number] | number[]; mag: number; rot: number; delay: number },
-    isDot: boolean
-  ) => {
-    if (!mounted) {
-      // Default initial state: perfectly assembled and visible
-      return {
-        transform: 'translate(0px, 0px) rotate(0deg) scale(1)',
-        transformOrigin: '55px 55px',
-        opacity: 1,
-      };
-    }
-
-    const dur = isDot ? 0.32 : 0.62;
-    const enterStart = CUE_ASSEMBLE + item.delay;
-    const enterEnd = enterStart + dur;
-
-    let p = 0;
-    if (time < enterStart) {
-      p = 0;
-    } else if (time <= enterEnd) {
-      p = easeOutBack((time - enterStart) / dur);
-    } else if (time < CUE_DISPERSE) {
-      p = 1;
-    } else {
-      const dispProgress = (time - CUE_DISPERSE) / (TOTAL - CUE_DISPERSE);
-      p = 1 - easeInBack(Math.min(1, Math.max(0, dispProgress)));
-    }
-
-    const dirX = item.dir[0] ?? 0;
-    const dirY = item.dir[1] ?? 0;
-    const dx = dirX * item.mag * (1 - p);
-    const dy = dirY * item.mag * (1 - p);
-    const rot = item.rot * (1 - p);
-    const scale = 0.2 + 0.8 * Math.max(p, 0);
-    const opacity = Math.max(0.1, Math.min(1, p * 1.4));
-
+  const getTransform = () => {
+    // Keep fully assembled (p = 1) with subtle organic micro-motions
     return {
-      transform: `translate(${dx}px, ${dy}px) rotate(${rot}deg) scale(${scale})`,
+      transform: 'translate(0px, 0px) rotate(0deg) scale(1)',
       transformOrigin: '55px 55px',
-      opacity,
+      opacity: 1,
     };
   };
 
@@ -248,12 +193,12 @@ export const AnimatedLogoMark: React.FC<AnimatedLogoMarkProps> = ({
       }}
     >
       {GROUPS.map((g) => (
-        <g key={g.key} style={getTransform(g, false)}>
+        <g key={g.key} style={getTransform()}>
           {g.el}
         </g>
       ))}
       {DOTS.map((d) => (
-        <g key={d.key} style={getTransform(d, true)}>
+        <g key={d.key} style={getTransform()}>
           {d.el}
         </g>
       ))}
