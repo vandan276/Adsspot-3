@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { SEED_BUSINESSES } from '@adsspot/api';
+import { getAllBusinesses } from '@adsspot/api';
+import { Business } from '@adsspot/types';
 import { Card, Button, TrustedBadge } from '@adsspot/ui';
 import {
   MapPin,
@@ -72,10 +73,19 @@ const RealtimeExploreMap = dynamic(
 );
 
 export default function ExplorePage() {
+  const [businessesList, setBusinessesList] = useState<Business[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'split' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState('');
   const [locationName, setLocationName] = useState('Vadodara, Gujarat');
+
+  useEffect(() => {
+    async function loadBusinesses() {
+      const data = await getAllBusinesses();
+      setBusinessesList(data);
+    }
+    loadBusinesses();
+  }, []);
 
   useEffect(() => {
     const updateLoc = () => {
@@ -92,7 +102,7 @@ export default function ExplorePage() {
     return () => window.removeEventListener('adsspot_location_changed', updateLoc);
   }, []);
 
-  const filtered = SEED_BUSINESSES.filter((b) => {
+  const filtered = businessesList.filter((b) => {
     const matchesCat = selectedCat === 'all' || b.category_id === selectedCat;
     const matchesSearch =
       searchQuery.trim() === '' ||

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAuth, SEED_CATEGORIES } from '@adsspot/api';
+import { useAuth, SEED_CATEGORIES, createBusinessListing } from '@adsspot/api';
 import { Card, Button, Logo } from '@adsspot/ui';
 import {
   Store,
@@ -32,11 +32,29 @@ export default function BusinessRegistrationPage() {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const handleCompleteRegistration = () => {
+  const [createdSlug, setCreatedSlug] = useState('');
+
+  const handleCompleteRegistration = async () => {
     if (!bizName || !ownerName || !phone) {
       alert('Please fill out all required fields.');
       return;
     }
+
+    const generatedSlug = bizName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || `shop-${Date.now()}`;
+    setCreatedSlug(generatedSlug);
+
+    await createBusinessListing({
+      name: bizName,
+      slug: generatedSlug,
+      owner_id: user?.id || 'usr-merchant-1',
+      category_id: category,
+      address: address || 'Vadodara, Gujarat',
+      pincode: pincode || '390007',
+      phone: phone,
+      whatsapp: phone,
+      tier: selectedTier,
+    });
+
     setStep(3);
     showToast('🎉 Business listing & Digital Visiting Card created!');
   };
@@ -294,7 +312,7 @@ export default function BusinessRegistrationPage() {
             <div className="p-4 rounded-2xl bg-[#F4F6FB] border border-[#E3E8EF] text-left space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[#687182]">Digital Visiting Card URL:</span>
-                <span className="font-bold text-[#4787F2]">adsspot.in/card/{bizName.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'my-shop'}</span>
+                <span className="font-bold text-[#4787F2]">adsspot.in/card/{createdSlug || 'my-shop'}</span>
               </div>
               <div className="flex items-center justify-between text-xs">
                 <span className="text-[#687182]">Verified Phone:</span>
@@ -304,7 +322,7 @@ export default function BusinessRegistrationPage() {
 
             <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
               <Link
-                href={`/card/${bizName.toLowerCase().replace(/[^a-z0-9]/g, '-') || 'royal-heritage-jewellers'}`}
+                href={`/card/${createdSlug || 'royal-heritage-jewellers'}`}
                 className="flex-1 py-2.5 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-200 text-neutral-800 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
               >
                 <QrCode className="w-4 h-4 text-neutral-600" /> Preview Digital Card
