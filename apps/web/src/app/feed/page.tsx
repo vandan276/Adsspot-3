@@ -481,50 +481,39 @@ export default function MobileFeedPage() {
       </div>
 
       {/* 2. STORIES RAIL */}
-      <div className="bg-white py-3.5 border-b border-[#E3E8EF] shadow-2xs">
-        <div className="flex gap-3.5 overflow-x-auto no-scrollbar px-4 items-center">
+      <div className="bg-white py-3 border-b border-[#E3E8EF] shadow-xs">
+        <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center">
           {/* Add story / User avatar */}
           <div
             onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
             className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
           >
-            <div className="relative w-14 h-14 rounded-[14px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/50 group-hover:border-[#3972D4] transition-colors">
+            <div className="relative w-15 h-15 rounded-2xl border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 group-hover:border-[#3972D4] transition-all group-active:scale-95">
               <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white shadow-xs">
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white shadow-sm">
                 <Plus className="w-3 h-3 stroke-[3]" />
               </div>
             </div>
-            <span className="text-[11px] text-neutral-600 font-bold tracking-tight">Your Story</span>
+            <span className="text-[11px] text-neutral-600 font-semibold tracking-tight">Your Story</span>
           </div>
 
-          {/* Business Stories with Signature Conic Spot Ring */}
+          {/* Business Stories with Clean Solid Brand Accent Ring */}
           {STORY_DATA.map((story, idx) => (
             <div
               key={story.id}
               onClick={() => setActiveStoryIndex(idx)}
               className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
             >
-              <div
-                className="relative w-14 h-14 rounded-[14px] p-[2.5px] shrink-0 transform group-hover:scale-105 group-active:scale-95 transition-all shadow-xs"
-                style={{
-                  background: 'conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2)',
-                }}
-              >
-                <div className="w-full h-full rounded-[11.5px] bg-white p-[1.5px] overflow-hidden flex items-center justify-center">
+              <div className="relative w-15 h-15 rounded-2xl p-0.5 bg-[#4787F2] shrink-0 transform group-hover:scale-105 group-active:scale-95 transition-all shadow-sm">
+                <div className="w-full h-full rounded-[14px] bg-white p-0.5 overflow-hidden flex items-center justify-center">
                   <img
                     src={story.logo}
                     alt={story.name}
-                    className="w-full h-full object-cover rounded-[10px]"
+                    className="w-full h-full object-cover rounded-xl"
                   />
                 </div>
-                {/* Story Tag Pill */}
-                {story.tag && (
-                  <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-[#17181C] text-white text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full border border-white tracking-wider whitespace-nowrap shadow-xs">
-                    {story.tag}
-                  </span>
-                )}
               </div>
-              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[62px] text-center leading-tight tracking-tight mt-0.5">
+              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[64px] text-center leading-tight tracking-tight">
                 {story.name.split(' ')[0]}
               </span>
             </div>
