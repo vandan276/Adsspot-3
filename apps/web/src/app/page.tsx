@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { SEED_BUSINESSES, SEED_CATEGORIES } from '@adsspot/api';
-import { Button, Card, Avatar, TrustedBadge, TierBadge, Logo, AnimatedLogoMark, AdsspotBrandLine } from '@adsspot/ui';
+import { Button, Avatar, TrustedBadge, TierBadge, Logo, AnimatedLogoMark, AdsspotBrandLine } from '@adsspot/ui';
 
 import {
   Search,
@@ -82,8 +82,8 @@ export default function HomePage() {
             Explore verified local boutiques, authentic sweets, daily festival banners, and trending offers right in your pincode.
           </p>
 
-          {/* Interactive Search Bar */}
-          <div className="max-w-3xl mx-auto bg-white rounded-2xl border-2 border-[#4787F2]/30 shadow-lg p-2 flex flex-col sm:flex-row items-center gap-2 mb-8">
+          {/* Interactive Search Bar — iOS Glass Capsule */}
+          <div className="max-w-3xl mx-auto ios-glass-card rounded-2xl p-2.5 flex flex-col sm:flex-row items-center gap-2 mb-8 border border-white/80 shadow-[0_15px_35px_-5px_rgba(71,135,242,0.12)]">
             {/* Location Selector */}
             <div className="flex items-center gap-2 px-3 py-2 border-b sm:border-b-0 sm:border-r border-[#E3E8EF] w-full sm:w-auto flex-shrink-0 text-left">
               <MapPin className="w-4 h-4 text-[#4787F2]" />
@@ -190,15 +190,15 @@ export default function HomePage() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(isSelected ? 'all' : cat.id)}
-                className={`flex flex-col items-center justify-center p-4 rounded-xl text-center transition-all bg-white border ${
+                className={`flex flex-col items-center justify-center p-4 rounded-2xl text-center transition-all ios-glass-card ${
                   isSelected
-                    ? 'border-[#4787F2] ring-2 ring-[#4787F2]/20 shadow-sm'
-                    : 'border-[#E3E8EF] hover:border-[#4787F2]/40 hover:-translate-y-0.5'
+                    ? 'border-[#4787F2] ring-2 ring-[#4787F2]/20 shadow-md scale-105'
+                    : 'hover:-translate-y-1'
                 }`}
               >
                 <div
-                  className={`w-11 h-11 rounded-xl flex items-center justify-center mb-2 font-bold ${
-                    isSelected ? 'bg-[#4787F2] text-white' : 'bg-[#F4F6FB] text-[#4787F2]'
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-2 font-bold transition-all shadow-xs ${
+                    isSelected ? 'bg-[#4787F2] text-white' : 'bg-[#EDF4FF] text-[#4787F2]'
                   }`}
                 >
                   <Store className="w-5 h-5" />
@@ -229,7 +229,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {filteredBusinesses.map((biz) => {
             return (
-              <Card key={biz.id} padding="none" hoverable className="overflow-hidden flex flex-col justify-between">
+              <div key={biz.id} className="ios-glass-card rounded-3xl overflow-hidden flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl">
                 <div>
                   {/* Business Cover Photo */}
                   <div className="relative h-48 bg-neutral-200">
@@ -242,7 +242,7 @@ export default function HomePage() {
                       <TierBadge tier={biz.tier} size="sm" />
                       {biz.trusted && <TrustedBadge size="sm" />}
                     </div>
-                    <div className="absolute top-3 right-3 bg-white/95 backdrop-blur-sm px-2.5 py-1 rounded-full text-[11px] font-bold text-[#17181C] shadow-sm flex items-center gap-1">
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[11px] font-bold text-[#17181C] shadow-sm flex items-center gap-1 border border-white/60">
                       <Clock className="w-3 h-3 text-[#35AB4E]" /> Open Now
                     </div>
                   </div>
@@ -303,7 +303,7 @@ export default function HomePage() {
                     Card &rarr;
                   </Link>
                 </div>
-              </Card>
+              </div>
             );
           })}
         </div>
@@ -478,10 +478,10 @@ export default function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {/* Basic Tier */}
-          <Card padding="lg" className="flex flex-col justify-between border border-[#E3E8EF] shadow-card bg-white">
+          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-xl">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-bold text-[#17181C]">Basic</span>
+                <span className="text-lg font-black text-[#17181C]">Basic</span>
                 <TierBadge tier="basic" />
               </div>
               <div className="mb-4">
@@ -505,7 +505,7 @@ export default function HomePage() {
                   Custom weekly/daily banners
                 </li>
                 <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
-                  Green "Trusted" verified badge
+                  Green &quot;Trusted&quot; verified badge
                 </li>
                 <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
                   Story privileges &amp; Microsite
@@ -517,16 +517,16 @@ export default function HomePage() {
                 Get Basic Listing
               </Button>
             </Link>
-          </Card>
+          </div>
 
           {/* Premium Tier */}
-          <Card padding="lg" className="flex flex-col justify-between border-2 border-[#4787F2] shadow-xl relative bg-white">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#4787F2] text-white text-[10px] font-extrabold uppercase tracking-wider px-3.5 py-0.5 rounded-full shadow-sm">
+          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between relative ring-2 ring-[#35AB4E] shadow-xl transition-all hover:-translate-y-1 bg-white/90">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#35AB4E] text-white text-[11px] font-extrabold uppercase tracking-wider px-4 py-1 rounded-full shadow-md">
               Most Popular
             </div>
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-bold text-[#17181C]">Premium</span>
+                <span className="text-lg font-black text-[#17181C]">Premium</span>
                 <TierBadge tier="premium" />
               </div>
               <div className="mb-4">
@@ -534,26 +534,26 @@ export default function HomePage() {
                 <span className="text-sm text-[#687182]"> / month</span>
               </div>
               <p className="text-xs text-[#687182] mb-6">
-                For established outlets seeking verified credibility and consistent marketing.
+                For established shops seeking local authority, weekly dynamic banners &amp; verified trust.
               </p>
-              <ul className="space-y-3 mb-8 text-xs text-[#17181C]">
-                <li className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Everything in Basic included
+              <ul className="space-y-3 mb-8 text-xs text-[#4A5260]">
+                <li className="flex items-center gap-2 font-bold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Everything in Basic
                 </li>
-                <li className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> 2 Custom Banners every week
+                <li className="flex items-center gap-2 font-bold text-[#35AB4E]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Green &quot;Trusted&quot; verified badge
                 </li>
-                <li className="flex items-center gap-2 font-bold text-[#1B6A2D]">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Green "Trusted" verified badge
+                <li className="flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> 2 custom branded banners / week
                 </li>
-                <li className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Priority search ranking in pincode
+                <li className="flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Customer photo review approvals
                 </li>
-                <li className="flex items-center gap-2 text-[#9AA4B2] line-through font-normal">
+                <li className="flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Priority feed ranking
+                </li>
+                <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
                   Daily banners &amp; Microsite
-                </li>
-                <li className="flex items-center gap-2 text-[#9AA4B2] line-through font-normal">
-                  Story publishing privileges
                 </li>
               </ul>
             </div>
@@ -562,13 +562,16 @@ export default function HomePage() {
                 Upgrade to Premium
               </Button>
             </Link>
-          </Card>
+          </div>
 
           {/* Elite Tier */}
-          <Card padding="lg" className="flex flex-col justify-between border border-[#981837]/30 shadow-card bg-white">
+          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between relative ring-2 ring-[#4787F2] shadow-xl transition-all hover:-translate-y-1 bg-white/90">
+            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#4787F2] text-white text-[11px] font-extrabold uppercase tracking-wider px-4 py-1 rounded-full shadow-md">
+              Complete Digital Ecosystem
+            </div>
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-bold text-[#17181C]">Elite</span>
+                <span className="text-lg font-black text-[#17181C]">Elite</span>
                 <TierBadge tier="elite" />
               </div>
               <div className="mb-4">
@@ -576,35 +579,35 @@ export default function HomePage() {
                 <span className="text-sm text-[#687182]"> / month</span>
               </div>
               <p className="text-xs text-[#687182] mb-6">
-                For flagship boutiques, jewellers, and prominent multi-store brands.
+                Complete omnichannel digital identity for high-growth businesses and flagship retailers.
               </p>
-              <ul className="space-y-3 mb-8 text-xs text-[#17181C]">
-                <li className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Everything in Premium included
-                </li>
-                <li className="flex items-center gap-2 font-bold text-[#981837]">
-                  <CheckCircle2 className="w-4 h-4 text-[#981837] flex-shrink-0" /> Daily Custom Banners
-                </li>
-                <li className="flex items-center gap-2 font-bold text-[#981837]">
-                  <CheckCircle2 className="w-4 h-4 text-[#981837] flex-shrink-0" /> Full Dedicated Microsite (<code className="text-[11px] font-mono">/b/[slug]</code>)
+              <ul className="space-y-3 mb-8 text-xs text-[#4A5260]">
+                <li className="flex items-center gap-2 font-bold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Everything in Premium
                 </li>
                 <li className="flex items-center gap-2 font-bold text-[#4787F2]">
-                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Elite-only Stories (max 1/day)
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Daily custom banners (365/yr)
                 </li>
-                <li className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Signature Spot Ring profile border
+                <li className="flex items-center gap-2 font-bold text-[#4787F2]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Standalone Microsite (<code className="text-[11px] font-mono">/b/[slug]</code>)
                 </li>
-                <li className="flex items-center gap-2 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Top category spotlight placement
+                <li className="flex items-center gap-2 font-bold text-[#4787F2]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> 24h Story publishing privileges
+                </li>
+                <li className="flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Event ticketing &amp; Booking engine
+                </li>
+                <li className="flex items-center gap-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Dedicated Account Manager
                 </li>
               </ul>
             </div>
             <Link href="/login">
-              <Button variant="crimson" size="md" className="w-full font-bold">
-                Get Elite Presence
+              <Button variant="primary" size="md" className="w-full font-bold">
+                Get Elite Membership
               </Button>
             </Link>
-          </Card>
+          </div>
         </div>
       </section>
 
