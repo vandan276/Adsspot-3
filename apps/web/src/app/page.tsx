@@ -28,13 +28,22 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 
+import { useRouter } from 'next/navigation';
+
 export default function HomePage() {
+  const router = useRouter();
   const [showSplash, setShowSplash] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedCity, setSelectedCity] = useState('Mumbai');
+  const [selectedCity, setSelectedCity] = useState('Vadodara');
 
   useEffect(() => {
+    // 📱 Mobile Redirect: On mobile screens (<768px), redirect directly to /feed for authentic app UX
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      router.replace('/feed');
+      return;
+    }
+
     // Show splash screen on first visit in the session
     const hasSeenSplash = sessionStorage.getItem('adsspot_has_seen_splash');
     if (!hasSeenSplash) {
@@ -45,7 +54,7 @@ export default function HomePage() {
     const handleTrigger = () => setShowSplash(true);
     window.addEventListener('adsspot:trigger-splash', handleTrigger);
     return () => window.removeEventListener('adsspot:trigger-splash', handleTrigger);
-  }, []);
+  }, [router]);
 
   const filteredBusinesses = SEED_BUSINESSES.filter((b) => {
     const matchesCat = selectedCategory === 'all' || b.category_id === selectedCategory;
