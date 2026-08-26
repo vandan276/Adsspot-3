@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { SEED_BUSINESSES } from '@adsspot/api';
 import { Card, Button, TrustedBadge } from '@adsspot/ui';
+import { ApkDownloadPromptModal } from '../../components/ApkDownloadPromptModal';
 import {
   MapPin,
   Map as MapIcon,
@@ -178,11 +179,41 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* 3. 🗺️ REAL-TIME INTERACTIVE MAP */}
-      <RealtimeExploreMap
-        businesses={filtered}
-        selectedCategory={selectedCat}
-        isFullScreen={viewMode === 'map'}
+      {/* 3. 🗺️ REAL-TIME INTERACTIVE MAP WITH APP DOWNLOAD GATE */}
+      <div className="relative">
+        <RealtimeExploreMap
+          businesses={filtered}
+          selectedCategory={selectedCat}
+          isFullScreen={viewMode === 'map'}
+        />
+
+        {/* Floating App Access Gate Overlay */}
+        <div className="absolute bottom-4 left-4 right-4 z-[500] bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-[#4787F2]/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-[#EDF4FF] text-[#4787F2] flex items-center justify-center shrink-0">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-[#17181C] leading-tight">Live GPS Navigation &amp; Pincode Filters</h4>
+              <p className="text-[10px] text-[#687182] font-semibold">Install the official Adsspot App for real-time 3D shop map</p>
+            </div>
+          </div>
+          <Link
+            href="/download"
+            className="w-full sm:w-auto px-4 py-2 bg-[#4787F2] hover:bg-[#3972D4] text-white rounded-full text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 active:scale-95 transition-all whitespace-nowrap"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Open in App</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* Force App Download Modal on Web Access */}
+      <ApkDownloadPromptModal
+        forceOpen={true}
+        title="Get the Adsspot App"
+        subtitle="Live GPS Map & Local Directory"
+        preventDismiss={false}
       />
 
       {/* 4. 📱 AUTHENTIC CATEGORY GRID SECTION (Matching Screenshot) */}
