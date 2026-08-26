@@ -155,8 +155,12 @@ export default function MobileFeedPage() {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  // Story Auto-Advance Timer
+  // Story Auto-Advance Timer & Navbar Hide Signal
   useEffect(() => {
+    // Notify floating bottom nav and navbar to hide/show during story playback
+    const isStoryActive = activeStoryIndex !== null;
+    window.dispatchEvent(new CustomEvent('adsspot_story_active', { detail: { active: isStoryActive } }));
+
     if (activeStoryIndex === null) return;
     setStoryProgress(0);
     const interval = setInterval(() => {
@@ -287,24 +291,24 @@ export default function MobileFeedPage() {
 
       {/* 🌟 IMMERSIVE FULL-SCREEN STORY VIEWER */}
       {currentActiveStory && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-0 sm:p-4 backdrop-blur-sm">
-          <div className="relative w-full h-full sm:h-[85vh] sm:max-w-sm bg-[#17181C] sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between">
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center p-0 sm:p-4">
+          <div className="relative w-full h-full sm:h-[88vh] sm:max-w-sm bg-[#17181C] sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col justify-between">
             {/* Story Floating Reactions Animation */}
             {storyReactions.map((r) => (
               <div
                 key={r.id}
-                className="absolute bottom-24 right-8 text-3xl animate-float-up pointer-events-none z-30"
+                className="absolute bottom-28 right-8 text-4xl animate-float-up pointer-events-none z-40 drop-shadow-md"
               >
                 {r.emoji}
               </div>
             ))}
 
             {/* Story Progress Segments */}
-            <div className="absolute top-3 left-3 right-3 z-30 flex gap-1">
+            <div className="absolute top-3 left-3 right-3 z-30 flex gap-1.5">
               {STORY_DATA.map((s, idx) => (
-                <div key={s.id} className="flex-1 h-0.5 bg-white/30 rounded-full overflow-hidden">
+                <div key={s.id} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden backdrop-blur-xs">
                   <div
-                    className="h-full bg-white transition-all duration-100 ease-linear"
+                    className="h-full bg-white transition-all duration-100 ease-linear rounded-full shadow-xs"
                     style={{
                       width:
                         idx < activeStoryIndex!
@@ -319,12 +323,19 @@ export default function MobileFeedPage() {
             </div>
 
             {/* Story Header */}
-            <div className="relative z-30 flex items-center justify-between px-3.5 pt-6 pb-2 bg-gradient-to-b from-black/80 to-transparent">
-              <div className="flex items-center gap-2">
-                <img src={currentActiveStory.logo} alt={currentActiveStory.name} className="w-8 h-8 rounded-full object-cover border border-white/40" />
+            <div className="relative z-30 flex items-center justify-between px-4 pt-7 pb-3 bg-gradient-to-b from-black/85 via-black/40 to-transparent">
+              <div className="flex items-center gap-2.5">
+                <img src={currentActiveStory.logo} alt={currentActiveStory.name} className="w-9 h-9 rounded-xl object-cover border-2 border-white/60 shadow-md" />
                 <div>
-                  <h4 className="text-xs font-bold text-white leading-tight">{currentActiveStory.name}</h4>
-                  <span className="text-[10px] text-neutral-300">
+                  <h4 className="text-xs font-extrabold text-white leading-tight flex items-center gap-1.5">
+                    {currentActiveStory.name}
+                    {currentActiveStory.tag && (
+                      <span className="bg-[#4787F2] text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full">
+                        {currentActiveStory.tag}
+                      </span>
+                    )}
+                  </h4>
+                  <span className="text-[10px] text-neutral-300 font-medium">
                     {currentActiveStory.location} • {currentActiveStory.time}
                   </span>
                 </div>
@@ -332,9 +343,9 @@ export default function MobileFeedPage() {
 
               <button
                 onClick={() => setActiveStoryIndex(null)}
-                className="text-white/80 hover:text-white p-1 rounded-full bg-black/30 transition-colors"
+                className="text-white hover:bg-white/20 p-1.5 rounded-full bg-black/40 backdrop-blur-md transition-colors"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4 stroke-[2.5]" />
               </button>
             </div>
 
@@ -345,18 +356,18 @@ export default function MobileFeedPage() {
                 alt="Story"
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-black/40 pointer-events-none" />
             </div>
 
             {/* Tap Zones */}
             <div
-              className="absolute left-0 top-16 bottom-28 w-1/3 z-20 cursor-pointer"
+              className="absolute left-0 top-16 bottom-32 w-1/3 z-20 cursor-pointer"
               onClick={() => {
                 if (activeStoryIndex! > 0) setActiveStoryIndex(activeStoryIndex! - 1);
               }}
             />
             <div
-              className="absolute right-0 top-16 bottom-28 w-1/3 z-20 cursor-pointer"
+              className="absolute right-0 top-16 bottom-32 w-1/3 z-20 cursor-pointer"
               onClick={() => {
                 if (activeStoryIndex! < STORY_DATA.length - 1) setActiveStoryIndex(activeStoryIndex! + 1);
                 else setActiveStoryIndex(null);
@@ -364,18 +375,18 @@ export default function MobileFeedPage() {
             />
 
             {/* Story Caption & Action */}
-            <div className="relative z-30 p-3.5 space-y-2 bg-gradient-to-t from-black via-black/70 to-transparent">
-              <p className="text-xs text-white/90 leading-relaxed font-medium bg-black/30 backdrop-blur-xs p-2.5 rounded-xl">
+            <div className="relative z-30 p-4 space-y-3 bg-gradient-to-t from-black via-black/80 to-transparent">
+              <p className="text-xs text-white leading-relaxed font-medium bg-black/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 shadow-lg">
                 {currentActiveStory.caption}
               </p>
 
               {/* Reactions */}
-              <div className="flex items-center justify-center gap-3 py-1">
+              <div className="flex items-center justify-between px-2 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/15">
                 {['❤️', '🔥', '😍', '👏', '🎉'].map((emoji) => (
                   <button
                     key={emoji}
                     onClick={() => handleSendStoryReaction(emoji)}
-                    className="text-lg p-1 hover:scale-125 transition-transform"
+                    className="text-xl p-1.5 hover:scale-125 transition-transform active:scale-95"
                   >
                     {emoji}
                   </button>
@@ -383,22 +394,22 @@ export default function MobileFeedPage() {
               </div>
 
               {/* Offer CTA */}
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   onClick={() => {
                     showToast(`Coupon ${currentActiveStory.coupon} claimed!`);
                   }}
-                  className="flex-1 py-2.5 rounded-full bg-[#4787F2] hover:bg-[#3972D4] text-white font-bold text-xs flex items-center justify-center gap-1 shadow-md transition-transform active:scale-95"
+                  className="flex-1 py-3 rounded-full bg-[#4787F2] hover:bg-[#3972D4] text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-lg transition-transform active:scale-95"
                 >
-                  <Gift className="w-3.5 h-3.5" /> Claim {currentActiveStory.coupon}
+                  <Gift className="w-4 h-4" /> Claim {currentActiveStory.coupon}
                 </button>
                 <a
                   href={`https://wa.me/${currentActiveStory.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(currentActiveStory.name)},%20I%20saw%20your%20story%20on%20Adsspot!`}
                   target="_blank"
                   rel="noreferrer"
-                  className="px-3.5 py-2.5 rounded-full bg-[#25D366] text-white font-semibold text-xs flex items-center justify-center shadow-md gap-1.5"
+                  className="px-4 py-3 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs flex items-center justify-center shadow-lg gap-1.5 transition-transform active:scale-95"
                 >
-                  <WhatsAppIcon size={16} className="text-white" />
+                  <WhatsAppIcon size={18} className="text-white" />
                   <span>WhatsApp</span>
                 </a>
               </div>

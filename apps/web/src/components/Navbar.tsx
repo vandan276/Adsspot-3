@@ -22,6 +22,15 @@ export const Navbar: React.FC = () => {
   const [selectedLang, setSelectedLang] = useState('en');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handleStoryChange = (e: CustomEvent<{ active: boolean }>) => {
+      setIsStoryOpen(Boolean(e.detail?.active));
+    };
+    window.addEventListener('adsspot_story_active' as any, handleStoryChange);
+    return () => window.removeEventListener('adsspot_story_active' as any, handleStoryChange);
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -73,7 +82,11 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="bg-white border-b border-[#E3E8EF] sticky top-0 z-40 shadow-xs backdrop-blur-md bg-white/95 w-full">
+    <header
+      className={`bg-white border-b border-[#E3E8EF] sticky top-0 z-40 shadow-xs backdrop-blur-md bg-white/95 w-full transition-transform duration-300 ${
+        isStoryOpen ? '-translate-y-full pointer-events-none' : 'translate-y-0'
+      }`}
+    >
       {/* Language Toast */}
       {toastMessage && (
         <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 border border-neutral-700 animate-fade-in whitespace-nowrap">

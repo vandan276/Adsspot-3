@@ -10,6 +10,15 @@ import { Home, Wallet, Bookmark, User, Store, Crown, Shield, MapPin } from 'luci
 export const FloatingMobileNav: React.FC = () => {
   const pathname = usePathname();
   const { user } = useAuth();
+  const [isStoryOpen, setIsStoryOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleStoryChange = (e: CustomEvent<{ active: boolean }>) => {
+      setIsStoryOpen(Boolean(e.detail?.active));
+    };
+    window.addEventListener('adsspot_story_active' as any, handleStoryChange);
+    return () => window.removeEventListener('adsspot_story_active' as any, handleStoryChange);
+  }, []);
 
   const isHome = pathname === '/feed' || pathname === '/';
   const isWallet = pathname === '/wallet';
@@ -78,7 +87,11 @@ export const FloatingMobileNav: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none md:hidden">
+    <div
+      className={`fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none md:hidden transition-all duration-300 ${
+        isStoryOpen ? 'opacity-0 translate-y-16 pointer-events-none' : 'opacity-100 translate-y-0'
+      }`}
+    >
       <nav className="pointer-events-auto bg-white/95 backdrop-blur-xl border border-[#E3E8EF] shadow-[0_12px_36px_rgba(23,24,28,0.14)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center">
         {/* 1. Home */}
         <Link
