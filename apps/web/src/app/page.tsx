@@ -370,15 +370,19 @@ export default function HomePage() {
 
       {/* 5. APP DOWNLOAD CTA SECTION — Authentic 3D Liquid Glass Masterpiece (Matching BentoMotion Reference) */}
       <section id="mobile-app" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full relative">
-        {/* Background Soft Chromatic Glow & Subtle Grid */}
-        <div className="relative">
+        {/* BentoMotion Architectural Grid & Mesh Backdrop Behind the Glass */}
+        <div className="bentomotion-grid-texture rounded-[48px] p-6 sm:p-12 border border-[#8A78C8]/25 shadow-2xl relative overflow-hidden">
+          {/* Subtle Ambient Glowing Orbs behind the grid */}
+          <div className="absolute -top-12 -left-12 w-80 h-80 bg-purple-400/30 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 w-80 h-80 bg-blue-400/30 rounded-full blur-3xl pointer-events-none" />
+
           {/* Authentic 3D Liquid Glass Pill Container */}
           <div className="pure-liquid-glass-card p-8 sm:p-14 flex flex-col lg:flex-row items-center justify-between gap-10 relative overflow-hidden">
             {/* Top-Left Specular Refraction Flare */}
             <div className="glass-specular-flare" />
 
             {/* Notification Badge Bubble (Matching "12" Red Bubble in Reference) */}
-            <div className="absolute -top-3 -right-3 sm:top-6 sm:right-10 liquid-glass-badge w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-xl animate-pulse z-20">
+            <div className="absolute -top-2 -right-2 sm:top-6 sm:right-8 liquid-glass-badge w-12 h-12 rounded-full flex items-center justify-center text-white font-black text-sm shadow-xl z-20">
               NEW
             </div>
 
@@ -405,7 +409,7 @@ export default function HomePage() {
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/download"
-                  className="pure-liquid-glass inline-flex items-center gap-3 text-[#17181C] px-8 py-3.5 text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-md bg-white/60 hover:bg-white/80"
+                  className="pure-liquid-glass inline-flex items-center gap-3 text-[#17181C] px-8 py-3.5 text-sm font-black transition-all hover:scale-105 active:scale-95 shadow-md bg-white/70 hover:bg-white/90"
                 >
                   <Download className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
                   <span>Download for iOS</span>
@@ -422,7 +426,7 @@ export default function HomePage() {
 
             {/* Liquid Glass QR Code Capsule with Curved Specular Border */}
             <div className="w-full lg:w-auto flex-shrink-0 flex items-center justify-center z-10">
-              <div className="pure-liquid-glass-card p-7 flex flex-col items-center gap-4 max-w-[290px] text-center shadow-xl relative overflow-hidden bg-white/40">
+              <div className="pure-liquid-glass-card p-7 flex flex-col items-center gap-4 max-w-[290px] text-center shadow-xl relative overflow-hidden bg-white/50">
                 <div className="relative w-44 h-44 bg-white/95 rounded-[22px] p-2.5 flex items-center justify-center shadow-md border border-white">
                   <QrCode className="w-40 h-40 text-[#17181C]" />
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
