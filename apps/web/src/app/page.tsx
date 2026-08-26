@@ -65,12 +65,18 @@ export default function HomePage() {
 
       <section className="bg-white border-b border-[#E3E8EF] pt-14 pb-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
-          {/* Tagline Pill */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF4FF] border border-[#4787F2]/20 mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#4787F2]" />
-            <span className="text-xs font-bold text-[#1D53B8]">
-              India's Hyperlocal Neighborhood Discovery Platform
-            </span>
+          {/* Prominent Animated Brand Logo Showcase */}
+          <div className="flex flex-col items-center justify-center mb-6">
+            <div className="p-3 sm:p-4 rounded-3xl bg-gradient-to-b from-[#EDF4FF] to-white border border-[#4787F2]/20 shadow-lg shadow-[#4787F2]/10 mb-4 transform hover:scale-105 transition-transform">
+              <Logo size={78} withText={true} animated={true} />
+            </div>
+            {/* Tagline Pill */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF4FF] border border-[#4787F2]/20">
+              <span className="w-2 h-2 rounded-full bg-[#4787F2] animate-ping" />
+              <span className="text-xs font-bold text-[#1D53B8]">
+                India's Hyperlocal Neighborhood Discovery Platform
+              </span>
+            </div>
           </div>
 
           {/* Clean, High-Contrast Headline */}

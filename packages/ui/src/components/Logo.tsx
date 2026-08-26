@@ -129,9 +129,9 @@ export const Logo: React.FC<LogoProps> = ({
     return <AdsspotLogoMark size={pixelHeight} className={className} animated={animated} />;
   }
 
-  // Calculate proportion: In 280x70, icon is 58x58 (scale 0.53) and text is viewBox 208x56
+  // Proportion from 'Logo name .svg': text occupies (0, 0, 220, 80)
   const iconSize = Math.round(pixelHeight * 0.95);
-  const textWidth = Math.round(pixelHeight * 2.8);
+  const textWidth = Math.round(pixelHeight * 2.85);
   const textHeight = pixelHeight;
 
   return (
@@ -145,26 +145,31 @@ export const Logo: React.FC<LogoProps> = ({
         )}
       </div>
 
-      {/* 2. Authentic Vector ADSSPOT Brand Name (Matching brand-logo.svg) */}
+      {/* 2. Authentic Brand Typography directly from 'Logo name .svg' */}
       <svg
         width={textWidth}
         height={textHeight}
-        viewBox="0 0 208 54"
+        viewBox="30 65 225 72"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className="shrink-0 overflow-visible"
         style={{ height: `${textHeight}px`, width: 'auto' }}
       >
         <text
-          x="0"
-          y="42"
-          fontFamily="'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-          fontSize="48"
+          fill="#4787f2"
+          fontFamily="'DIN Condensed', 'DINAlternate-Bold', 'DIN Condensed Bold', 'Plus Jakarta Sans', -apple-system, sans-serif"
+          fontSize="76"
           fontWeight="900"
-          letterSpacing="-0.02em"
+          letterSpacing="0.01em"
+          x="31.4857"
+          y="126.665"
         >
-          <tspan fill="#4787F2">ADS</tspan>
-          <tspan fill="#981837">SPOT</tspan>
+          <tspan fill="#4787f2" textLength="94.164" x="37.4845" y="126.665">
+            ADS
+          </tspan>
+          <tspan fill="#981837" textLength="118.484" x="131.648" y="126.665">
+            SPOT
+          </tspan>
         </text>
       </svg>
     </div>

@@ -85,7 +85,7 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <Logo size={38} withText={true} />
+          <Logo size={44} withText={true} />
         </Link>
 
         {/* Public Navigation (Desktop) */}
