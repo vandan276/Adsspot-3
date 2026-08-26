@@ -29,6 +29,8 @@ import {
   ShieldCheck,
   UserPlus,
   UserCheck,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 const WhatsAppIcon = ({ size = 20, className = '' }: { size?: number; className?: string }) => (
@@ -120,6 +122,10 @@ export default function MobileFeedPage() {
 
   // Comments Sheet State
   const [openCommentsPostId, setOpenCommentsPostId] = useState<string | null>(null);
+
+  // Share Modal & Link Copy state
+  const [openSharePost, setOpenSharePost] = useState<{ id: string; bizName: string; caption: string; slug: string } | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
   const [newCommentText, setNewCommentText] = useState<string>('');
   const [postComments, setPostComments] = useState<Record<string, { id: string; author: string; text: string; time: string }[]>>({
     'post-1': [
@@ -412,6 +418,13 @@ export default function MobileFeedPage() {
     }, 1500);
   };
 
+  const handleSharePost = async (post: { id: string; caption: string }, biz: { name: string; slug: string }) => {
+    // On desktop browsers, navigator.share often opens the OS Mail client app.
+    // We open our rich custom Adsspot Share Sheet Modal for explicit social platform options (WhatsApp, X, FB, Telegram, Copy Link).
+    setCopiedLink(false);
+    setOpenSharePost({ id: post.id, bizName: biz.name, caption: post.caption, slug: biz.slug });
+  };
+
   const filteredPosts = SEED_POSTS.filter((post) => {
     const biz = SEED_BUSINESSES.find((b) => b.id === post.business_id);
     if (!biz) return true;
@@ -553,6 +566,114 @@ export default function MobileFeedPage() {
                   <WhatsAppIcon size={18} className="text-white" />
                   <span>WhatsApp</span>
                 </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🌟 SHARE OPTIONS MODAL */}
+      {openSharePost && (
+        <div className="fixed inset-0 z-[130] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl border border-[#E3E8EF] animate-slide-up space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#E3E8EF]">
+              <div className="flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-[#4787F2]" />
+                <h3 className="text-sm font-extrabold text-[#17181C]">Share Post</h3>
+              </div>
+              <button
+                onClick={() => setOpenSharePost(null)}
+                className="text-neutral-400 hover:text-neutral-700 p-1 rounded-full hover:bg-neutral-100"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Share to Socials</span>
+              <div className="grid grid-cols-4 gap-3 pt-2">
+                {/* WhatsApp */}
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`Check out ${openSharePost.bizName} on Adsspot: "${openSharePost.caption}"\nhttps://adsspot.in/card/${openSharePost.slug}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl bg-[#25D366]/10 hover:bg-[#25D366]/20 transition-all active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#25D366] text-white flex items-center justify-center shadow-md">
+                    <WhatsAppIcon size={20} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-bold text-neutral-700 group-hover:text-[#25D366]">WhatsApp</span>
+                </a>
+
+                {/* X / Twitter */}
+                <a
+                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`Check out ${openSharePost.bizName} on Adsspot: "${openSharePost.caption}"`)}&url=${encodeURIComponent(`https://adsspot.in/card/${openSharePost.slug}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl bg-black/5 hover:bg-black/10 transition-all active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#17181C] text-white flex items-center justify-center shadow-md font-black text-xs">
+                    𝕏
+                  </div>
+                  <span className="text-[10px] font-bold text-neutral-700">X (Twitter)</span>
+                </a>
+
+                {/* Facebook */}
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://adsspot.in/card/${openSharePost.slug}`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl bg-[#1877F2]/10 hover:bg-[#1877F2]/20 transition-all active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center shadow-md font-bold text-sm">
+                    f
+                  </div>
+                  <span className="text-[10px] font-bold text-neutral-700 group-hover:text-[#1877F2]">Facebook</span>
+                </a>
+
+                {/* Telegram */}
+                <a
+                  href={`https://t.me/share/url?url=${encodeURIComponent(`https://adsspot.in/card/${openSharePost.slug}`)}&text=${encodeURIComponent(`Check out ${openSharePost.bizName} on Adsspot!`)}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex flex-col items-center gap-1.5 p-2.5 rounded-2xl bg-[#229ED9]/10 hover:bg-[#229ED9]/20 transition-all active:scale-95 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[#229ED9] text-white flex items-center justify-center shadow-md font-bold text-xs">
+                    ✈
+                  </div>
+                  <span className="text-[10px] font-bold text-neutral-700 group-hover:text-[#229ED9]">Telegram</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Direct Link Copy Box */}
+            <div className="space-y-1.5 pt-1">
+              <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Direct Web Link</span>
+              <div className="flex items-center gap-2 p-2 bg-[#F8FAFC] rounded-2xl border border-[#E3E8EF]">
+                <input
+                  type="text"
+                  readOnly
+                  value={`https://adsspot.in/card/${openSharePost.slug}`}
+                  className="flex-1 bg-transparent text-xs text-neutral-700 outline-none truncate px-1 font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const shareUrl = `https://adsspot.in/card/${openSharePost.slug}`;
+                    navigator.clipboard.writeText(shareUrl);
+                    setCopiedLink(true);
+                    showToast('Link copied to clipboard!');
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
+                    copiedLink
+                      ? 'bg-[#35AB4E] text-white'
+                      : 'bg-[#4787F2] hover:bg-[#3972D4] text-white active:scale-95'
+                  }`}
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
+                </button>
               </div>
             </div>
           </div>
@@ -794,7 +915,7 @@ export default function MobileFeedPage() {
                     />
                   </button>
 
-                  <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2]">
+                  <button onClick={() => handleSharePost(post, biz)} className="hover:text-[#4787F2]" title="Share Post">
                     <Share2 className="w-5 h-5" />
                   </button>
                 </div>
