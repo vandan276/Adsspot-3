@@ -488,7 +488,7 @@ export default function MobileFeedPage() {
             onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
             className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
           >
-            <div className="relative w-15 h-15 rounded-2xl border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 group-hover:border-[#3972D4] transition-all group-active:scale-95">
+            <div className="relative w-[56px] h-[56px] rounded-2xl border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 group-hover:border-[#3972D4] transition-all group-active:scale-95">
               <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
               <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white shadow-sm">
                 <Plus className="w-3 h-3 stroke-[3]" />
@@ -504,8 +504,8 @@ export default function MobileFeedPage() {
               onClick={() => setActiveStoryIndex(idx)}
               className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
             >
-              <div className="relative w-15 h-15 rounded-2xl p-0.5 bg-[#4787F2] shrink-0 transform group-hover:scale-105 group-active:scale-95 transition-all shadow-sm">
-                <div className="w-full h-full rounded-[14px] bg-white p-0.5 overflow-hidden flex items-center justify-center">
+              <div className="w-[56px] h-[56px] rounded-2xl p-[2px] bg-[#4787F2] shrink-0 transform group-hover:scale-105 group-active:scale-95 transition-all shadow-sm flex items-center justify-center">
+                <div className="w-full h-full rounded-[14px] bg-white p-[1px] overflow-hidden flex items-center justify-center">
                   <img
                     src={story.logo}
                     alt={story.name}
@@ -513,7 +513,7 @@ export default function MobileFeedPage() {
                   />
                 </div>
               </div>
-              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[64px] text-center leading-tight tracking-tight">
+              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[60px] text-center leading-tight tracking-tight">
                 {story.name.split(' ')[0]}
               </span>
             </div>
