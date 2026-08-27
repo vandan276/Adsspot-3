@@ -236,15 +236,15 @@ export const Navbar: React.FC = () => {
               >
                 <Avatar
                   src={user.avatar_url}
-                  name={user.full_name}
+                  name={user.role === 'super_admin' ? 'Adsspot Admin' : user.full_name}
                   size="sm"
                   isElite={user.business_profile?.tier === 'elite'}
                 />
                 <div className="hidden lg:flex flex-col">
-                  <span className="text-xs font-bold text-[#17181C] group-hover:text-[#4787F2] transition-colors leading-none truncate max-w-[100px]">
-                    {user.full_name}
+                  <span className="text-xs font-bold text-[#17181C] dark:text-white group-hover:text-[#4787F2] transition-colors leading-none truncate max-w-[130px]">
+                    {user.role === 'super_admin' ? 'Adsspot Admin' : user.full_name}
                   </span>
-                  <span className="text-[10px] text-[#687182] capitalize">{user.role}</span>
+                  <span className="text-[10px] text-[#687182] dark:text-neutral-400 capitalize">{user.role.replace('_', ' ')}</span>
                 </div>
               </Link>
 

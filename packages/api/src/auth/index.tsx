@@ -83,19 +83,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedWallet !== null) {
         userBalance = parseFloat(storedWallet);
       } else {
-        // Seed users have demo balances, real newly registered users start at ₹0.00
-        if (userId === 'usr-consumer-1') userBalance = 1540.0;
-        else if (userId === 'usr-merchant-1') userBalance = 10000.0;
-        else if (userId.startsWith('usr-staff')) userBalance = 5000.0;
-        else userBalance = 0.0;
+        userBalance = 0.0;
         localStorage.setItem(`adsspot_wallet_${userId}`, userBalance.toString());
       }
     }
 
+    const isSuperAdmin = userId === 'usr-admin-1' || baseUser.role === 'super_admin';
+    const computedName = isSuperAdmin ? 'Adsspot Admin' : ((baseUser as any).name || (baseUser as any).full_name || 'User');
+
     return {
       id: baseUser.id,
       phone: baseUser.phone,
-      full_name: (baseUser as any).name || (baseUser as any).full_name || 'User',
+      full_name: computedName,
       avatar_url: baseUser.avatar_url,
       role: baseUser.role,
       created_at: (baseUser as any).created_at || new Date().toISOString(),
@@ -117,26 +116,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function initAuth() {
       try {
         if (typeof window !== 'undefined') {
-          // 0. Hydrate custom personas, staff and merchants from localStorage
+          // 0. Clean legacy mock personas from localStorage
           const savedUsers = localStorage.getItem(CUSTOM_USERS_KEY);
           if (savedUsers) {
             try {
               const parsed = JSON.parse(savedUsers);
-              if (Array.isArray(parsed)) setPersonas(parsed);
+              if (Array.isArray(parsed)) {
+                const sanitized = parsed
+                  .filter((p: any) => !p.id.startsWith('usr-consumer') && !p.id.startsWith('usr-merch') && !p.id.startsWith('usr-sm') && !p.id.startsWith('usr-ro') && !p.id.startsWith('usr-zo'))
+                  .map((p: any) => p.id === 'usr-admin-1' ? { ...p, name: 'Adsspot Admin', email: 'admin@adsspot.in' } : p);
+                
+                if (!sanitized.find((p: any) => p.id === 'usr-admin-1')) {
+                  sanitized.unshift(DEMO_PERSONAS[0]);
+                }
+                setPersonas(sanitized);
+                localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(sanitized));
+              }
             } catch {}
+          } else {
+            setPersonas(DEMO_PERSONAS);
+            localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(DEMO_PERSONAS));
           }
+
           const savedStaff = localStorage.getItem(CUSTOM_STAFF_KEY);
           if (savedStaff) {
             try {
               const parsed = JSON.parse(savedStaff);
               if (Array.isArray(parsed)) setStaffList(parsed);
-            } catch {}
-          }
-          const savedMerchants = localStorage.getItem(CUSTOM_MERCHANTS_KEY);
-          if (savedMerchants) {
-            try {
-              const parsed = JSON.parse(savedMerchants);
-              if (Array.isArray(parsed)) setMerchantList(parsed);
             } catch {}
           }
 
@@ -162,7 +168,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (res.ok) {
                 const data = await res.json();
                 if (data.success && data.user) {
-                  setUser(data.user);
+                  const fetchedUser = {
+                    ...data.user,
+                    full_name: (data.user.role === 'super_admin' || data.user.id === 'usr-admin-1') ? 'Adsspot Admin' : data.user.full_name,
+                  };
+                  setUser(fetchedUser);
                   setIsLoading(false);
                   return;
                 }
