@@ -254,3 +254,139 @@ html.dark .pure-liquid-glass-card {
     inset 0 2px 4px 0 rgba(255, 255, 255, 0.25);
 }
 
+/* =========================================================================
+   COMPREHENSIVE FULL-WEBSITE DARK THEME RULES
+   ========================================================================= */
+
+html.dark body {
+  background-color: #0B0E14 !important;
+  color: #F9FAFB !important;
+}
+
+/* Light backgrounds to dark surface */
+html.dark .bg-white,
+html.dark [class*="bg-white/"] {
+  background-color: #121620 !important;
+  color: #F9FAFB;
+}
+
+html.dark .bg-\[\#F4F6FB\],
+html.dark .bg-\[\#f4f6fb\] {
+  background-color: #0B0E14 !important;
+}
+
+html.dark .bg-\[\#EDF4FF\],
+html.dark .bg-\[\#edf4ff\] {
+  background-color: rgba(71, 135, 242, 0.16) !important;
+  color: #82B1FF !important;
+}
+
+html.dark .bg-\[\#FFF8E6\],
+html.dark .bg-\[\#FFFDF5\],
+html.dark .bg-\[\#fff8e6\] {
+  background-color: rgba(242, 182, 4, 0.14) !important;
+  color: #FDD663 !important;
+}
+
+html.dark .bg-\[\#EBF9EE\],
+html.dark .bg-\[\#ebf9ee\] {
+  background-color: rgba(53, 171, 78, 0.15) !important;
+  color: #81C995 !important;
+}
+
+html.dark .bg-\[\#FBECEF\],
+html.dark .bg-\[\#fbecef\] {
+  background-color: rgba(152, 24, 55, 0.2) !important;
+  color: #F28B82 !important;
+}
+
+/* Typography in Dark Mode */
+html.dark .text-\[\#17181C\],
+html.dark .text-\[\#17181c\],
+html.dark .text-neutral-900,
+html.dark .text-slate-900,
+html.dark .text-black {
+  color: #F9FAFB !important;
+}
+
+html.dark .text-\[\#4A5260\],
+html.dark .text-\[\#4a5260\],
+html.dark .text-neutral-700,
+html.dark .text-slate-700 {
+  color: #D1D5DB !important;
+}
+
+html.dark .text-\[\#687182\],
+html.dark .text-\[\#687182\],
+html.dark .text-neutral-500,
+html.dark .text-slate-500 {
+  color: #9CA3AF !important;
+}
+
+html.dark .text-\[\#A06E00\],
+html.dark .text-amber-800 {
+  color: #FDD663 !important;
+}
+
+html.dark .text-\[\#1B6A2D\],
+html.dark .text-emerald-800 {
+  color: #81C995 !important;
+}
+
+/* Borders in Dark Mode */
+html.dark .border-\[\#E3E8EF\],
+html.dark .border-\[\#e3e8ef\],
+html.dark .border-neutral-200,
+html.dark .border-neutral-100,
+html.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark .divide-\[\#E3E8EF\] > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Form Inputs, Dropdowns, Selects & Modals */
+html.dark input, 
+html.dark textarea, 
+html.dark select {
+  background-color: #171C28 !important;
+  color: #F9FAFB !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+html.dark input::placeholder, 
+html.dark textarea::placeholder {
+  color: #6B7280 !important;
+}
+
+/* Header & Navigation Bar in Dark Mode */
+html.dark header {
+  background-color: rgba(11, 14, 20, 0.88) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Aside sidebars in Dark Mode */
+html.dark aside {
+  background-color: #121620 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Floating Bottom Navigation in Dark Mode */
+html.dark .floating-nav,
+html.dark nav.fixed,
+html.dark nav.pointer-events-auto {
+  background-color: rgba(18, 22, 32, 0.9) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Modals & Popovers */
+html.dark [role="dialog"],
+html.dark .modal-content,
+html.dark .dropdown-menu {
+  background-color: #141824 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #F9FAFB !important;
+}
+
+
