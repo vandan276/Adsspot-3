@@ -324,7 +324,7 @@ export default function MobileFeedPage() {
   const currentActiveStory = activeStoryIndex !== null ? STORY_DATA[activeStoryIndex] : null;
 
   return (
-    <div className="flex-1 bg-[#F8FAFC] pb-28 max-w-md mx-auto w-full min-h-screen relative overflow-x-hidden">
+    <div className="flex-1 bg-[#F8FAFC] dark:bg-[#0B0E14] pb-28 md:pb-16 min-h-screen relative transition-colors">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-18 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-[11px] font-semibold px-3.5 py-2 rounded-full shadow-lg flex items-center gap-1.5 border border-neutral-700 animate-fade-in whitespace-nowrap">
@@ -473,30 +473,30 @@ export default function MobileFeedPage() {
       {/* 🌟 COMMENTS DRAWER */}
       {openCommentsPostId && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-white w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-4 shadow-xl border border-[#E3E8EF] max-h-[70vh] flex flex-col justify-between animate-slide-up">
-            <div className="flex items-center justify-between pb-2.5 border-b border-[#E3E8EF]">
+          <div className="bg-white dark:bg-[#141824] w-full sm:max-w-sm rounded-t-2xl sm:rounded-2xl p-4 shadow-xl border border-[#E3E8EF] dark:border-white/10 max-h-[70vh] flex flex-col justify-between animate-slide-up">
+            <div className="flex items-center justify-between pb-2.5 border-b border-[#E3E8EF] dark:border-white/10">
               <div className="flex items-center gap-1.5">
                 <MessageCircle className="w-3.5 h-3.5 text-[#4787F2]" />
-                <h3 className="text-xs font-bold text-[#17181C]">Comments</h3>
+                <h3 className="text-xs font-bold text-[#17181C] dark:text-white">Comments</h3>
               </div>
-              <button onClick={() => setOpenCommentsPostId(null)} className="text-neutral-400 hover:text-neutral-700 p-0.5">
+              <button onClick={() => setOpenCommentsPostId(null)} className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-0.5">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-2.5 py-3 pr-1">
               {(postComments[openCommentsPostId] || []).map((comm) => (
-                <div key={comm.id} className="p-2.5 bg-[#F4F6FB] rounded-xl text-xs space-y-0.5">
+                <div key={comm.id} className="p-2.5 bg-[#F4F6FB] dark:bg-[#1A2130] rounded-xl text-xs space-y-0.5">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#17181C] text-[11px]">{comm.author}</span>
-                    <span className="text-[9px] text-[#687182]">{comm.time}</span>
+                    <span className="font-bold text-[#17181C] dark:text-white text-[11px]">{comm.author}</span>
+                    <span className="text-[9px] text-[#687182] dark:text-neutral-400">{comm.time}</span>
                   </div>
-                  <p className="text-[#4A5260] text-[11px]">{comm.text}</p>
+                  <p className="text-[#4A5260] dark:text-neutral-300 text-[11px]">{comm.text}</p>
                 </div>
               ))}
             </div>
 
-            <div className="pt-2 border-t border-[#E3E8EF] flex gap-1.5">
+            <div className="pt-2 border-t border-[#E3E8EF] dark:border-white/10 flex gap-1.5">
               <input
                 type="text"
                 value={newCommentText}
@@ -505,7 +505,7 @@ export default function MobileFeedPage() {
                   if (e.key === 'Enter') handleAddComment(openCommentsPostId);
                 }}
                 placeholder="Write a comment..."
-                className="flex-1 px-3 py-1.5 rounded-full border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
+                className="flex-1 px-3 py-1.5 rounded-full border border-[#E3E8EF] dark:border-white/15 text-xs outline-none focus:border-[#4787F2] dark:bg-[#1A2130] dark:text-white"
               />
               <button
                 onClick={() => handleAddComment(openCommentsPostId)}
@@ -518,107 +518,186 @@ export default function MobileFeedPage() {
         </div>
       )}
 
-      {/* 1. TOP LOCATION & SEARCH BAR — Glassmorphic Universal Search */}
-      <div className="sticky top-0 z-30 bg-white/85 backdrop-blur-xl px-3 sm:px-4 py-2 border-b border-black/[0.06] shadow-2xs space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-[#17181C] font-bold min-w-0 flex-1 truncate">
-            <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
-            <span className="truncate">
-              {locationState.area}, {locationState.city}{' '}
-              <span className="text-neutral-400 font-normal">({locationState.pincode})</span>
-            </span>
-          </div>
-          <span className="shrink-0 text-[10px] font-black text-[#E14D2A] bg-[#FFF1EE] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
-            🔥 3 Live Drops
-          </span>
-        </div>
-
-        {/* Universal Search Bar */}
-        <div className="relative">
-          <div className="flex items-center bg-[#F4F6FB] border border-[#E3E8EF] rounded-2xl px-3 py-2 shadow-2xs focus-within:border-[#4787F2] focus-within:ring-2 focus-within:ring-[#4787F2]/15 transition-all">
-            <span className="text-neutral-400 mr-2">🔍</span>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-              placeholder="Search shops, thalis, doctors, B2B factories..."
-              className="w-full bg-transparent text-xs font-semibold text-[#17181C] placeholder:text-neutral-400 outline-none"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="text-neutral-400 text-xs font-bold hover:text-neutral-600">
-                ✕
-              </button>
-            )}
-          </div>
-
-          {/* Grouped Universal Search Dropdown */}
-          {isSearchFocused && searchQuery.trim() !== '' && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E3E8EF] rounded-2xl shadow-xl overflow-hidden z-40 p-2 space-y-2 animate-fade-in max-h-80 overflow-y-auto">
-              <div>
-                <span className="text-[9px] font-black uppercase text-[#687182] px-2 block">Verified Spots</span>
-                {SEED_BUSINESSES.filter((b) => b.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map((biz) => (
-                  <Link
-                    key={biz.id}
-                    href={`/card/${biz.slug}`}
-                    className="flex items-center justify-between p-2 rounded-xl hover:bg-[#F4F6FB] text-xs font-bold text-[#17181C] transition-colors"
-                  >
-                    <span>{biz.name}</span>
-                    <span className="text-[10px] text-[#4787F2] font-semibold">{biz.address}</span>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="border-t border-neutral-100 pt-1">
-                <span className="text-[9px] font-black uppercase text-[#E14D2A] px-2 block">B2B Suppliers</span>
-                <Link
-                  href={`/b2b?q=${encodeURIComponent(searchQuery)}`}
-                  className="flex items-center justify-between p-2 rounded-xl bg-[#FFF1EE] hover:bg-[#FFE4DE] text-xs font-bold text-[#E14D2A] transition-colors"
-                >
-                  <span>Search &quot;{searchQuery}&quot; in B2B Factory Portal</span>
-                  <span className="text-[10px] font-black">1Cr+ →</span>
-                </Link>
+      {/* 🚀 RESPONSIVE MULTI-COLUMN CONTAINER (Mobile App on Phone, Expansive 3-Column on Desktop) */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-3 sm:py-6 flex justify-center gap-6 items-start">
+        {/* =========================================================================
+            LEFT COLUMN (Desktop Navigation & Territory Rail - Visible on lg+)
+            ========================================================================= */}
+        <aside className="hidden lg:flex flex-col w-64 shrink-0 space-y-4 sticky top-20">
+          {/* Quick Profile Summary Card */}
+          <div className="ios-glass-card rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <Avatar src={user?.avatar_url || undefined} name={user?.full_name || 'Consumer Guest'} size="md" />
+              <div className="min-w-0">
+                <h4 className="text-xs font-bold text-[#17181C] dark:text-white truncate">
+                  {user?.full_name || 'Welcome to Adsspot'}
+                </h4>
+                <span className="text-[10px] text-[#4787F2] font-semibold block capitalize">
+                  {user?.role || 'Guest Explorer'}
+                </span>
               </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* 2. STORIES RAIL */}
-      <div className="bg-white py-3 border-b border-[#E3E8EF] shadow-xs">
-        <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center">
-          {/* Add story / User avatar */}
-          <div
-            onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
-            className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
-          >
-            <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 group-hover:border-[#3972D4] transition-all group-active:scale-95">
-              <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white shadow-sm">
-                <Plus className="w-3 h-3 stroke-[3]" />
-              </div>
+            <div className="pt-2 border-t border-[#E3E8EF] dark:border-white/10 flex items-center justify-between text-xs">
+              <span className="text-neutral-500 dark:text-neutral-400 text-[11px]">Saved Spots</span>
+              <span className="font-bold text-[#17181C] dark:text-white">{Object.keys(savedPosts).length}</span>
             </div>
-            <span className="text-[11px] text-neutral-600 font-semibold tracking-tight">Your Story</span>
-          </div>
 
-          {/* Business Stories with Authentic 4-Segment Spot Ring */}
-          {STORY_DATA.map((story, idx) => (
-            <div
-              key={story.id}
-              onClick={() => setActiveStoryIndex(idx)}
-              className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+            <Link
+              href="/explore"
+              className="w-full py-2 rounded-xl bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95"
             >
-              <div className="transform group-hover:scale-105 group-active:scale-95 transition-transform drop-shadow-sm">
-                <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
+              <span>Explore Interactive Map</span>
+            </Link>
+          </div>
+
+          {/* Quick Category Navigation */}
+          <div className="ios-glass-card rounded-2xl p-3.5 space-y-2">
+            <span className="text-[10px] font-black uppercase text-[#687182] dark:text-neutral-400 px-1 block tracking-wider">
+              Browse Categories
+            </span>
+            <div className="space-y-1">
+              {SEED_CATEGORIES.slice(0, 5).map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors text-left ${
+                    selectedCategory === cat.id
+                      ? 'bg-[#4787F2] text-white font-bold'
+                      : 'hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-[#17181C] dark:text-neutral-200'
+                  }`}
+                >
+                  <span>{cat.name}</span>
+                  <span className="text-[10px] opacity-70">→</span>
+                </button>
+              ))}
+              <Link
+                href="/b2b"
+                className="w-full flex items-center justify-between p-2 rounded-xl text-xs font-bold text-[#E14D2A] bg-[#FFF1EE] dark:bg-[#2A1016] hover:bg-[#FFE4DE] transition-colors"
+              >
+                <span>B2B Direct Factory Portal</span>
+                <span className="text-[9px] bg-[#E14D2A] text-white px-1.5 rounded-full">1Cr+</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Territory & City Badge */}
+          <div className="ios-glass-card rounded-2xl p-3.5 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#17181C] dark:text-white">
+              <MapPin className="w-4 h-4 text-[#4787F2]" />
+              <span>{locationState.city} Territory</span>
+            </div>
+            <p className="text-[11px] text-[#687182] dark:text-neutral-400">
+              Covering pincodes {locationState.pincode}, 390001, 390020 with verified local stores.
+            </p>
+          </div>
+        </aside>
+
+        {/* =========================================================================
+            CENTER COLUMN (Main Interactive Feed Stream - Mobile & Desktop)
+            ========================================================================= */}
+        <div className="w-full max-w-md sm:max-w-xl shrink-0 space-y-3.5">
+          {/* 1. TOP LOCATION & SEARCH BAR — Glassmorphic Universal Search */}
+          <div className="sticky top-0 z-30 ios-glass-card rounded-2xl p-3 shadow-sm space-y-2 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 text-xs text-[#17181C] dark:text-white font-bold min-w-0 flex-1 truncate">
+                <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
+                <span className="truncate">
+                  {locationState.area}, {locationState.city}{' '}
+                  <span className="text-neutral-400 font-normal">({locationState.pincode})</span>
+                </span>
               </div>
-              <span className="text-[11px] text-[#17181C] font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
-                {story.name.split(' ')[0]}
+              <span className="shrink-0 text-[10px] font-black text-[#E14D2A] bg-[#FFF1EE] dark:bg-[#2A1016] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
+                🔥 3 Live Drops
               </span>
             </div>
-          ))}
-        </div>
-      </div>
+
+            {/* Universal Search Bar */}
+            <div className="relative">
+              <div className="flex items-center bg-[#F4F6FB] dark:bg-[#171C28] border border-[#E3E8EF] dark:border-white/15 rounded-2xl px-3 py-2 shadow-2xs focus-within:border-[#4787F2] focus-within:ring-2 focus-within:ring-[#4787F2]/15 transition-all">
+                <span className="text-neutral-400 mr-2">🔍</span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                  placeholder="Search shops, thalis, doctors, B2B factories..."
+                  className="w-full bg-transparent text-xs font-semibold text-[#17181C] dark:text-white placeholder:text-neutral-400 outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-neutral-400 text-xs font-bold hover:text-neutral-600 dark:hover:text-white">
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Grouped Universal Search Dropdown */}
+              {isSearchFocused && searchQuery.trim() !== '' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#141824] border border-[#E3E8EF] dark:border-white/15 rounded-2xl shadow-xl overflow-hidden z-40 p-2 space-y-2 animate-fade-in max-h-80 overflow-y-auto">
+                  <div>
+                    <span className="text-[9px] font-black uppercase text-[#687182] dark:text-neutral-400 px-2 block">Verified Spots</span>
+                    {SEED_BUSINESSES.filter((b) => b.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map((biz) => (
+                      <Link
+                        key={biz.id}
+                        href={`/card/${biz.slug}`}
+                        className="flex items-center justify-between p-2 rounded-xl hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-xs font-bold text-[#17181C] dark:text-white transition-colors"
+                      >
+                        <span>{biz.name}</span>
+                        <span className="text-[10px] text-[#4787F2] font-semibold">{biz.address}</span>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="border-t border-neutral-100 dark:border-white/10 pt-1">
+                    <span className="text-[9px] font-black uppercase text-[#E14D2A] px-2 block">B2B Suppliers</span>
+                    <Link
+                      href={`/b2b?q=${encodeURIComponent(searchQuery)}`}
+                      className="flex items-center justify-between p-2 rounded-xl bg-[#FFF1EE] dark:bg-[#2A1016] hover:bg-[#FFE4DE] text-xs font-bold text-[#E14D2A] transition-colors"
+                    >
+                      <span>Search &quot;{searchQuery}&quot; in B2B Factory Portal</span>
+                      <span className="text-[10px] font-black">1Cr+ →</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 2. STORIES RAIL */}
+          <div className="ios-glass-card rounded-2xl py-3 border border-[#E3E8EF] dark:border-white/10 shadow-xs">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center">
+              {/* Add story / User avatar */}
+              <div
+                onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
+                className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+              >
+                <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 dark:bg-[#4787F2]/10 group-hover:border-[#3972D4] transition-all group-active:scale-95">
+                  <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white dark:border-neutral-900 shadow-sm">
+                    <Plus className="w-3 h-3 stroke-[3]" />
+                  </div>
+                </div>
+                <span className="text-[11px] text-neutral-600 dark:text-neutral-300 font-semibold tracking-tight">Your Story</span>
+              </div>
+
+              {/* Business Stories with Authentic 4-Segment Spot Ring */}
+              {STORY_DATA.map((story, idx) => (
+                <div
+                  key={story.id}
+                  onClick={() => setActiveStoryIndex(idx)}
+                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+                >
+                  <div className="transform group-hover:scale-105 group-active:scale-95 transition-transform drop-shadow-sm">
+                    <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
+                  </div>
+                  <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
+                    {story.name.split(' ')[0]}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
       {/* 2.5 🔥 SPOT DROPS FLASH HOURLY DEALS (Feature A) */}
       <div className="bg-gradient-to-r from-[#FFF5F2]/80 via-[#FFF1EE]/80 to-[#FFEFEA]/80 dark:from-[#251016]/90 dark:via-[#1F0C12]/90 dark:to-[#220E14]/90 p-3 border-b border-[#FECDD3] dark:border-rose-950/60 space-y-2 backdrop-blur-md">
@@ -919,7 +998,84 @@ export default function MobileFeedPage() {
             </div>
           );
         })}
+        </div>
       </div>
+
+      {/* =========================================================================
+          RIGHT COLUMN (Desktop Spotlight & Live Drops Rail - Visible on md+)
+          ========================================================================= */}
+      <aside className="hidden md:flex flex-col w-72 lg:w-80 shrink-0 space-y-4 sticky top-20">
+        {/* Elite Spotlight Card */}
+        <div className="ios-glass-card rounded-2xl p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase text-[#F2B604] tracking-wider flex items-center gap-1">
+              <span>👑</span> Elite Spotlight
+            </span>
+            <span className="text-[9px] bg-[#EBF9EE] text-[#35AB4E] px-2 py-0.5 rounded-full font-bold">
+              Verified
+            </span>
+          </div>
+
+          <div className="space-y-2.5">
+            {SEED_BUSINESSES.filter((b) => b.tier === 'elite').slice(0, 3).map((eliteBiz) => (
+              <div key={eliteBiz.id} className="flex items-center justify-between p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5 hover:bg-[#EDF4FF]/50 transition-all group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Avatar src={eliteBiz.logo_url} name={eliteBiz.name} size="sm" isElite={true} />
+                  <div className="min-w-0">
+                    <h5 className="text-xs font-bold text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2]">
+                      {eliteBiz.name}
+                    </h5>
+                    <span className="text-[10px] text-[#687182] dark:text-neutral-400 truncate block">
+                      {eliteBiz.address}
+                    </span>
+                  </div>
+                </div>
+                <Link
+                  href={`/b/${eliteBiz.slug}`}
+                  className="px-2.5 py-1 rounded-full bg-[#4787F2] text-white text-[10px] font-bold shrink-0 hover:bg-[#3373E0] shadow-xs"
+                >
+                  View
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Download App QR Code Card */}
+        <div className="ios-glass-card rounded-2xl p-4 text-center space-y-3">
+          <div className="w-10 h-10 rounded-2xl bg-[#EDF4FF] dark:bg-[#4787F2]/20 text-[#4787F2] flex items-center justify-center mx-auto">
+            <QrCode className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-[#17181C] dark:text-white">Experience on Mobile</h4>
+            <p className="text-[11px] text-[#687182] dark:text-neutral-400 mt-0.5">
+              Scan with phone camera for GPS exploration &amp; daily story drops.
+            </p>
+          </div>
+          <Link
+            href="/download"
+            className="w-full py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:opacity-90 transition-all"
+          >
+            <span>Get APK &amp; PWA App</span>
+          </Link>
+        </div>
+
+        {/* Merchant Onboarding Card */}
+        <div className="ios-glass-card rounded-2xl p-4 space-y-2 bg-gradient-to-br from-[#4787F2]/10 to-transparent border border-[#4787F2]/20">
+          <span className="text-[10px] font-black uppercase text-[#4787F2] tracking-wider block">Grow Your Store</span>
+          <h4 className="text-xs font-black text-[#17181C] dark:text-white">Are you a Business Owner?</h4>
+          <p className="text-[11px] text-[#687182] dark:text-neutral-400">
+            List your shop, launch festival banners, and get discovered by thousands in your pincode.
+          </p>
+          <Link
+            href="/onboard"
+            className="w-full py-2 rounded-xl bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 block text-center mt-2"
+          >
+            Claim Your Spot Free →
+          </Link>
+        </div>
+      </aside>
     </div>
+  </div>
   );
 }
