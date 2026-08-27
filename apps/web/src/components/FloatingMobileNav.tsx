@@ -92,16 +92,16 @@ export const FloatingMobileNav: React.FC = () => {
         isStoryOpen ? 'opacity-0 translate-y-16 pointer-events-none' : 'opacity-100 translate-y-0'
       }`}
     >
-      <nav className="pointer-events-auto bg-white/95 backdrop-blur-xl border border-[#E3E8EF] shadow-[0_12px_36px_rgba(23,24,28,0.14)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center">
+      <nav className="pointer-events-auto bg-white/95 dark:bg-[#121620]/95 backdrop-blur-xl border border-[#E3E8EF] dark:border-white/10 shadow-[0_12px_36px_rgba(23,24,28,0.14)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center">
         {/* 1. Feed (formerly Home) */}
         <Link
           href="/feed"
           className={`flex flex-col items-center justify-center py-1 transition-all group ${
-            isFeed ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
+            isFeed ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
           }`}
         >
           <Newspaper className={`w-5 h-5 transition-transform group-hover:scale-110 ${isFeed ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isFeed ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isFeed ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
             Feed
           </span>
         </Link>
@@ -110,11 +110,11 @@ export const FloatingMobileNav: React.FC = () => {
         <Link
           href="/partner"
           className={`flex flex-col items-center justify-center py-1 transition-all group ${
-            isPartner ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
+            isPartner ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
           }`}
         >
           <Handshake className={`w-5 h-5 transition-transform group-hover:scale-110 ${isPartner ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isPartner ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isPartner ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
             Partner
           </span>
         </Link>
@@ -134,13 +134,13 @@ export const FloatingMobileNav: React.FC = () => {
               background: 'conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2)',
             }}
           >
-            <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
+            <div className="w-full h-full rounded-full bg-white dark:bg-[#121620] flex items-center justify-center">
               <AdsspotLogoMark size={32} />
             </div>
           </div>
           <span
             className={`text-[11px] mt-1 font-black tracking-tight flex items-center gap-0.5 ${
-              isBusiness ? 'text-[#4787F2]' : 'text-[#17181C]'
+              isBusiness ? 'text-[#4787F2]' : 'text-[#17181C] dark:text-neutral-200'
             }`}
           >
             Business
@@ -151,11 +151,11 @@ export const FloatingMobileNav: React.FC = () => {
         <Link
           href="/saved"
           className={`flex flex-col items-center justify-center py-1 transition-all group ${
-            isSaved ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
+            isSaved ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
           }`}
         >
           <Bookmark className={`w-5 h-5 transition-transform group-hover:scale-110 ${isSaved ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isSaved ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isSaved ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
             Saved
           </span>
         </Link>
@@ -164,13 +164,13 @@ export const FloatingMobileNav: React.FC = () => {
         <Link
           href={getProfileLink()}
           className={`flex flex-col items-center justify-center py-1 transition-all group ${
-            isProfile ? 'text-[#4787F2]' : 'text-[#687182] hover:text-[#17181C]'
+            isProfile ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
           }`}
         >
-          <div className={`transition-transform group-hover:scale-110 ${isProfile ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+          <div className={`transition-transform group-hover:scale-110 ${isProfile ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
             {getProfileIcon()}
           </div>
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isProfile ? 'text-[#4787F2]' : 'text-[#687182]'}`}>
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isProfile ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
             {getProfileLabel()}
           </span>
         </Link>
