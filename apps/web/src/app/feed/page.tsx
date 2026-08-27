@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   UserPlus,
   UserCheck,
+  Clock,
 } from 'lucide-react';
 
 const WhatsAppIcon = ({ size = 20, className = '' }: { size?: number; className?: string }) => (
@@ -147,6 +148,55 @@ export default function MobileFeedPage() {
   const [followingBiz, setFollowingBiz] = useState<Record<string, boolean>>({});
   const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
 
+  // Dynamic Live Posts & Stories from PostgreSQL API
+  const [livePosts, setLivePosts] = useState<any[]>(SEED_POSTS);
+  const [liveStories, setLiveStories] = useState<any[]>(STORY_DATA);
+
+  // Fetch live posts and stories
+  useEffect(() => {
+    fetch('/api/posts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.posts && data.posts.length > 0) {
+          setLivePosts(data.posts);
+          setLikesCounts((prev) => {
+            const next = { ...prev };
+            data.posts.forEach((p: any) => {
+              if (next[p.id] === undefined) next[p.id] = p.likes_count || 0;
+            });
+            return next;
+          });
+        }
+      })
+      .catch(() => {});
+
+    fetch('/api/stories')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.stories && data.stories.length > 0) {
+          // Format stories to match feed UI schema
+          const mapped = data.stories.map((s: any) => {
+            const biz = SEED_BUSINESSES.find((b) => b.id === s.business_id);
+            return {
+              id: s.id,
+              businessId: s.business_id,
+              name: s.business_name || biz?.name || 'Local Store',
+              logo: s.business_logo || biz?.logo_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150',
+              image: s.media_url,
+              tag: s.tag || 'Flash Offer',
+              coupon: s.coupon_code || 'SPECIAL20',
+              caption: s.caption || 'Special 24-hour flash offer',
+              time: 'Just now',
+              location: biz?.address || 'Alkapuri, Vadodara',
+              phone: biz?.phone || '+919876543210',
+            };
+          });
+          setLiveStories(mapped);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Stories Player State
   const [activeStoryIndex, setActiveStoryIndex] = useState<number | null>(null);
   const [storyProgress, setStoryProgress] = useState<number>(0);
@@ -210,7 +260,7 @@ export default function MobileFeedPage() {
     const interval = setInterval(() => {
       setStoryProgress((prev) => {
         if (prev >= 100) {
-          if (activeStoryIndex < STORY_DATA.length - 1) {
+          if (activeStoryIndex < liveStories.length - 1) {
             setActiveStoryIndex(activeStoryIndex + 1);
             return 0;
           } else {
@@ -223,7 +273,7 @@ export default function MobileFeedPage() {
     }, 100);
 
     return () => clearInterval(interval);
-  }, [activeStoryIndex]);
+  }, [activeStoryIndex, liveStories.length]);
 
   // Hydrate user interactions (Likes & Follows) from PostgreSQL database on mount
   useEffect(() => {
@@ -375,13 +425,13 @@ export default function MobileFeedPage() {
     }, 1500);
   };
 
-  const filteredPosts = SEED_POSTS.filter((post) => {
+  const filteredPosts = livePosts.filter((post) => {
     const biz = SEED_BUSINESSES.find((b) => b.id === post.business_id);
     if (!biz) return true;
     return selectedCategory === 'all' || biz.category_id === selectedCategory;
   });
 
-  const currentActiveStory = activeStoryIndex !== null ? STORY_DATA[activeStoryIndex] : null;
+  const currentActiveStory = activeStoryIndex !== null ? liveStories[activeStoryIndex] : null;
 
   return (
     <div className="flex-1 bg-[#F8FAFC] dark:bg-[#0B0E14] pb-28 md:pb-16 min-h-screen relative transition-colors">
@@ -414,7 +464,7 @@ export default function MobileFeedPage() {
 
             {/* Story Progress Segments */}
             <div className="absolute top-3 left-3 right-3 z-30 flex gap-1.5 pointer-events-none">
-              {STORY_DATA.map((s, idx) => (
+              {liveStories.map((s, idx) => (
                 <div key={s.id} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden backdrop-blur-xs">
                   <div
                     className="h-full bg-white transition-all duration-100 ease-linear rounded-full shadow-xs"
@@ -431,22 +481,20 @@ export default function MobileFeedPage() {
               ))}
             </div>
 
-            {/* Story Header */}
-            <div className="relative z-30 flex items-center justify-between px-4 pt-7 pb-3 bg-gradient-to-b from-black/90 via-black/50 to-transparent">
+            {/* Top Bar: Author Info, Time, Close */}
+            <div className="relative z-30 flex items-center justify-between p-4 pt-6 bg-gradient-to-b from-black/80 via-black/40 to-transparent">
               <div className="flex items-center gap-2.5">
-                <img src={currentActiveStory.logo} alt={currentActiveStory.name} className="w-9 h-9 rounded-xl object-cover border-2 border-white/60 shadow-md shrink-0" />
-                <div className="min-w-0">
-                  <h4 className="text-xs font-extrabold text-white leading-tight flex items-center gap-1.5 truncate">
-                    <span>{currentActiveStory.name}</span>
-                    {currentActiveStory.tag && (
-                      <span className="bg-[#4787F2] text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-full shrink-0">
-                        {currentActiveStory.tag}
-                      </span>
-                    )}
-                  </h4>
-                  <span className="text-[10px] text-neutral-300 font-medium">
-                    {currentActiveStory.location} • {currentActiveStory.time}
-                  </span>
+                <StorySpotRing size={38} imageSrc={currentActiveStory.logo} alt={currentActiveStory.name} />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs font-black text-white leading-tight drop-shadow-xs">{currentActiveStory.name}</span>
+                    <span className="text-[9px] bg-[#981837] text-white px-1.5 py-0.2 rounded-full font-bold uppercase tracking-wider">
+                      Elite
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] text-white/80 font-medium">
+                    <Clock className="w-2.5 h-2.5" /> {currentActiveStory.time} • {currentActiveStory.location}
+                  </div>
                 </div>
               </div>
 
@@ -480,7 +528,7 @@ export default function MobileFeedPage() {
             <div
               className="absolute right-0 top-16 bottom-36 w-1/2 z-20 cursor-pointer"
               onClick={() => {
-                if (activeStoryIndex! < STORY_DATA.length - 1) setActiveStoryIndex(activeStoryIndex! + 1);
+                if (activeStoryIndex! < liveStories.length - 1) setActiveStoryIndex(activeStoryIndex! + 1);
                 else setActiveStoryIndex(null);
               }}
               title="Next Story"
@@ -742,7 +790,7 @@ export default function MobileFeedPage() {
               </div>
 
               {/* Business Stories with Authentic 4-Segment Spot Ring */}
-              {STORY_DATA.map((story, idx) => (
+              {liveStories.map((story, idx) => (
                 <div
                   key={story.id}
                   onClick={() => setActiveStoryIndex(idx)}
