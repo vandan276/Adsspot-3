@@ -37,23 +37,44 @@ export default function AdminDashboardPage() {
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
   const [showAddMerchantModal, setShowAddMerchantModal] = useState(false);
 
-  // Add Staff Form State
-  const [staffForm, setStaffForm] = useState<{
-    name: string;
-    phone: string;
-    role: 'sm' | 'ro' | 'zo' | 'super_admin';
-    city_id: string;
-    region_id: string;
-    pincode: string;
-    target_monthly: number;
-  }>({
+  // Add Staff Form State with comprehensive role-specific fields
+  const [staffForm, setStaffForm] = useState({
     name: '',
+    email: '',
+    password: '',
     phone: '',
-    role: 'sm',
-    city_id: 'city-mum',
-    region_id: 'reg-mum-south',
-    pincode: '400001',
-    target_monthly: 250000,
+    role: 'sm' as 'sm' | 'ro' | 'zo' | 'super_admin',
+    employee_code: '',
+    joining_date: new Date().toISOString().split('T')[0],
+    salary_monthly: 25000,
+    target_monthly: 150000,
+    // SM Specific:
+    pincodes: '390007, 390001, 390020',
+    area_name: 'Alkapuri & Sayajigunj',
+    city_id: 'Vadodara',
+    region_id: 'Central Gujarat Region',
+    reports_to: '',
+    daily_visit_target: 8,
+    commission_rate: 15,
+    gps_tracking_enabled: true,
+    // RO Specific:
+    cluster_name: 'Vadodara & Anand Regional Cluster',
+    ro_city: 'Vadodara',
+    ro_zo_id: '',
+    override_incentive: 3.0,
+    travel_allowance: 10000,
+    // ZO Specific:
+    zone_state: 'Gujarat State Zone',
+    metro_hq: 'Vadodara / Ahmedabad HQ',
+    zone_target: 5000000,
+    zone_budget: 500000,
+    // Banking & KYC:
+    emergency_name: '',
+    emergency_phone: '',
+    bank_account: '',
+    ifsc: '',
+    upi_id: '',
+    pan_aadhaar: '',
   });
 
   // Add Merchant Form State
@@ -124,22 +145,47 @@ export default function AdminDashboardPage() {
 
   const handleCreateEmployee = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!staffForm.name || !staffForm.phone) {
-      alert('Please provide staff name and phone number.');
+    if (!staffForm.name || !staffForm.email) {
+      alert('Please provide staff full name and official email address.');
       return;
     }
     const created = addEmployee(staffForm);
     setShowAddStaffModal(false);
     setStaffForm({
       name: '',
+      email: '',
+      password: '',
       phone: '',
       role: 'sm',
-      city_id: 'city-mum',
-      region_id: 'reg-mum-south',
-      pincode: '400001',
-      target_monthly: 250000,
+      employee_code: '',
+      joining_date: new Date().toISOString().split('T')[0],
+      salary_monthly: 25000,
+      target_monthly: 150000,
+      pincodes: '390007, 390001, 390020',
+      area_name: 'Alkapuri & Sayajigunj',
+      city_id: 'Vadodara',
+      region_id: 'Central Gujarat Region',
+      reports_to: '',
+      daily_visit_target: 8,
+      commission_rate: 15,
+      gps_tracking_enabled: true,
+      cluster_name: 'Vadodara & Anand Regional Cluster',
+      ro_city: 'Vadodara',
+      ro_zo_id: '',
+      override_incentive: 3.0,
+      travel_allowance: 10000,
+      zone_state: 'Gujarat State Zone',
+      metro_hq: 'Vadodara / Ahmedabad HQ',
+      zone_target: 5000000,
+      zone_budget: 500000,
+      emergency_name: '',
+      emergency_phone: '',
+      bank_account: '',
+      ifsc: '',
+      upi_id: '',
+      pan_aadhaar: '',
     });
-    showToast(`Staff member ${created.full_name} (${created.role.toUpperCase()}) registered successfully!`);
+    showToast(`Staff member ${created.full_name} (${created.role.toUpperCase()}) onboarded! Login credentials active.`);
   };
 
   const handleCreateMerchant = async (e: React.FormEvent) => {
@@ -211,115 +257,453 @@ export default function AdminDashboardPage() {
       {/* 1. ADD EMPLOYEE MODAL */}
       {showAddStaffModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-[#E3E8EF] max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-[#E3E8EF] mb-4">
+          <div className="bg-white dark:bg-[#141824] rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-[#E3E8EF] dark:border-white/15 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-4 border-b border-[#E3E8EF] dark:border-white/10 mb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-[#4787F2] text-white flex items-center justify-center font-bold">
-                  <UserPlus className="w-4 h-4" />
+                <div className="w-10 h-10 rounded-2xl bg-[#4787F2] text-white flex items-center justify-center font-bold shadow-md">
+                  <UserPlus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-[#17181C]">Onboard New Real Employee</h3>
-                  <p className="text-xs text-[#687182]">Add Sales Manager, Regional Officer or Zone Officer</p>
+                  <h3 className="text-lg font-black text-[#17181C] dark:text-white">Onboard New Employee</h3>
+                  <p className="text-xs text-[#687182] dark:text-neutral-400">Configure credentials, role-specific territory, targets &amp; compensation</p>
                 </div>
               </div>
-              <button onClick={() => setShowAddStaffModal(false)} className="text-neutral-400 hover:text-neutral-700 p-1">
+              <button onClick={() => setShowAddStaffModal(false)} className="text-neutral-400 hover:text-neutral-700 dark:hover:text-white p-1">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateEmployee} className="space-y-4">
+            <form onSubmit={handleCreateEmployee} className="space-y-5">
+              {/* Role Selection Segmented Bar */}
               <div>
-                <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider mb-1">
-                  Full Name
+                <label className="block text-[11px] font-black text-[#17181C] dark:text-neutral-200 uppercase tracking-wider mb-2">
+                  Select Employee Designation &amp; Tier
                 </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Rohit Sharma"
-                  value={staffForm.name}
-                  onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#E3E8EF] text-xs font-medium outline-none focus:border-[#4787F2]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider mb-1">
-                  Mobile Phone (OTP Login Number)
-                </label>
-                <input
-                  type="tel"
-                  required
-                  placeholder="+91 98201 12345"
-                  value={staffForm.phone}
-                  onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl border border-[#E3E8EF] text-xs font-medium outline-none focus:border-[#4787F2]"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider mb-1">
-                    Role
-                  </label>
-                  <select
-                    value={staffForm.role}
-                    onChange={(e) => setStaffForm({ ...staffForm, role: e.target.value as any })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#E3E8EF] text-xs font-bold outline-none focus:border-[#4787F2]"
-                  >
-                    <option value="sm">SM (Sales Manager)</option>
-                    <option value="ro">RO (Regional Officer)</option>
-                    <option value="zo">ZO (Zone Officer)</option>
-                    <option value="super_admin">Super Admin</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider mb-1">
-                    Monthly Target (₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={staffForm.target_monthly}
-                    onChange={(e) => setStaffForm({ ...staffForm, target_monthly: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#E3E8EF] text-xs font-medium outline-none focus:border-[#4787F2]"
-                  />
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'sm', label: 'SM (Sales Manager)', desc: 'Field merchant visits & pincode leads', color: 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]' },
+                    { id: 'ro', label: 'RO (Regional Officer)', desc: 'Cluster oversight & SM team manager', color: 'border-[#35AB4E] bg-[#EBF9EE] text-[#35AB4E]' },
+                    { id: 'zo', label: 'ZO (Zone Officer)', desc: 'City/State zone & metro target head', color: 'border-[#F2B604] bg-[#FEF9E6] text-[#B45309]' },
+                    { id: 'super_admin', label: 'Super Admin', desc: 'Global platform operations & finance', color: 'border-[#981837] bg-[#FDF0F3] text-[#981837]' },
+                  ].map((r) => {
+                    const isSelected = staffForm.role === r.id;
+                    return (
+                      <button
+                        type="button"
+                        key={r.id}
+                        onClick={() => setStaffForm({ ...staffForm, role: r.id as any })}
+                        className={`p-2.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                          isSelected
+                            ? `${r.color} font-bold shadow-xs ring-2 ring-offset-1 ring-[#4787F2]`
+                            : 'border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-600 dark:text-neutral-300'
+                        }`}
+                      >
+                        <span className="text-xs font-black block leading-tight">{r.label}</span>
+                        <span className="text-[9px] opacity-80 mt-1 block leading-tight">{r.desc}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider mb-1">
-                    Assigned Region / City
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Mumbai South"
-                    value={staffForm.region_id}
-                    onChange={(e) => setStaffForm({ ...staffForm, region_id: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#E3E8EF] text-xs font-medium outline-none focus:border-[#4787F2]"
-                  />
+              {/* 1. Account Credentials & Login Details */}
+              <div className="p-4 rounded-2xl bg-[#F4F6FB] dark:bg-white/5 border border-[#E3E8EF] dark:border-white/10 space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-black text-[#17181C] dark:text-white">
+                  <span>🔑</span>
+                  <span>1. Account Credentials &amp; Identity</span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider mb-1">
-                    Territory Pincode
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="400001"
-                    value={staffForm.pincode}
-                    onChange={(e) => setStaffForm({ ...staffForm, pincode: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl border border-[#E3E8EF] text-xs font-medium outline-none focus:border-[#4787F2]"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Nikunj Patel"
+                      value={staffForm.name}
+                      onChange={(e) => setStaffForm({ ...staffForm, name: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold text-[#17181C] dark:text-white outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Official Login Email ID *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="e.g. nikunj.patel@adsspot.in"
+                      value={staffForm.email}
+                      onChange={(e) => setStaffForm({ ...staffForm, email: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold text-[#17181C] dark:text-white outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Login Password
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Default: adsspot123"
+                      value={staffForm.password}
+                      onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold text-[#17181C] dark:text-white outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Mobile / WhatsApp Phone *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+91 98201 12345"
+                      value={staffForm.phone}
+                      onChange={(e) => setStaffForm({ ...staffForm, phone: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold text-[#17181C] dark:text-white outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Employee Code / Staff ID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder={`ADS-${staffForm.role.toUpperCase()}-${Math.floor(100 + Math.random() * 900)}`}
+                      value={staffForm.employee_code}
+                      onChange={(e) => setStaffForm({ ...staffForm, employee_code: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold text-[#17181C] dark:text-white outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#E3E8EF] flex justify-end gap-2">
+              {/* 2. ROLE-SPECIFIC DYNAMIC PARAMETERS */}
+              <div className="p-4 rounded-2xl bg-[#FFFBF0] dark:bg-[#2A1E10] border border-[#FDE68A] dark:border-amber-900/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-black text-[#B45309] dark:text-amber-300">
+                    <span>📍</span>
+                    <span>2. Role Territory &amp; Quota Configuration ({staffForm.role.toUpperCase()})</span>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900 text-[#B45309] dark:text-amber-200">
+                    Customized for {staffForm.role.toUpperCase()}
+                  </span>
+                </div>
+
+                {/* IF SM (Sales Manager - Field Executive) */}
+                {staffForm.role === 'sm' && (
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Assigned Territory Pincodes (Comma-separated)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="390007, 390001, 390020"
+                          value={staffForm.pincodes}
+                          onChange={(e) => setStaffForm({ ...staffForm, pincodes: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Market / Neighborhood Ward Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Alkapuri, Sayajigunj & Akota"
+                          value={staffForm.area_name}
+                          onChange={(e) => setStaffForm({ ...staffForm, area_name: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Monthly Revenue Target (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.target_monthly}
+                          onChange={(e) => setStaffForm({ ...staffForm, target_monthly: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Daily Merchant Visit Target
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.daily_visit_target}
+                          onChange={(e) => setStaffForm({ ...staffForm, daily_visit_target: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Onboarding Commission (%)
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.commission_rate}
+                          onChange={(e) => setStaffForm({ ...staffForm, commission_rate: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        id="gps_req"
+                        checked={staffForm.gps_tracking_enabled}
+                        onChange={(e) => setStaffForm({ ...staffForm, gps_tracking_enabled: e.target.checked })}
+                        className="rounded border-neutral-300 text-[#4787F2] focus:ring-[#4787F2]"
+                      />
+                      <label htmlFor="gps_req" className="text-xs font-bold text-neutral-700 dark:text-neutral-300 cursor-pointer">
+                        Mandatory Daily GPS Check-in &amp; Selfie Attendance for Sales Manager
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* IF RO (Regional Officer - Cluster Head) */}
+                {staffForm.role === 'ro' && (
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Regional Cluster / Zone Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Vadodara & Central Gujarat Cluster"
+                          value={staffForm.cluster_name}
+                          onChange={(e) => setStaffForm({ ...staffForm, cluster_name: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Headquarters City
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Vadodara"
+                          value={staffForm.ro_city}
+                          onChange={(e) => setStaffForm({ ...staffForm, ro_city: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Monthly Regional Target (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.target_monthly}
+                          onChange={(e) => setStaffForm({ ...staffForm, target_monthly: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Team Override Commission (%)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={staffForm.override_incentive}
+                          onChange={(e) => setStaffForm({ ...staffForm, override_incentive: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Monthly Travel Allowance (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.travel_allowance}
+                          onChange={(e) => setStaffForm({ ...staffForm, travel_allowance: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* IF ZO (Zone Officer - State / Metro Hub) */}
+                {staffForm.role === 'zo' && (
+                  <div className="space-y-3 animate-fade-in">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Assigned Zone / State Jurisdiction
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Gujarat State Zone"
+                          value={staffForm.zone_state}
+                          onChange={(e) => setStaffForm({ ...staffForm, zone_state: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Metro Headquarters Hub
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Vadodara / Ahmedabad HQ"
+                          value={staffForm.metro_hq}
+                          onChange={(e) => setStaffForm({ ...staffForm, metro_hq: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Zone Monthly Revenue Target (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.zone_target}
+                          onChange={(e) => setStaffForm({ ...staffForm, zone_target: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                          Zone Discretionary Marketing Budget (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={staffForm.zone_budget}
+                          onChange={(e) => setStaffForm({ ...staffForm, zone_budget: Number(e.target.value) })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* IF Super Admin */}
+                {staffForm.role === 'super_admin' && (
+                  <div className="p-3 bg-white dark:bg-[#1A2130] rounded-xl text-xs text-[#981837] dark:text-rose-400 font-semibold space-y-1">
+                    <p>👑 Super Admin profile has unrestricted pan-India administrative access over all Staff, Billing, Moderation, and CMS subsystems.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Compensation, Banking & Emergency Contact */}
+              <div className="p-4 rounded-2xl bg-[#F4F6FB] dark:bg-white/5 border border-[#E3E8EF] dark:border-white/10 space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-black text-[#17181C] dark:text-white">
+                  <span>💳</span>
+                  <span>3. Compensation, Banking &amp; Emergency</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Monthly Base Salary (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={staffForm.salary_monthly}
+                      onChange={(e) => setStaffForm({ ...staffForm, salary_monthly: Number(e.target.value) })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Bank Account Number
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 5010049281928"
+                      value={staffForm.bank_account}
+                      onChange={(e) => setStaffForm({ ...staffForm, bank_account: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Bank IFSC Code
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. HDFC0001234"
+                      value={staffForm.ifsc}
+                      onChange={(e) => setStaffForm({ ...staffForm, ifsc: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Payout UPI ID
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. name@okhdfcbank"
+                      value={staffForm.upi_id}
+                      onChange={(e) => setStaffForm({ ...staffForm, upi_id: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Emergency Contact Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Ramesh Patel (Father)"
+                      value={staffForm.emergency_name}
+                      onChange={(e) => setStaffForm({ ...staffForm, emergency_name: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-[#17181C] dark:text-neutral-300 uppercase tracking-wider mb-1">
+                      Emergency Phone
+                    </label>
+                    <input
+                      type="tel"
+                      placeholder="+91 98980 98980"
+                      value={staffForm.emergency_phone}
+                      onChange={(e) => setStaffForm({ ...staffForm, emergency_phone: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-3 border-t border-[#E3E8EF] dark:border-white/10 flex items-center justify-end gap-2">
                 <Button type="button" variant="outline" size="sm" onClick={() => setShowAddStaffModal(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" variant="primary" size="sm">
-                  Register Employee
+                  Register &amp; Activate Employee
                 </Button>
               </div>
             </form>

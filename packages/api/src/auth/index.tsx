@@ -9,14 +9,48 @@ import {
   SEED_BUSINESSES,
 } from '../seedData';
 
-interface AddEmployeeInput {
+export interface AddEmployeeInput {
   name: string;
+  email: string;
+  password?: string;
   phone: string;
   role: 'sm' | 'ro' | 'zo' | 'super_admin';
+  employee_code?: string;
+  joining_date?: string;
+  salary_monthly?: number;
+  target_monthly?: number;
+
+  // Specific for SM (Sales Manager):
+  pincodes?: string;
+  area_name?: string;
   city_id?: string;
   region_id?: string;
-  pincode?: string;
-  target_monthly?: number;
+  reports_to?: string;
+  daily_visit_target?: number;
+  commission_rate?: number;
+  gps_tracking_enabled?: boolean;
+
+  // Specific for RO (Regional Officer):
+  cluster_name?: string;
+  ro_city?: string;
+  ro_zo_id?: string;
+  override_incentive?: number;
+  travel_allowance?: number;
+
+  // Specific for ZO (Zone Officer):
+  zone_state?: string;
+  metro_hq?: string;
+  zone_target?: number;
+  zone_budget?: number;
+
+  // Banking & Emergency:
+  emergency_name?: string;
+  emergency_phone?: string;
+  bank_account?: string;
+  ifsc?: string;
+  upi_id?: string;
+  pan_aadhaar?: string;
+
   avatar_url?: string;
 }
 
@@ -138,12 +172,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(DEMO_PERSONAS));
           }
 
-          const savedStaff = localStorage.getItem(CUSTOM_STAFF_KEY);
-          if (savedStaff) {
-            try {
-              const parsed = JSON.parse(savedStaff);
-              if (Array.isArray(parsed)) setStaffList(parsed);
-            } catch {}
+          // Fetch live staff from PostgreSQL database
+          try {
+            const staffRes = await fetch('/api/staff');
+            if (staffRes.ok) {
+              const staffData = await staffRes.json();
+              if (staffData.success && Array.isArray(staffData.staff)) {
+                setStaffList(staffData.staff);
+                localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify(staffData.staff));
+
+                const staffPersonas = staffData.staff.map((s: any) => ({
+                  id: s.user_id,
+                  name: s.user?.full_name || `Staff ${s.id.slice(-4)}`,
+                  email: s.user?.email || '',
+                  phone: s.user?.phone || '',
+                  role: s.role,
+                  description: `${s.role.toUpperCase()} • ${s.region_id || s.city_id || 'Territory'}`,
+                  avatar_url: s.user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+                }));
+                setPersonas((prev) => {
+                  const existingAdmin = prev.find((p) => p.id === 'usr-admin-1');
+                  return [existingAdmin || DEMO_PERSONAS[0], ...staffPersonas];
+                });
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to load staff from API:', e);
           }
 
           // Fetch live merchants from PostgreSQL database
@@ -407,14 +461,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addEmployee = (input: AddEmployeeInput): AuthUser => {
     const newUserId = `usr-staff-${Date.now()}`;
-    const formattedPhone = input.phone.startsWith('+91') ? input.phone : `+91${input.phone}`;
+    const cleanPhone = (input.phone || '').trim();
+    const formattedPhone = cleanPhone ? (cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone}`) : '+910000000000';
+    const cleanEmail = (input.email || `${input.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@adsspot.in`).trim().toLowerCase();
 
     const newPersona: LoginDemoPersona = {
       id: newUserId,
       name: input.name,
+      email: cleanEmail,
       phone: formattedPhone,
       role: input.role,
-      description: `${input.role.toUpperCase()} • ${input.city_id || 'Mumbai'} • ${input.pincode || '400001'}`,
+      description: `${input.role.toUpperCase()} • ${input.city_id || input.ro_city || 'Territory'} • ${input.pincodes || input.area_name || input.cluster_name || ''}`,
       avatar_url:
         input.avatar_url ||
         `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 1000)}?w=150&auto=format&fit=crop&q=80`,
@@ -424,10 +481,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: `staff-${Date.now()}`,
       user_id: newUserId,
       role: input.role,
-      reports_to: input.role === 'sm' ? 'staff-ro-1' : input.role === 'ro' ? 'staff-zo-1' : null,
-      city_id: input.city_id || 'city-mum',
-      region_id: input.region_id || 'reg-mum-south',
-      target_monthly: input.target_monthly || 250000,
+      reports_to: input.reports_to || (input.role === 'sm' ? 'staff-ro-1' : input.role === 'ro' ? 'staff-zo-1' : null),
+      city_id: input.city_id || input.ro_city || 'city-mum',
+      region_id: input.region_id || input.area_name || input.cluster_name || 'reg-south',
+      target_monthly: input.target_monthly || input.zone_target || 250000,
       status: 'active',
       created_at: new Date().toISOString(),
     };
@@ -443,6 +500,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify(updatedStaff));
     }
 
+    // Persist to PostgreSQL database asynchronously
+    fetch('/api/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: input.name,
+        email: cleanEmail,
+        password: input.password || 'adsspot123',
+        phone: formattedPhone,
+        role: input.role,
+        city_id: input.city_id || input.ro_city || 'city-mum',
+        region_id: input.region_id || input.area_name || input.cluster_name || 'reg-south',
+        reports_to: input.reports_to || null,
+        target_monthly: input.target_monthly || input.zone_target || 250000,
+      }),
+    }).catch((err) => console.warn('Failed to persist staff to DB:', err));
+
     const createdAuthUser: AuthUser = {
       id: newUserId,
       phone: formattedPhone,
@@ -456,7 +530,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       wallet: {
         id: `wallet-${newUserId}`,
         user_id: newUserId,
-        balance: 5000.0,
+        balance: 0.0,
         currency: 'INR',
         updated_at: new Date().toISOString(),
       },
