@@ -1128,16 +1128,25 @@ export default function MerchantStudioPage() {
             <Card padding="md" className="space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-[#E3E8EF]">
                 <div>
+                  <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-red-50 text-[#981837] text-[11px] font-black mb-1">
+                    🔥 50% Launch Discount Active
+                  </div>
                   <h3 className="text-sm font-black text-[#17181C]">Membership Tiers &amp; Self-Serve Upgrade</h3>
-                  <p className="text-xs text-[#687182]">Select a tier to unlock daily custom banners and Elite microsites</p>
+                  <p className="text-xs text-[#687182]">Upgrade your shop to unlock daily custom banners, verified trust badge and Elite microsite</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Basic */}
-                <div className={`p-4 rounded-3xl border ${currentBiz?.tier === 'basic' ? 'border-[#4787F2] bg-[#EDF4FF]/40 ring-2 ring-[#4787F2]' : 'border-[#E3E8EF] bg-white'} space-y-3`}>
-                  <TierBadge tier="basic" size="md" />
-                  <div className="text-2xl font-black text-[#17181C]">₹999 <span className="text-xs font-normal text-[#687182]">/mo</span></div>
+                <div className={`p-4 rounded-3xl border ${currentBiz?.tier === 'basic' ? 'border-[#4787F2] bg-[#EDF4FF]/40 ring-2 ring-[#4787F2]' : 'border-[#E3E8EF] bg-white'} space-y-3 relative`}>
+                  <div className="flex items-center justify-between">
+                    <TierBadge tier="basic" size="md" />
+                    <span className="px-2 py-0.5 rounded-md bg-red-50 text-[#981837] text-[10px] font-black">50% OFF</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#9AA4B2] line-through font-bold">₹1,999/mo</div>
+                    <div className="text-2xl font-black text-[#17181C]">₹999 <span className="text-xs font-normal text-[#687182]">/mo</span></div>
+                  </div>
                   <ul className="text-xs text-[#687182] space-y-1.5">
                     <li>✓ Digital Card (/card/[slug])</li>
                     <li>✓ Festival auto-banners</li>
@@ -1151,14 +1160,20 @@ export default function MerchantStudioPage() {
 
                 {/* Premium */}
                 <div className={`p-4 rounded-3xl border ${currentBiz?.tier === 'premium' ? 'border-[#35AB4E] bg-emerald-50/40 ring-2 ring-[#35AB4E]' : 'border-[#E3E8EF] bg-white'} space-y-3 relative`}>
-                  <div className="absolute top-3 right-3 text-[10px] font-extrabold bg-[#EBF9EE] text-[#1B6A2D] px-2 py-0.5 rounded-full">
-                    Popular
+                  <div className="absolute -top-2.5 right-4 text-[10px] font-black bg-[#35AB4E] text-white px-2.5 py-0.5 rounded-full shadow-xs">
+                    Popular • 50% OFF
                   </div>
-                  <TierBadge tier="premium" size="md" />
-                  <div className="text-2xl font-black text-[#17181C]">₹2,499 <span className="text-xs font-normal text-[#687182]">/mo</span></div>
+                  <div className="flex items-center justify-between">
+                    <TierBadge tier="premium" size="md" />
+                    <span className="px-2 py-0.5 rounded-md bg-emerald-50 text-[#35AB4E] text-[10px] font-black">Save ₹2,500/mo</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#9AA4B2] line-through font-bold">₹4,999/mo</div>
+                    <div className="text-2xl font-black text-[#17181C]">₹2,499 <span className="text-xs font-normal text-[#687182]">/mo</span></div>
+                  </div>
                   <ul className="text-xs text-[#687182] space-y-1.5">
                     <li>✓ Everything in Basic</li>
-                    <li>✓ 2 Custom Banners per week</li>
+                    <li>✓ 2 Custom Banners per week (104/yr)</li>
                     <li>✓ Green "Trusted" verified badge</li>
                     <li>✗ Elite microsite &amp; stories</li>
                   </ul>
@@ -1169,17 +1184,23 @@ export default function MerchantStudioPage() {
                     disabled={currentBiz?.tier === 'premium'}
                     onClick={() => showToast('Upgraded to Premium! Green Trusted badge enabled.')}
                   >
-                    {currentBiz?.tier === 'premium' ? 'Current Plan' : 'Upgrade to Premium'}
+                    {currentBiz?.tier === 'premium' ? 'Current Plan' : 'Claim 50% OFF • Upgrade'}
                   </Button>
                 </div>
 
                 {/* Elite */}
                 <div className={`p-4 rounded-3xl border ${currentBiz?.tier === 'elite' ? 'border-[#981837] bg-red-50/40 ring-2 ring-[#981837]' : 'border-[#E3E8EF] bg-white'} space-y-3 relative`}>
-                  <div className="absolute top-3 right-3 text-[10px] font-extrabold bg-red-100 text-[#981837] px-2 py-0.5 rounded-full">
-                    All Features
+                  <div className="absolute -top-2.5 right-4 text-[10px] font-black bg-[#981837] text-white px-2.5 py-0.5 rounded-full shadow-xs">
+                    All Features • 50% OFF
                   </div>
-                  <TierBadge tier="elite" size="md" />
-                  <div className="text-2xl font-black text-[#17181C]">₹4,999 <span className="text-xs font-normal text-[#687182]">/mo</span></div>
+                  <div className="flex items-center justify-between">
+                    <TierBadge tier="elite" size="md" />
+                    <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#4787F2] text-[10px] font-black">Save ₹5,000/mo</span>
+                  </div>
+                  <div>
+                    <div className="text-xs text-[#9AA4B2] line-through font-bold">₹9,999/mo</div>
+                    <div className="text-2xl font-black text-[#17181C]">₹4,999 <span className="text-xs font-normal text-[#687182]">/mo</span></div>
+                  </div>
                   <ul className="text-xs text-[#687182] space-y-1.5">
                     <li>✓ Everything in Premium</li>
                     <li>✓ Daily Custom Banners (365/yr)</li>
@@ -1193,7 +1214,7 @@ export default function MerchantStudioPage() {
                     disabled={currentBiz?.tier === 'elite'}
                     onClick={() => showToast('Upgraded to Elite! Microsite and 24h Stories unlocked.')}
                   >
-                    {currentBiz?.tier === 'elite' ? 'Current Plan' : 'Upgrade to Elite'}
+                    {currentBiz?.tier === 'elite' ? 'Current Plan' : 'Claim 50% OFF • Upgrade'}
                   </Button>
                 </div>
               </div>

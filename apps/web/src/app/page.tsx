@@ -19,7 +19,6 @@ import {
   Phone,
   QrCode,
   Store,
-  Award,
   Zap,
   Clock,
   ChevronRight,
@@ -41,6 +40,7 @@ export default function HomePage() {
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -635,151 +635,282 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 6. TRANSPARENT MEMBERSHIP TIERS (Clean Modern Cards — No Cheesy Gradients) */}
-      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 w-full scroll-mt-24">
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#FFF8E6] text-[#A06E00] text-xs font-bold mb-3">
-            <Award className="w-3.5 h-3.5" /> For Local Business Owners
+      {/* 6. TRANSPARENT MEMBERSHIP TIERS WITH 50% LAUNCH DISCOUNT */}
+      <section id="pricing" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-24 w-full scroll-mt-24">
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#981837]/10 via-[#F2B604]/20 to-[#35AB4E]/10 border border-[#F2B604]/40 text-[#981837] text-xs font-black mb-4 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[#F2B604] animate-spin" />
+            <span>🔥 SPECIAL LAUNCH OFFER • FLAT 50% DISCOUNT</span>
+            <span className="px-2 py-0.5 rounded-full bg-[#981837] text-white text-[10px] uppercase tracking-wider font-extrabold">Save 50%</span>
           </div>
-          <h2 className="text-3xl font-extrabold text-[#17181C] tracking-tight">
-            Simple, Transparent Membership Plans
+
+          <h2 className="text-3xl sm:text-4xl font-black text-[#17181C] tracking-tight">
+            Double the Reach at <span className="bg-gradient-to-r from-[#4787F2] via-[#35AB4E] to-[#981837] bg-clip-text text-transparent">50% Off</span>
           </h2>
-          <p className="text-base text-[#687182] mt-2">
-            No long-term contracts. Transparent pricing with instant WhatsApp onboarding.
+          <p className="text-sm sm:text-base text-[#687182] mt-3 max-w-2xl mx-auto">
+            Limited-time introductory pricing for local retail, dining, and service merchants. Lock in your 50% discount for life with zero lock-in contracts.
           </p>
+
+          {/* Billing Switcher Toggle */}
+          <div className="mt-8 inline-flex items-center p-1.5 rounded-2xl bg-[#EDF2F7] border border-[#E3E8EF] shadow-inner">
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all ${
+                billingCycle === 'monthly'
+                  ? 'bg-white text-[#17181C] shadow-md ring-1 ring-black/5'
+                  : 'text-[#687182] hover:text-[#17181C]'
+              }`}
+            >
+              Monthly Billing <span className="ml-1 text-[#35AB4E] font-black">(50% OFF)</span>
+            </button>
+            <button
+              onClick={() => setBillingCycle('yearly')}
+              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                billingCycle === 'yearly'
+                  ? 'bg-white text-[#17181C] shadow-md ring-1 ring-black/5'
+                  : 'text-[#687182] hover:text-[#17181C]'
+              }`}
+            >
+              <span>Annual Billing</span>
+              <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#35AB4E] to-[#4787F2] text-white text-[10px] font-black">
+                +2 Mos FREE
+              </span>
+            </button>
+          </div>
         </div>
 
+        {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-          {/* Basic Tier */}
-          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between transition-all hover:-translate-y-1 hover:shadow-xl">
+          {/* 1. BASIC TIER */}
+          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl border border-[#E3E8EF] bg-white/95 relative group">
+            <div className="absolute top-4 right-4">
+              <span className="px-2.5 py-1 rounded-full bg-red-50 text-[#981837] border border-red-200 text-[10px] font-black uppercase tracking-wider">
+                50% OFF
+              </span>
+            </div>
+
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-black text-[#17181C]">Basic</span>
-                <TierBadge tier="basic" />
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl font-black text-[#17181C]">Basic</span>
+                <TierBadge tier="basic" size="sm" />
               </div>
-              <div className="mb-4">
-                <span className="text-3xl font-black text-[#17181C]">₹999</span>
-                <span className="text-sm text-[#687182]"> / month</span>
+
+              {/* Price Container */}
+              <div className="mb-4 pb-4 border-b border-[#F4F6FB]">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm font-bold text-[#9AA4B2] line-through">
+                    {billingCycle === 'monthly' ? '₹1,999' : '₹23,988'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-[#EBF9EE] text-[#35AB4E] text-[11px] font-black">
+                    Save {billingCycle === 'monthly' ? '₹1,000/mo' : '₹14,000/yr'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-4xl font-black text-[#17181C] tracking-tight">
+                    {billingCycle === 'monthly' ? '₹999' : '₹833'}
+                  </span>
+                  <span className="text-xs font-semibold text-[#687182]">
+                    / month {billingCycle === 'yearly' && '(billed ₹9,990/yr)'}
+                  </span>
+                </div>
+                <p className="text-[11px] font-bold text-[#35AB4E] mt-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> Special 50% Launch Price
+                </p>
               </div>
-              <p className="text-xs text-[#687182] mb-6">
+
+              <p className="text-xs text-[#687182] mb-6 leading-relaxed">
                 For neighborhood retail shops and home businesses entering digital discovery.
               </p>
+
               <ul className="space-y-3 mb-8 text-xs text-[#4A5260]">
-                <li className="flex items-center gap-2 font-medium">
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
                   <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Hyperlocal map &amp; feed listing
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Digital visiting card (<code className="text-[11px] font-mono">/card/[slug]</code>)
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Digital visiting card (<code className="text-[11px] font-mono text-[#4787F2]">/card/[slug]</code>)
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Auto-branded Festival Banners
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Auto-branded Festival Banners (Logo &amp; Phone)
                 </li>
-                <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
+                <li className="flex items-center gap-2.5 text-[#9AA4B2] line-through">
                   Custom weekly/daily banners
                 </li>
-                <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
+                <li className="flex items-center gap-2.5 text-[#9AA4B2] line-through">
                   Green &quot;Trusted&quot; verified badge
                 </li>
-                <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
+                <li className="flex items-center gap-2.5 text-[#9AA4B2] line-through">
                   Story privileges &amp; Microsite
                 </li>
               </ul>
             </div>
-            <Link href="/login">
-              <Button variant="secondary" size="md" className="w-full font-bold">
-                Get Basic Listing
+
+            <Link href="/login" className="block">
+              <Button variant="secondary" size="md" className="w-full font-black py-3 rounded-2xl shadow-sm hover:shadow group-hover:bg-[#17181C] group-hover:text-white transition-all">
+                Claim 50% OFF • Get Basic
               </Button>
             </Link>
           </div>
 
-          {/* Premium Tier */}
-          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between relative ring-2 ring-[#35AB4E] shadow-xl transition-all hover:-translate-y-1 bg-white/90">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#35AB4E] text-white text-[11px] font-extrabold uppercase tracking-wider px-4 py-1 rounded-full shadow-md">
-              Most Popular
+          {/* 2. PREMIUM TIER (MOST POPULAR) */}
+          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between relative ring-2 ring-[#35AB4E] shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-white/95 scale-102 z-10">
+            {/* Top Ribbon */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#35AB4E] to-[#2E9644] text-white text-[11px] font-black uppercase tracking-wider px-5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-[#F2B604]" /> MOST POPULAR • 50% OFF
             </div>
+
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-black text-[#17181C]">Premium</span>
-                <TierBadge tier="premium" />
+              <div className="flex items-center justify-between mb-4 mt-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-black text-[#17181C]">Premium</span>
+                  <TierBadge tier="premium" size="sm" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-[#EBF9EE] text-[#1B6A2D] border border-emerald-200 text-[10px] font-black uppercase tracking-wider">
+                  50% OFF
+                </span>
               </div>
-              <div className="mb-4">
-                <span className="text-3xl font-black text-[#17181C]">₹2,499</span>
-                <span className="text-sm text-[#687182]"> / month</span>
+
+              {/* Price Container */}
+              <div className="mb-4 pb-4 border-b border-[#F4F6FB]">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm font-bold text-[#9AA4B2] line-through">
+                    {billingCycle === 'monthly' ? '₹4,999' : '₹59,988'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-[#EBF9EE] text-[#35AB4E] text-[11px] font-black">
+                    Save {billingCycle === 'monthly' ? '₹2,500/mo' : '₹35,000/yr'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-4xl font-black text-[#17181C] tracking-tight">
+                    {billingCycle === 'monthly' ? '₹2,499' : '₹2,083'}
+                  </span>
+                  <span className="text-xs font-semibold text-[#687182]">
+                    / month {billingCycle === 'yearly' && '(billed ₹24,990/yr)'}
+                  </span>
+                </div>
+                <p className="text-[11px] font-bold text-[#35AB4E] mt-1.5 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-[#F2B604] fill-[#F2B604]" /> Recommended for Established Retail Stores
+                </p>
               </div>
-              <p className="text-xs text-[#687182] mb-6">
+
+              <p className="text-xs text-[#687182] mb-6 leading-relaxed">
                 For established shops seeking local authority, weekly dynamic banners &amp; verified trust.
               </p>
+
               <ul className="space-y-3 mb-8 text-xs text-[#4A5260]">
-                <li className="flex items-center gap-2 font-bold text-[#17181C]">
+                <li className="flex items-center gap-2.5 font-bold text-[#17181C]">
                   <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Everything in Basic
                 </li>
-                <li className="flex items-center gap-2 font-bold text-[#35AB4E]">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Green &quot;Trusted&quot; verified badge
+                <li className="flex items-center gap-2.5 font-bold text-[#35AB4E]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Green &quot;Trusted&quot; verified badge &amp; Spot Ring
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> 2 custom branded banners / week
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> 2 custom branded banners / week (104/yr)
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Customer photo review approvals
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Customer photo review approvals &amp; moderation
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Priority feed ranking
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#35AB4E] flex-shrink-0" /> Priority search &amp; feed ranking in your pincode
                 </li>
-                <li className="flex items-center gap-2 text-[#9AA4B2] line-through">
+                <li className="flex items-center gap-2.5 text-[#9AA4B2] line-through">
                   Daily banners &amp; Microsite
                 </li>
               </ul>
             </div>
-            <Link href="/login">
-              <Button variant="primary" size="md" className="w-full font-bold">
-                Upgrade to Premium
+
+            <Link href="/login" className="block">
+              <Button variant="primary" size="md" className="w-full font-black py-3 rounded-2xl bg-[#35AB4E] hover:bg-[#2E9644] text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all">
+                Claim 50% OFF • Upgrade to Premium
               </Button>
             </Link>
           </div>
 
-          {/* Elite Tier */}
-          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between relative ring-2 ring-[#4787F2] shadow-xl transition-all hover:-translate-y-1 bg-white/90">
-            <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#4787F2] text-white text-[11px] font-extrabold uppercase tracking-wider px-4 py-1 rounded-full shadow-md">
-              Complete Digital Ecosystem
+          {/* 3. ELITE TIER */}
+          <div className="ios-glass-card rounded-3xl p-7 flex flex-col justify-between relative ring-2 ring-[#4787F2] shadow-2xl transition-all duration-300 hover:-translate-y-1.5 bg-white/95 group">
+            {/* Top Ribbon */}
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-[#4787F2] to-[#3668C4] text-white text-[11px] font-black uppercase tracking-wider px-5 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5 text-[#F2B604]" /> COMPLETE DIGITAL ECOSYSTEM
             </div>
+
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-lg font-black text-[#17181C]">Elite</span>
-                <TierBadge tier="elite" />
+              <div className="flex items-center justify-between mb-4 mt-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl font-black text-[#17181C]">Elite</span>
+                  <TierBadge tier="elite" size="sm" />
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-blue-50 text-[#4787F2] border border-blue-200 text-[10px] font-black uppercase tracking-wider">
+                  50% OFF
+                </span>
               </div>
-              <div className="mb-4">
-                <span className="text-3xl font-black text-[#17181C]">₹4,999</span>
-                <span className="text-sm text-[#687182]"> / month</span>
+
+              {/* Price Container */}
+              <div className="mb-4 pb-4 border-b border-[#F4F6FB]">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm font-bold text-[#9AA4B2] line-through">
+                    {billingCycle === 'monthly' ? '₹9,999' : '₹1,19,988'}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-[#EDF4FF] text-[#4787F2] text-[11px] font-black">
+                    Save {billingCycle === 'monthly' ? '₹5,000/mo' : '₹70,000/yr'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-4xl font-black text-[#17181C] tracking-tight">
+                    {billingCycle === 'monthly' ? '₹4,999' : '₹4,166'}
+                  </span>
+                  <span className="text-xs font-semibold text-[#687182]">
+                    / month {billingCycle === 'yearly' && '(billed ₹49,990/yr)'}
+                  </span>
+                </div>
+                <p className="text-[11px] font-bold text-[#4787F2] mt-1.5 flex items-center gap-1">
+                  <Crown className="w-3 h-3 text-[#F2B604]" /> Maximum Footfall &amp; Digital Authority
+                </p>
               </div>
-              <p className="text-xs text-[#687182] mb-6">
+
+              <p className="text-xs text-[#687182] mb-6 leading-relaxed">
                 Complete omnichannel digital identity for high-growth businesses and flagship retailers.
               </p>
+
               <ul className="space-y-3 mb-8 text-xs text-[#4A5260]">
-                <li className="flex items-center gap-2 font-bold text-[#17181C]">
+                <li className="flex items-center gap-2.5 font-bold text-[#17181C]">
                   <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Everything in Premium
                 </li>
-                <li className="flex items-center gap-2 font-bold text-[#4787F2]">
-                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Daily custom banners (365/yr)
+                <li className="flex items-center gap-2.5 font-bold text-[#4787F2]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Daily custom banners (365/yr branded with logo)
                 </li>
-                <li className="flex items-center gap-2 font-bold text-[#4787F2]">
-                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Standalone Microsite (<code className="text-[11px] font-mono">/b/[slug]</code>)
+                <li className="flex items-center gap-2.5 font-bold text-[#4787F2]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Standalone Microsite (<code className="text-[11px] font-mono text-[#4787F2]">/b/[slug]</code>)
                 </li>
-                <li className="flex items-center gap-2 font-bold text-[#4787F2]">
-                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> 24h Story publishing privileges
+                <li className="flex items-center gap-2.5 font-bold text-[#4787F2]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> 24h Story publishing privileges (Elite exclusive)
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Event ticketing &amp; Booking engine
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Event ticketing &amp; Spot Drop flash deals engine
                 </li>
-                <li className="flex items-center gap-2 font-medium">
-                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Dedicated Account Manager
+                <li className="flex items-center gap-2.5 font-semibold text-[#17181C]">
+                  <CheckCircle2 className="w-4 h-4 text-[#4787F2] flex-shrink-0" /> Dedicated Account Manager &amp; priority phone support
                 </li>
               </ul>
             </div>
-            <Link href="/login">
-              <Button variant="primary" size="md" className="w-full font-bold">
-                Get Elite Membership
+
+            <Link href="/login" className="block">
+              <Button variant="primary" size="md" className="w-full font-black py-3 rounded-2xl bg-gradient-to-r from-[#4787F2] to-[#3668C4] hover:from-[#3668C4] hover:to-[#2B54A3] text-white shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all">
+                Claim 50% OFF • Get Elite Membership
               </Button>
             </Link>
+          </div>
+        </div>
+
+        {/* Reassurance Guarantee Footer */}
+        <div className="mt-12 p-5 rounded-2xl bg-white border border-[#E3E8EF] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-[#4A5260] shadow-xs">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#35AB4E] flex-shrink-0" />
+            <span><strong className="text-[#17181C]">100% Risk-Free:</strong> No long-term lock-in contracts. Cancel or upgrade tiers anytime from your Merchant Studio.</span>
+          </div>
+          <div className="flex items-center gap-4 flex-shrink-0 text-[11px] text-[#687182]">
+            <span>✓ Instant WhatsApp Activation</span>
+            <span>✓ GST Invoicing Ready</span>
+            <span>✓ Field Manager Assistance</span>
           </div>
         </div>
       </section>
