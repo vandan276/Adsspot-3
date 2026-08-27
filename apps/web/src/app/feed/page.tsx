@@ -621,15 +621,15 @@ export default function MobileFeedPage() {
       </div>
 
       {/* 2.5 🔥 SPOT DROPS FLASH HOURLY DEALS (Feature A) */}
-      <div className="bg-gradient-to-r from-[#FFF5F2]/80 via-[#FFF1EE]/80 to-[#FFEFEA]/80 p-3 border-b border-[#FECDD3] space-y-2 backdrop-blur-md">
+      <div className="bg-gradient-to-r from-[#FFF5F2]/80 via-[#FFF1EE]/80 to-[#FFEFEA]/80 dark:from-[#251016]/90 dark:via-[#1F0C12]/90 dark:to-[#220E14]/90 p-3 border-b border-[#FECDD3] dark:border-rose-950/60 space-y-2 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-[#E11D48] animate-ping" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#9F1239]">
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#9F1239] dark:text-rose-400">
               ⚡ Spot Drops — Hourly Flash Offers
             </h3>
           </div>
-          <span className="text-[10px] font-bold text-[#E11D48] bg-white px-2 py-0.5 rounded-full border border-[#FECDD3] shadow-2xs">
+          <span className="text-[10px] font-bold text-[#E11D48] dark:text-rose-300 bg-white dark:bg-rose-950/60 px-2 py-0.5 rounded-full border border-[#FECDD3] dark:border-rose-800/40 shadow-2xs">
             Limited Stock
           </span>
         </div>
@@ -736,8 +736,8 @@ export default function MobileFeedPage() {
           onClick={() => setSelectedCategory('all')}
           className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
             selectedCategory === 'all'
-              ? 'bg-[#17181C] text-white shadow-xs'
-              : 'ios-glass-card text-neutral-700'
+              ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+              : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
           }`}
         >
           All
@@ -748,7 +748,7 @@ export default function MobileFeedPage() {
               <Link
                 key={cat.id}
                 href="/b2b"
-                className="px-3 sm:px-3.5 py-1 rounded-full text-xs font-black shrink-0 transition-all bg-[#FFF1EE] text-[#E14D2A] border border-[#E14D2A]/30 hover:bg-[#FFE4DE] flex items-center gap-1 shadow-2xs"
+                className="px-3 sm:px-3.5 py-1 rounded-full text-xs font-black shrink-0 transition-all bg-[#FFF1EE] dark:bg-[#2A1016] text-[#E14D2A] dark:text-rose-400 border border-[#E14D2A]/30 dark:border-rose-800/40 hover:bg-[#FFE4DE] dark:hover:bg-[#38141D] flex items-center gap-1 shadow-2xs"
               >
                 <span>B2b</span>
                 <span className="bg-[#E14D2A] text-white text-[8px] px-1 rounded-full">1Cr+</span>
@@ -762,8 +762,8 @@ export default function MobileFeedPage() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
                 selectedCategory === cat.id
-                  ? 'bg-[#17181C] text-white shadow-xs'
-                  : 'ios-glass-card text-neutral-700'
+                  ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                  : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
               }`}
             >
               {cat.name}
@@ -795,15 +795,15 @@ export default function MobileFeedPage() {
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/card/${biz.slug}`}
-                      className="font-bold text-xs text-[#17181C] hover:text-[#4787F2] leading-snug block break-words"
+                      className="font-bold text-xs text-[#17181C] dark:text-neutral-100 hover:text-[#4787F2] dark:hover:text-[#4787F2] leading-snug block break-words"
                     >
                       {biz.name}
                     </Link>
-                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 mt-0.5">
+                    <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                       <span className="truncate">{biz.address}</span>
                       {biz.trusted && (
-                        <span className="text-[#35AB4E] font-bold flex items-center gap-0.5 shrink-0">
-                          <ShieldCheck className="w-3 h-3 text-[#35AB4E]" /> Verified
+                        <span className="text-[#35AB4E] dark:text-[#4ade80] font-bold flex items-center gap-0.5 shrink-0">
+                          <ShieldCheck className="w-3 h-3 text-[#35AB4E] dark:text-[#4ade80]" /> Verified
                         </span>
                       )}
                     </div>
@@ -816,8 +816,8 @@ export default function MobileFeedPage() {
                   title={isFollowing ? 'Following' : 'Follow'}
                   className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-all ${
                     isFollowing
-                      ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30 hover:bg-neutral-100'
-                      : 'bg-[#EDF4FF] text-[#4787F2] hover:bg-[#D9E8FF] border border-[#4787F2]/20 active:scale-95'
+                      ? 'bg-[#EBF9EE] dark:bg-[#13301D] text-[#35AB4E] dark:text-[#4ade80] border border-[#35AB4E]/30 dark:border-[#4ade80]/30 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                      : 'bg-[#EDF4FF] dark:bg-[#172642] text-[#4787F2] dark:text-[#93C5FD] hover:bg-[#D9E8FF] dark:hover:bg-[#1E335A] border border-[#4787F2]/20 active:scale-95'
                   }`}
                 >
                   {isFollowing ? (
@@ -830,7 +830,7 @@ export default function MobileFeedPage() {
 
               {/* Post Media (4:3 Aspect Ratio for clean scaling on all phones) */}
               <div
-                className="relative w-full aspect-[4/3] overflow-hidden cursor-pointer bg-neutral-100"
+                className="relative w-full aspect-[4/3] overflow-hidden cursor-pointer bg-neutral-100 dark:bg-neutral-900"
                 onDoubleClick={() => handleDoubleTapPost(post.id)}
               >
                 <img
@@ -847,7 +847,7 @@ export default function MobileFeedPage() {
               </div>
 
               {/* Minimalist Action Bar with Authentic WhatsApp and Card Icons */}
-              <div className="p-3 pb-1.5 flex items-center justify-between gap-2 text-neutral-700">
+              <div className="p-3 pb-1.5 flex items-center justify-between gap-2 text-neutral-700 dark:text-neutral-200">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => handleToggleLike(post.id)}
@@ -858,24 +858,24 @@ export default function MobileFeedPage() {
                         isLiked ? 'text-red-500 fill-red-500' : 'hover:text-red-500'
                       }`}
                     />
-                    <span className={isLiked ? 'text-red-500 font-bold' : 'text-neutral-700'}>{likesCount}</span>
+                    <span className={isLiked ? 'text-red-500 font-bold' : 'text-neutral-700 dark:text-neutral-200'}>{likesCount}</span>
                   </button>
 
                   <button
                     onClick={() => setOpenCommentsPostId(post.id)}
-                    className="flex items-center gap-1 text-xs font-semibold hover:text-[#4787F2]"
+                    className="flex items-center gap-1 text-xs font-semibold hover:text-[#4787F2] dark:hover:text-[#4787F2]"
                   >
                     <MessageCircle className="w-5 h-5" />
                     <span>{commentsCount}</span>
                   </button>
 
-                  <button onClick={() => handleToggleSave(post.id)} className="hover:text-[#4787F2]">
+                  <button onClick={() => handleToggleSave(post.id)} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
                     <Bookmark
                       className={`w-5 h-5 ${isSaved ? 'text-[#4787F2] fill-[#4787F2]' : ''}`}
                     />
                   </button>
 
-                  <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2]">
+                  <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
                     <Share2 className="w-5 h-5" />
                   </button>
                 </div>
@@ -885,9 +885,9 @@ export default function MobileFeedPage() {
                   <Link
                     href={`/card/${biz.slug}`}
                     title="Digital Visiting Card"
-                    className="w-8 h-8 rounded-full bg-neutral-100 hover:bg-neutral-200 text-neutral-700 flex items-center justify-center transition-all active:scale-95 shadow-xs"
+                    className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all active:scale-95 shadow-xs"
                   >
-                    <QrCode className="w-4.5 h-4.5 text-neutral-700" />
+                    <QrCode className="w-4.5 h-4.5 text-neutral-700 dark:text-neutral-200" />
                   </Link>
 
                   <a
@@ -904,14 +904,14 @@ export default function MobileFeedPage() {
 
               {/* Post Caption */}
               <div className="px-3 pb-3 space-y-1">
-                <p className="text-xs text-neutral-800 leading-relaxed break-words">
-                  <span className="font-bold text-[#17181C] mr-1">{biz.name}</span>
+                <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed break-words">
+                  <span className="font-bold text-[#17181C] dark:text-white mr-1">{biz.name}</span>
                   {post.caption}
                 </p>
 
                 <button
                   onClick={() => setOpenCommentsPostId(post.id)}
-                  className="text-[11px] text-neutral-400 font-semibold hover:text-[#4787F2] block"
+                  className="text-[11px] text-neutral-400 dark:text-neutral-400 font-semibold hover:text-[#4787F2] dark:hover:text-[#4787F2] block"
                 >
                   View all {commentsCount} comments
                 </button>
