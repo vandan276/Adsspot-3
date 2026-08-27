@@ -258,92 +258,180 @@ html.dark .pure-liquid-glass-card {
    COMPREHENSIVE FULL-WEBSITE DARK THEME RULES
    ========================================================================= */
 
+html.dark,
 html.dark body {
   background-color: #0B0E14 !important;
   color: #F9FAFB !important;
+  color-scheme: dark;
 }
 
-/* Light backgrounds to dark surface */
+/* Background transformations */
+html.dark section,
+html.dark main,
+html.dark footer {
+  background-color: transparent;
+}
+
 html.dark .bg-white,
-html.dark [class*="bg-white/"] {
+html.dark [class*="bg-white"] {
   background-color: #121620 !important;
-  color: #F9FAFB;
+  color: #F9FAFB !important;
 }
 
+html.dark section.bg-white,
+html.dark div.bg-white {
+  background-color: #121620 !important;
+}
+
+html.dark [class*="bg-[#F4F6FB]"],
+html.dark [class*="bg-[#f4f6fb]"],
 html.dark .bg-\[\#F4F6FB\],
 html.dark .bg-\[\#f4f6fb\] {
   background-color: #0B0E14 !important;
 }
 
+html.dark [class*="bg-[#EDF4FF]"],
+html.dark [class*="bg-[#edf4ff]"],
 html.dark .bg-\[\#EDF4FF\],
 html.dark .bg-\[\#edf4ff\] {
-  background-color: rgba(71, 135, 242, 0.16) !important;
-  color: #82B1FF !important;
+  background-color: rgba(71, 135, 242, 0.18) !important;
+  color: #93C5FD !important;
 }
 
+html.dark [class*="bg-[#FFF8E6]"],
+html.dark [class*="bg-[#FFFDF5]"],
+html.dark [class*="bg-[#fff8e6]"],
 html.dark .bg-\[\#FFF8E6\],
 html.dark .bg-\[\#FFFDF5\],
 html.dark .bg-\[\#fff8e6\] {
-  background-color: rgba(242, 182, 4, 0.14) !important;
-  color: #FDD663 !important;
+  background-color: rgba(242, 182, 4, 0.15) !important;
+  color: #FDE047 !important;
 }
 
+html.dark [class*="bg-[#EBF9EE]"],
+html.dark [class*="bg-[#ebf9ee]"],
 html.dark .bg-\[\#EBF9EE\],
 html.dark .bg-\[\#ebf9ee\] {
-  background-color: rgba(53, 171, 78, 0.15) !important;
-  color: #81C995 !important;
+  background-color: rgba(53, 171, 78, 0.18) !important;
+  color: #86EFAC !important;
 }
 
+html.dark [class*="bg-[#FBECEF]"],
+html.dark [class*="bg-[#fbecef]"],
 html.dark .bg-\[\#FBECEF\],
 html.dark .bg-\[\#fbecef\] {
-  background-color: rgba(152, 24, 55, 0.2) !important;
-  color: #F28B82 !important;
+  background-color: rgba(152, 24, 55, 0.25) !important;
+  color: #FCA5A5 !important;
 }
 
 /* Typography in Dark Mode */
+html.dark [class*="text-[#17181C]"],
+html.dark [class*="text-[#17181c]"],
 html.dark .text-\[\#17181C\],
 html.dark .text-\[\#17181c\],
-html.dark .text-neutral-900,
-html.dark .text-slate-900,
-html.dark .text-black {
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
   color: #F9FAFB !important;
 }
 
+html.dark [class*="text-[#4A5260]"],
+html.dark [class*="text-[#4a5260]"],
 html.dark .text-\[\#4A5260\],
-html.dark .text-\[\#4a5260\],
-html.dark .text-neutral-700,
-html.dark .text-slate-700 {
+html.dark .text-\[\#4a5260\] {
   color: #D1D5DB !important;
 }
 
+html.dark [class*="text-[#687182]"],
+html.dark [class*="text-[#687182]"],
 html.dark .text-\[\#687182\],
-html.dark .text-\[\#687182\],
-html.dark .text-neutral-500,
-html.dark .text-slate-500 {
+html.dark .text-\[\#687182\] {
   color: #9CA3AF !important;
 }
 
+html.dark [class*="text-[#1D53B8]"],
+html.dark [class*="text-[#1d53b8]"],
+html.dark .text-\[\#1D53B8\],
+html.dark .text-\[\#1d53b8\] {
+  color: #93C5FD !important;
+}
+
+html.dark [class*="text-[#A06E00]"],
+html.dark [class*="text-[#a06e00]"],
 html.dark .text-\[\#A06E00\],
-html.dark .text-amber-800 {
-  color: #FDD663 !important;
+html.dark .text-\[\#a06e00\] {
+  color: #FDE047 !important;
 }
 
+html.dark [class*="text-[#1B6A2D]"],
+html.dark [class*="text-[#1b6a2d]"],
 html.dark .text-\[\#1B6A2D\],
-html.dark .text-emerald-800 {
-  color: #81C995 !important;
+html.dark .text-\[\#1b6a2d\] {
+  color: #86EFAC !important;
 }
 
-/* Borders in Dark Mode */
+/* Border overrides in Dark Mode */
+html.dark [class*="border-[#E3E8EF]"],
+html.dark [class*="border-[#e3e8ef]"],
 html.dark .border-\[\#E3E8EF\],
 html.dark .border-\[\#e3e8ef\],
-html.dark .border-neutral-200,
-html.dark .border-neutral-100,
-html.dark .border-slate-200 {
+html.dark hr {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 html.dark .divide-\[\#E3E8EF\] > :not([hidden]) ~ :not([hidden]) {
   border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Cards & Glass Containers in Dark Mode */
+html.dark .ios-glass-card {
+  background: linear-gradient(
+    140deg,
+    rgba(22, 28, 40, 0.9) 0%,
+    rgba(14, 18, 26, 0.85) 50%,
+    rgba(18, 24, 34, 0.95) 100%
+  ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 
+    0 20px 45px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .ios-glass-card:hover {
+  border-color: rgba(71, 135, 242, 0.6) !important;
+  box-shadow: 
+    0 24px 50px -10px rgba(71, 135, 242, 0.25),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+html.dark .pure-liquid-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.08) 100%
+  ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 15px 35px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+html.dark .pure-liquid-glass-card {
+  background: linear-gradient(
+    140deg,
+    rgba(24, 30, 44, 0.9) 0%,
+    rgba(14, 18, 28, 0.85) 50%,
+    rgba(18, 24, 36, 0.95) 100%
+  ) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 
+    0 30px 60px -12px rgba(0, 0, 0, 0.8),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 /* Form Inputs, Dropdowns, Selects & Modals */
@@ -352,7 +440,7 @@ html.dark textarea,
 html.dark select {
   background-color: #171C28 !important;
   color: #F9FAFB !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
 }
 
 html.dark input::placeholder, 
@@ -362,22 +450,21 @@ html.dark textarea::placeholder {
 
 /* Header & Navigation Bar in Dark Mode */
 html.dark header {
-  background-color: rgba(11, 14, 20, 0.88) !important;
+  background-color: rgba(11, 14, 20, 0.92) !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Aside sidebars in Dark Mode */
 html.dark aside {
   background-color: #121620 !important;
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
 /* Floating Bottom Navigation in Dark Mode */
-html.dark .floating-nav,
 html.dark nav.fixed,
 html.dark nav.pointer-events-auto {
-  background-color: rgba(18, 22, 32, 0.9) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(18, 22, 32, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
 }
 
 /* Modals & Popovers */
@@ -385,7 +472,7 @@ html.dark [role="dialog"],
 html.dark .modal-content,
 html.dark .dropdown-menu {
   background-color: #141824 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: #F9FAFB !important;
 }
 
