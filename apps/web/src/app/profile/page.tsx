@@ -20,16 +20,49 @@ export default function ConsumerProfilePage() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState<'activity' | 'following' | 'reviews' | 'settings'>('activity');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [userInteractions, setUserInteractions] = useState<{
+    likes: Record<string, boolean>;
+    follows: Record<string, boolean>;
+    reviews: any[];
+  }>({
+    likes: {},
+    follows: {},
+    reviews: [],
+  });
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const followedBusinesses = SEED_BUSINESSES.slice(0, 2);
+  // Load real interaction state from DB
+  React.useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/interactions?userId=${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && !data.error) {
+            setUserInteractions({
+              likes: data.likes || {},
+              follows: data.follows || {},
+              reviews: data.reviews || [],
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
+
+  const isMerchant = user?.role === 'merchant' || Boolean(user?.business_profile);
+  const userBiz = user?.business_profile;
+
+  const followedBizIds = Object.keys(userInteractions.follows);
+  const followedBusinesses = SEED_BUSINESSES.filter(
+    (b) => followedBizIds.includes(b.id) || (followedBizIds.length === 0 && (b.id === 'biz-vad-1' || b.id === 'biz-vad-2'))
+  );
 
   return (
-    <div className="flex-1 bg-[#F4F6FB] pb-24 max-w-2xl mx-auto w-full min-h-screen p-4 space-y-5">
+    <div className="flex-1 bg-[#F4F6FB] dark:bg-[#0B0E14] pb-24 max-w-2xl mx-auto w-full min-h-screen p-4 space-y-5 transition-colors">
       {/* Toast */}
       {toastMessage && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-neutral-700 animate-fade-in">
@@ -39,79 +72,120 @@ export default function ConsumerProfilePage() {
       )}
 
       {/* 1. PROFILE HEADER CARD */}
-      <Card padding="md" className="shadow-sm bg-white border border-[#E3E8EF] space-y-3">
+      <Card padding="md" className="shadow-sm bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Avatar src={user?.avatar_url || undefined} name={user?.full_name || 'Consumer'} size="md" />
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-black text-[#17181C]">{user?.full_name || 'Aarav Sharma'}</h1>
-                <span className="text-[10px] font-extrabold bg-[#EBF9EE] text-[#1B6A2D] px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-[#35AB4E]" /> Verified
+                <h1 className="text-base font-black text-[#17181C] dark:text-white">{user?.full_name || 'Aarav Sharma'}</h1>
+                <span className="text-[10px] font-extrabold bg-[#EBF9EE] dark:bg-[#13301D] text-[#1B6A2D] dark:text-[#4ade80] px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-[#35AB4E] dark:text-[#4ade80]" /> {isMerchant ? 'Verified Merchant' : 'Verified Consumer'}
                 </span>
               </div>
-              <p className="text-xs text-[#687182] mt-0.5 flex items-center gap-1">
+              <p className="text-xs text-[#687182] dark:text-neutral-400 mt-0.5 flex items-center gap-1">
                 <Phone className="w-3 h-3" /> {user?.phone || '+91 98765 43210'}
               </p>
               <p className="text-[10px] text-[#4787F2] font-semibold mt-0.5 flex items-center gap-1">
-                <MapPin className="w-3 h-3" /> Fort, Mumbai 400001
+                <MapPin className="w-3 h-3" /> {userBiz?.address || 'Alkapuri, Vadodara 390007'}
               </p>
             </div>
           </div>
 
           <Link href="/wallet" className="w-full sm:w-auto">
-            <div className="p-2.5 rounded-xl bg-[#EDF4FF] border border-[#4787F2]/20 flex sm:flex-col justify-between sm:text-right hover:bg-[#D9E8FF] transition-colors cursor-pointer">
-              <span className="text-[10px] text-[#687182] font-bold uppercase">Adsspot Cash</span>
-              <span className="text-sm font-black text-[#4787F2]">₹{user?.wallet?.balance.toFixed(2) || '1,540.00'}</span>
+            <div className="p-2.5 rounded-xl bg-[#EDF4FF] dark:bg-[#4787F2]/15 border border-[#4787F2]/20 flex sm:flex-col justify-between sm:text-right hover:bg-[#D9E8FF] transition-colors cursor-pointer">
+              <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold uppercase">Adsspot Cash</span>
+              <span className="text-sm font-black text-[#4787F2]">₹{user?.wallet?.balance ? user.wallet.balance.toFixed(2) : '1,540.00'}</span>
             </div>
           </Link>
         </div>
 
-
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[#F4F6FB] text-center">
-          <div className="p-2 rounded-xl bg-[#F4F6FB]">
-            <span className="text-sm font-black text-[#17181C] block">2</span>
-            <span className="text-[10px] text-[#687182] font-bold">Following</span>
+        <div className="grid grid-cols-3 gap-2 pt-3 border-t border-[#F4F6FB] dark:border-white/10 text-center">
+          <div className="p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5">
+            <span className="text-sm font-black text-[#17181C] dark:text-white block">{followedBusinesses.length}</span>
+            <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold">Following</span>
           </div>
-          <div className="p-2 rounded-xl bg-[#F4F6FB]">
-            <span className="text-sm font-black text-[#17181C] block">3</span>
-            <span className="text-[10px] text-[#687182] font-bold">Bookmarks</span>
+          <div className="p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5">
+            <span className="text-sm font-black text-[#17181C] dark:text-white block">{Object.keys(userInteractions.likes).length || 2}</span>
+            <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold">Liked Posts</span>
           </div>
-          <div className="p-2 rounded-xl bg-[#F4F6FB]">
-            <span className="text-sm font-black text-[#17181C] block">1</span>
-            <span className="text-[10px] text-[#687182] font-bold">Reviews</span>
+          <div className="p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5">
+            <span className="text-sm font-black text-[#17181C] dark:text-white block">{userInteractions.reviews.length || 1}</span>
+            <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold">Reviews</span>
           </div>
         </div>
       </Card>
 
-      {/* Register Business Onboarding CTA Banner */}
-      <div className="bg-gradient-to-r from-[#17181C] to-[#2B2E38] rounded-2xl p-4 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#F2B604]/20 text-[#F2B604] flex items-center justify-center font-bold shrink-0">
-            <Sparkles className="w-5 h-5" />
+      {/* 🌟 CONDITIONAL MERCHANT HUB OR CONSUMER ONBOARDING BANNER */}
+      {isMerchant ? (
+        <div className="bg-gradient-to-br from-[#17181C] via-[#1D2230] to-[#121620] rounded-2xl p-4 text-white shadow-lg border border-[#4787F2]/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🏪</span>
+              <div>
+                <span className="text-[10px] font-black uppercase text-[#4787F2] tracking-wider block">Active Merchant Account</span>
+                <h3 className="text-sm font-black text-white">{userBiz?.name || 'Your Registered Store'}</h3>
+              </div>
+            </div>
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase bg-gradient-to-r from-[#F2B604] to-[#E69D00] text-black shadow-xs">
+              {userBiz?.tier ? `${userBiz.tier} Tier` : 'Elite Tier'}
+            </span>
           </div>
-          <div>
-            <h3 className="text-xs font-black text-white">Own a Local Shop or Business?</h3>
-            <p className="text-[11px] text-neutral-300">Get your free Digital Visiting Card &amp; reach 10,000+ local buyers.</p>
+
+          <p className="text-[11px] text-neutral-300">
+            Manage your daily festival banner studio, digital visiting card, and view incoming customer leads.
+          </p>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+            <Link
+              href="/merchant"
+              className="py-2 px-3 rounded-xl bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold flex items-center justify-center gap-1 shadow-xs text-center"
+            >
+              <span>Merchant Studio</span>
+            </Link>
+            <Link
+              href={`/card/${userBiz?.slug || 'mandap-gujarati-thali'}`}
+              className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center justify-center gap-1 border border-white/20 text-center"
+            >
+              <span>Digital Card ↗</span>
+            </Link>
+            <Link
+              href="/merchant"
+              className="col-span-2 sm:col-span-1 py-2 px-3 rounded-xl bg-[#F2B604] hover:bg-[#DEA400] text-black text-xs font-black flex items-center justify-center gap-1 text-center"
+            >
+              <span>Banner Studio ✨</span>
+            </Link>
           </div>
         </div>
-        <Link href="/onboard" className="shrink-0">
-          <Button variant="primary" size="sm" className="w-full sm:w-auto text-xs font-bold bg-[#4787F2] hover:bg-[#3972D4]">
-            Register Business &rarr;
-          </Button>
-        </Link>
-      </div>
+      ) : (
+        /* Register Business Onboarding CTA Banner for Consumers */
+        <div className="bg-gradient-to-r from-[#17181C] to-[#2B2E38] rounded-2xl p-4 text-white shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#F2B604]/20 text-[#F2B604] flex items-center justify-center font-bold shrink-0">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs font-black text-white">Own a Local Shop or Business?</h3>
+              <p className="text-[11px] text-neutral-300">Get your free Digital Visiting Card &amp; reach 10,000+ local buyers.</p>
+            </div>
+          </div>
+          <Link href="/onboard" className="shrink-0">
+            <Button variant="primary" size="sm" className="w-full sm:w-auto text-xs font-bold bg-[#4787F2] hover:bg-[#3972D4]">
+              Register Business &rarr;
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* 2. SUB-NAVIGATION TABS */}
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-
         <button
           onClick={() => setActiveTab('activity')}
           className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
             activeTab === 'activity'
               ? 'bg-[#4787F2] text-white shadow-sm'
-              : 'bg-white text-[#4A5260] border border-[#E3E8EF] hover:bg-neutral-50'
+              : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
           }`}
         >
           Activity &amp; Deals
@@ -121,7 +195,7 @@ export default function ConsumerProfilePage() {
           className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
             activeTab === 'following'
               ? 'bg-[#4787F2] text-white shadow-sm'
-              : 'bg-white text-[#4A5260] border border-[#E3E8EF] hover:bg-neutral-50'
+              : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
           }`}
         >
           Followed Stores ({followedBusinesses.length})
@@ -131,17 +205,17 @@ export default function ConsumerProfilePage() {
           className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
             activeTab === 'reviews'
               ? 'bg-[#4787F2] text-white shadow-sm'
-              : 'bg-white text-[#4A5260] border border-[#E3E8EF] hover:bg-neutral-50'
+              : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
           }`}
         >
-          My Reviews (1)
+          My Reviews ({userInteractions.reviews.length || 1})
         </button>
         <button
           onClick={() => setActiveTab('settings')}
           className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
             activeTab === 'settings'
               ? 'bg-[#4787F2] text-white shadow-sm'
-              : 'bg-white text-[#4A5260] border border-[#E3E8EF] hover:bg-neutral-50'
+              : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
           }`}
         >
           Settings

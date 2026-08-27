@@ -225,15 +225,46 @@ export default function MobileFeedPage() {
     return () => clearInterval(interval);
   }, [activeStoryIndex]);
 
+  // Hydrate user interactions (Likes & Follows) from PostgreSQL database on mount
+  useEffect(() => {
+    if (user?.id) {
+      fetch(`/api/interactions?userId=${user.id}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && !data.error) {
+            if (data.likes && Object.keys(data.likes).length > 0) {
+              setLikedPosts(data.likes);
+            }
+            if (data.follows && Object.keys(data.follows).length > 0) {
+              setFollowingBiz(data.follows);
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [user?.id]);
+
   const handleToggleLike = (postId: string) => {
-    setLikedPosts((prev) => {
-      const isLiked = !prev[postId];
-      setLikesCounts((c) => ({
-        ...c,
-        [postId]: (c[postId] || 0) + (isLiked ? 1 : -1),
-      }));
-      return { ...prev, [postId]: isLiked };
-    });
+    const isLiked = !likedPosts[postId];
+    // Optimistic UI update
+    setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
+    setLikesCounts((c) => ({
+      ...c,
+      [postId]: (c[postId] || 0) + (isLiked ? 1 : -1),
+    }));
+
+    // Persist to PostgreSQL database
+    if (user?.id) {
+      fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'like',
+          userId: user.id,
+          postId,
+        }),
+      }).catch((err) => console.error('Like persistence error:', err));
+    }
   };
 
   const handleDoubleTapPost = (postId: string) => {
@@ -245,11 +276,23 @@ export default function MobileFeedPage() {
   };
 
   const handleToggleFollow = (bizId: string, bizName: string) => {
-    setFollowingBiz((prev) => {
-      const isFollowing = !prev[bizId];
-      showToast(isFollowing ? `Following ${bizName}` : `Unfollowed ${bizName}`);
-      return { ...prev, [bizId]: isFollowing };
-    });
+    const isFollowing = !followingBiz[bizId];
+    // Optimistic UI update
+    setFollowingBiz((prev) => ({ ...prev, [bizId]: isFollowing }));
+    showToast(isFollowing ? `Following ${bizName}` : `Unfollowed ${bizName}`);
+
+    // Persist to PostgreSQL database
+    if (user?.id) {
+      fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'follow',
+          userId: user.id,
+          businessId: bizId,
+        }),
+      }).catch((err) => console.error('Follow persistence error:', err));
+    }
   };
 
   // Load user saved posts from localStorage
@@ -293,18 +336,35 @@ export default function MobileFeedPage() {
 
   const handleAddComment = (postId: string) => {
     if (!newCommentText.trim()) return;
+    const text = newCommentText.trim();
     const newComment = {
       id: `comm-${Date.now()}`,
       author: user?.full_name || 'Aarav Sharma',
-      text: newCommentText.trim(),
+      text,
       time: 'Just now',
     };
+    
+    // Optimistic UI update
     setPostComments((prev) => ({
       ...prev,
       [postId]: [...(prev[postId] || []), newComment],
     }));
     setNewCommentText('');
     showToast('Comment posted!');
+
+    // Persist to PostgreSQL database
+    if (user?.id) {
+      fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'comment',
+          userId: user.id,
+          postId,
+          content: text,
+        }),
+      }).catch((err) => console.error('Comment persistence error:', err));
+    }
   };
 
   const handleSendStoryReaction = (emoji: string) => {

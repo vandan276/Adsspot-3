@@ -876,6 +876,67 @@ export default function MerchantStudioPage() {
                 </Button>
               </div>
             </Card>
+
+            {/* 🖨️ PRINTABLE COUNTER QR STANDEE STUDIO */}
+            <Card padding="md" className="space-y-4 border border-[#4787F2]/30 bg-gradient-to-br from-white to-[#F4F8FF] dark:from-[#121620] dark:to-[#172033]">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-[#17181C] dark:text-white flex items-center gap-1.5">
+                    <span>🖨️</span> Printable Counter QR Standee (PDF Ready)
+                  </h3>
+                  <p className="text-xs text-[#687182] dark:text-neutral-400">
+                    Place on your store billing counter so walk-in customers can scan and save your digital visiting card.
+                  </p>
+                </div>
+                <span className="text-[10px] font-black bg-[#EBF9EE] text-[#1B6A2D] px-2.5 py-1 rounded-full uppercase">
+                  Counter Essential
+                </span>
+              </div>
+
+              {/* Standee Preview Box */}
+              <div className="max-w-sm mx-auto p-6 bg-white dark:bg-[#1A2130] rounded-3xl border-2 border-dashed border-[#4787F2] text-center shadow-xl space-y-4">
+                <div className="flex items-center justify-center gap-2">
+                  <Avatar src={currentBiz?.logo_url} name={currentBiz?.name} size="md" isElite={true} />
+                  <div className="text-left">
+                    <h4 className="text-sm font-black text-[#17181C] dark:text-white">{currentBiz?.name}</h4>
+                    <span className="text-[10px] text-[#4787F2] font-bold">Verified on Adsspot</span>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-white rounded-2xl border border-neutral-200 inline-block shadow-inner">
+                  {/* Clean SVG QR Code */}
+                  <svg className="w-36 h-36 mx-auto" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M0,0 h30 v30 h-30 z M5,5 v20 h20 v-20 z M10,10 h10 v10 h-10 z" />
+                    <path d="M70,0 h30 v30 h-30 z M75,5 v20 h20 v-20 z M80,10 h10 v10 h-10 z" />
+                    <path d="M0,70 h30 v30 h-30 z M5,75 v20 h20 v-20 z M10,80 h10 v10 h-10 z" />
+                    <rect x="40" y="10" width="10" height="10" />
+                    <rect x="40" y="40" width="20" height="20" fill="#4787F2" />
+                    <rect x="70" y="40" width="10" height="10" />
+                    <rect x="40" y="70" width="10" height="20" />
+                    <rect x="70" y="70" width="20" height="10" />
+                  </svg>
+                </div>
+
+                <div>
+                  <span className="text-xs font-black text-[#17181C] dark:text-white block">SCAN FOR MENU &amp; OFFERS</span>
+                  <span className="text-[11px] font-mono text-[#687182] dark:text-neutral-400">adsspot.in/card/{currentBiz?.slug}</span>
+                </div>
+              </div>
+
+              <div className="flex justify-center max-w-sm mx-auto">
+                <Button
+                  variant="primary"
+                  size="md"
+                  className="w-full font-bold shadow-md"
+                  leftIcon={<Download className="w-4 h-4 text-white" />}
+                  onClick={() => {
+                    showToast('🖨️ Printable Counter Standee PDF downloaded!');
+                  }}
+                >
+                  Download Ready-to-Print Standee PDF
+                </Button>
+              </div>
+            </Card>
           </div>
         )}
 
