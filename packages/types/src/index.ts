@@ -40,6 +40,7 @@ export type AnnouncementTarget = 'all' | 'sm' | 'ro' | 'zo';
 export interface User {
   id: string;
   phone: string;
+  email?: string;
   full_name: string;
   avatar_url?: string | null;
   role: UserRole;
@@ -475,6 +476,7 @@ export interface AuthSession {
 export interface LoginDemoPersona {
   id: string;
   name: string;
+  email?: string;
   phone: string;
   role: UserRole;
   tier?: MembershipTier;

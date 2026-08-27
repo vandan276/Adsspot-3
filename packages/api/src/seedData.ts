@@ -82,6 +82,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-consumer-1',
     name: 'Aarav Sharma',
+    email: 'aarav@adsspot.in',
     phone: '+919876543210',
     role: 'consumer',
     description: 'Hyperlocal shopper discovering nearby offers and events',
@@ -90,6 +91,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-merch-elite',
     name: 'Rajesh Singhania (Royal Jewellers)',
+    email: 'rajesh@royaljewellers.in',
     phone: '+919876543213',
     role: 'merchant',
     tier: 'elite',
@@ -99,6 +101,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-merch-prem',
     name: 'Priya Mehta (Mehta Sweets)',
+    email: 'priya@mehtasweets.in',
     phone: '+919876543212',
     role: 'merchant',
     tier: 'premium',
@@ -108,6 +111,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-merch-basic',
     name: 'Vikram Joshi (Joshi Kirana)',
+    email: 'vikram@joshikirana.in',
     phone: '+919876543211',
     role: 'merchant',
     tier: 'basic',
@@ -117,6 +121,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-sm-1',
     name: 'Karan Verma (Field SM)',
+    email: 'karan.sm@adsspot.in',
     phone: '+919876543214',
     role: 'sm',
     description: 'Sales Manager assigned to Fort (400001) & Nariman Point (400020)',
@@ -125,6 +130,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-ro-1',
     name: 'Sunita Rao (RO South Mumbai)',
+    email: 'sunita.ro@adsspot.in',
     phone: '+919876543215',
     role: 'ro',
     description: 'Regional Officer supervising 6 SMs across South Mumbai territory',
@@ -133,6 +139,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-zo-1',
     name: 'Devendra Patel (ZO Mumbai)',
+    email: 'devendra.zo@adsspot.in',
     phone: '+919876543216',
     role: 'zo',
     description: 'Zone Officer commanding Mumbai city operations & targets',
@@ -141,6 +148,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
   {
     id: 'usr-admin-1',
     name: 'Vikramaditya (Super Admin)',
+    email: 'admin@adsspot.in',
     phone: '+919876543217',
     role: 'super_admin',
     description: 'Global system administration, moderation, revenue & audit logs',
@@ -151,6 +159,7 @@ export const DEMO_PERSONAS: LoginDemoPersona[] = [
 export const SEED_USERS: User[] = DEMO_PERSONAS.map((p) => ({
   id: p.id,
   phone: p.phone,
+  email: p.email,
   full_name: p.name,
   avatar_url: p.avatar_url,
   role: p.role,

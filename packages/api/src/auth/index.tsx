@@ -38,6 +38,8 @@ interface AuthContextType {
   role: UserRole;
   isAuthenticated: boolean;
   isLoading: boolean;
+  loginWithEmail: (email: string, password?: string, phone?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
+  signupWithEmail: (name: string, email: string, password?: string, phone?: string, role?: UserRole) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
   loginWithPhone: (phone: string) => Promise<{ success: boolean; message: string }>;
   verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
   switchPersona: (personaId: string) => void;
@@ -259,6 +261,140 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { success: false, error: 'Authentication failed.' };
   };
 
+  const loginWithEmail = async (
+    email: string,
+    password?: string,
+    phone?: string
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      // 1. Check PostgreSQL backend via /api/auth/email
+      const res = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email: cleanEmail, password, phone }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          const authUser: AuthUser = {
+            id: data.user.id,
+            email: data.user.email || cleanEmail,
+            phone: data.user.phone || phone || '+919876543210',
+            full_name: data.user.full_name || 'User',
+            avatar_url: data.user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
+            role: data.user.role || 'consumer',
+            created_at: data.user.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            staff_profile: data.user.staff_profile || null,
+            business_profile: data.user.business_profile || null,
+            wallet: {
+              id: `wallet-${data.user.id}`,
+              user_id: data.user.id,
+              balance: 1000.0,
+              currency: 'INR',
+              updated_at: new Date().toISOString(),
+            },
+          };
+
+          setUser(authUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(AUTH_STORAGE_KEY, authUser.id);
+          }
+          return { success: true, user: authUser };
+        }
+      }
+
+      // Fallback matching persona
+      const matched = personas.find(
+        (p) => p.email?.toLowerCase() === cleanEmail || cleanEmail.startsWith(p.role)
+      );
+      if (matched) {
+        switchPersona(matched.id);
+        const u = buildAuthUser(matched.id);
+        return { success: true, user: u || undefined };
+      }
+
+      return { success: false, error: 'User not found. Please sign up.' };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Login failed.' };
+    }
+  };
+
+  const signupWithEmail = async (
+    name: string,
+    email: string,
+    password?: string,
+    phone?: string,
+    role: UserRole = 'consumer'
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'signup',
+          name,
+          email: cleanEmail,
+          password,
+          phone,
+          role,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          const authUser: AuthUser = {
+            id: data.user.id,
+            email: data.user.email || cleanEmail,
+            phone: data.user.phone || phone || '+919876543210',
+            full_name: data.user.full_name || name,
+            avatar_url: data.user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
+            role: data.user.role || role,
+            created_at: data.user.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            staff_profile: null,
+            business_profile: null,
+            wallet: {
+              id: `wallet-${data.user.id}`,
+              user_id: data.user.id,
+              balance: 0.0,
+              currency: 'INR',
+              updated_at: new Date().toISOString(),
+            },
+          };
+
+          const newPersona: LoginDemoPersona = {
+            id: authUser.id,
+            name: authUser.full_name,
+            email: authUser.email,
+            phone: authUser.phone,
+            role: authUser.role,
+            description: `Registered ${authUser.role}`,
+            avatar_url: authUser.avatar_url!,
+          };
+
+          const updated = [newPersona, ...personas];
+          setPersonas(updated);
+          setUser(authUser);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updated));
+            localStorage.setItem(AUTH_STORAGE_KEY, authUser.id);
+          }
+
+          return { success: true, user: authUser };
+        }
+      }
+
+      return { success: false, error: 'Signup failed. Please try again.' };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Signup failed.' };
+    }
+  };
+
   const addEmployee = (input: AddEmployeeInput): AuthUser => {
     const newUserId = `usr-staff-${Date.now()}`;
     const formattedPhone = input.phone.startsWith('+91') ? input.phone : `+91${input.phone}`;
@@ -419,6 +555,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: user?.role || 'consumer',
         isAuthenticated: !!user,
         isLoading,
+        loginWithEmail,
+        signupWithEmail,
         loginWithPhone,
         verifyOtp,
         switchPersona,
