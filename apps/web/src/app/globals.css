@@ -11,6 +11,20 @@
   --deep-crimson: #981837;
   --ink: #17181C;
   --canvas: #F4F6FB;
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: #E3E8EF;
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --subtext: #687182;
+}
+
+html.dark {
+  --ink: #F9FAFB;
+  --canvas: #0B0E14;
+  --card-bg: rgba(20, 24, 33, 0.75);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --nav-bg: rgba(11, 14, 20, 0.92);
+  --subtext: #9CA3AF;
+  color-scheme: dark;
 }
 
 body {
@@ -19,6 +33,7 @@ body {
   color: var(--ink);
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -178,35 +193,64 @@ h1, h2, h3, h4, h5, h6 {
 /* Applied globally across all cards (ios-glass-card) */
 .ios-glass-card {
   position: relative;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border-radius: 24px;
+  border: 1.5px solid var(--border-color);
+  box-shadow: 
+    0 18px 40px -10px rgba(0, 0, 0, 0.1),
+    0 4px 12px -2px rgba(0, 0, 0, 0.04),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
+}
+
+html.dark .ios-glass-card {
   background: linear-gradient(
     140deg,
-    rgba(255, 255, 255, 0.75) 0%,
-    rgba(255, 255, 255, 0.45) 50%,
-    rgba(255, 255, 255, 0.6) 100%
+    rgba(26, 32, 44, 0.8) 0%,
+    rgba(17, 22, 31, 0.75) 50%,
+    rgba(20, 25, 36, 0.85) 100%
   );
-  backdrop-filter: blur(10px) saturate(160%);
-  -webkit-backdrop-filter: blur(10px) saturate(160%);
-  border-radius: 24px;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 
-    0 18px 40px -10px rgba(60, 45, 120, 0.1),
-    0 4px 12px -2px rgba(0, 0, 0, 0.04),
-    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
-    inset 0 -1.5px 3px 0 rgba(100, 90, 160, 0.1);
+    0 20px 45px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+html.dark .pure-liquid-glass {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.04) 40%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 15px 35px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25);
+}
+
+html.dark .pure-liquid-glass-card {
+  background: linear-gradient(
+    140deg,
+    rgba(30, 36, 50, 0.85) 0%,
+    rgba(18, 22, 32, 0.8) 50%,
+    rgba(22, 28, 40, 0.9) 100%
+  );
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 
+    0 30px 60px -12px rgba(0, 0, 0, 0.7),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.2);
 }
 
 .ios-glass-card:hover {
-  background: linear-gradient(
-    140deg,
-    rgba(255, 255, 255, 0.88) 0%,
-    rgba(255, 255, 255, 0.6) 50%,
-    rgba(255, 255, 255, 0.75) 100%
-  );
-  border-color: rgba(71, 135, 242, 0.45);
+  border-color: rgba(71, 135, 242, 0.5);
   box-shadow: 
-    0 24px 50px -10px rgba(71, 135, 242, 0.16),
+    0 24px 50px -10px rgba(71, 135, 242, 0.2),
     0 6px 16px -2px rgba(0, 0, 0, 0.05),
-    inset 0 2px 4px 0 rgba(255, 255, 255, 1),
-    inset 0 -1.5px 3px 0 rgba(71, 135, 242, 0.15);
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.25);
 }
 
