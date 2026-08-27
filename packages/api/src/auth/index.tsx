@@ -115,6 +115,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async function initAuth() {
       try {
         if (typeof window !== 'undefined') {
+          // 0. Hydrate custom personas, staff and merchants from localStorage
+          const savedUsers = localStorage.getItem(CUSTOM_USERS_KEY);
+          if (savedUsers) {
+            try {
+              const parsed = JSON.parse(savedUsers);
+              if (Array.isArray(parsed)) setPersonas(parsed);
+            } catch {}
+          }
+          const savedStaff = localStorage.getItem(CUSTOM_STAFF_KEY);
+          if (savedStaff) {
+            try {
+              const parsed = JSON.parse(savedStaff);
+              if (Array.isArray(parsed)) setStaffList(parsed);
+            } catch {}
+          }
+          const savedMerchants = localStorage.getItem(CUSTOM_MERCHANTS_KEY);
+          if (savedMerchants) {
+            try {
+              const parsed = JSON.parse(savedMerchants);
+              if (Array.isArray(parsed)) setMerchantList(parsed);
+            } catch {}
+          }
+
+          // Fetch live merchants from PostgreSQL database
+          try {
+            const merchRes = await fetch('/api/merchants');
+            if (merchRes.ok) {
+              const merchData = await merchRes.json();
+              if (merchData.success && Array.isArray(merchData.merchants)) {
+                setMerchantList(merchData.merchants);
+                localStorage.setItem(CUSTOM_MERCHANTS_KEY, JSON.stringify(merchData.merchants));
+              }
+            }
+          } catch (e) {
+            console.warn('Failed to load merchants from API:', e);
+          }
+
           const savedUserId = localStorage.getItem(AUTH_STORAGE_KEY);
           if (savedUserId) {
             // 1. Fetch real user & merchant business profile from AWS Aurora DB

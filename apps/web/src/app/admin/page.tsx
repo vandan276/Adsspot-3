@@ -100,6 +100,23 @@ export default function AdminDashboardPage() {
     },
   ]);
 
+  const [liveMerchants, setLiveMerchants] = useState<any[]>(merchantList);
+
+  const refreshMerchants = () => {
+    fetch('/api/merchants')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.merchants && Array.isArray(data.merchants)) {
+          setLiveMerchants(data.merchants);
+        }
+      })
+      .catch(() => {});
+  };
+
+  React.useEffect(() => {
+    refreshMerchants();
+  }, [merchantList]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -125,13 +142,34 @@ export default function AdminDashboardPage() {
     showToast(`Staff member ${created.full_name} (${created.role.toUpperCase()}) registered successfully!`);
   };
 
-  const handleCreateMerchant = (e: React.FormEvent) => {
+  const handleCreateMerchant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!merchantForm.business_name || !merchantForm.owner_name || !merchantForm.phone) {
       alert('Please fill out all merchant details.');
       return;
     }
     const { business } = addMerchant(merchantForm);
+
+    // Persist to PostgreSQL database directly
+    try {
+      await fetch('/api/merchants/onboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bizName: merchantForm.business_name,
+          ownerName: merchantForm.owner_name,
+          phone: merchantForm.phone,
+          categoryId: merchantForm.category_id,
+          address: merchantForm.address,
+          pincode: merchantForm.pincode,
+          tier: merchantForm.tier,
+        }),
+      });
+    } catch (e) {
+      console.warn('Persist merchant DB fallback:', e);
+    }
+
+    refreshMerchants();
     setShowAddMerchantModal(false);
     setMerchantForm({
       business_name: '',
@@ -146,7 +184,7 @@ export default function AdminDashboardPage() {
     showToast(`Merchant ${business.name} added with Digital Visiting Card (/card/${business.slug})!`);
   };
 
-  const filteredMerchants = merchantList.filter((b) => {
+  const filteredMerchants = liveMerchants.filter((b) => {
     const matchTier = merchantTierFilter === 'all' || b.tier === merchantTierFilter;
     const matchSearch =
       searchQuery === '' ||
@@ -450,7 +488,7 @@ export default function AdminDashboardPage() {
                 activeTab === 'merchants' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
               }`}
             >
-              <Store className="w-4 h-4" /> All Merchants ({merchantList.length})
+              <Store className="w-4 h-4" /> All Merchants ({liveMerchants.length})
             </button>
             <button
               onClick={() => setActiveTab('revenue')}
@@ -546,7 +584,7 @@ export default function AdminDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <Card padding="md">
                 <span className="text-xs text-[#687182] font-semibold">Total Verified Merchants</span>
-                <div className="text-2xl font-black text-[#17181C] mt-1">{merchantList.length}</div>
+                <div className="text-2xl font-black text-[#17181C] mt-1">{liveMerchants.length}</div>
                 <span className="text-[11px] font-bold text-[#35AB4E] flex items-center gap-1 mt-1">
                   <ArrowUpRight className="w-3 h-3" /> +14 this week
                 </span>
@@ -683,7 +721,7 @@ export default function AdminDashboardPage() {
           <Card padding="lg" className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E3E8EF]">
               <div>
-                <h2 className="text-base font-bold text-[#17181C]">Registered Hyperlocal Merchants ({merchantList.length})</h2>
+                <h2 className="text-base font-bold text-[#17181C]">Registered Hyperlocal Merchants ({liveMerchants.length})</h2>
                 <p className="text-xs text-[#687182]">Filter by tier, manage digital cards and microsites</p>
               </div>
 
