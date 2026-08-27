@@ -229,10 +229,15 @@ export default function LoginPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {DEMO_PERSONAS.map((persona) => {
               const dest = getRoleDestination(persona.role);
+              const demoPassword = 'adsspot123';
               return (
                 <div
                   key={persona.id}
-                  onClick={() => handleQuickLogin(persona)}
+                  onClick={() => {
+                    setEmail(persona.email || '');
+                    setPassword(demoPassword);
+                    handleQuickLogin(persona);
+                  }}
                   className="p-3.5 rounded-2xl border border-[#E3E8EF] dark:border-white/10 hover:border-[#4787F2] dark:hover:border-[#4787F2] bg-white dark:bg-[#171E2C] hover:bg-[#F8FAFF] dark:hover:bg-[#1C2638] transition-all cursor-pointer group shadow-xs hover:shadow-md flex flex-col justify-between"
                 >
                   <div className="space-y-2">
@@ -252,22 +257,27 @@ export default function LoginPage() {
                         <h4 className="text-xs font-black text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2] transition-colors">
                           {persona.name}
                         </h4>
-                        <span className="text-[10px] text-[#4787F2] font-medium truncate block">
-                          {persona.email}
-                        </span>
-                        <span className="text-[9px] text-[#687182] dark:text-neutral-400 font-mono block">
-                          {persona.phone}
+                        <span className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate block">
+                          {persona.description.split('•')[0]}
                         </span>
                       </div>
                     </div>
 
-                    <p className="text-[11px] text-[#4A5260] dark:text-neutral-300 line-clamp-2 leading-relaxed">
-                      {persona.description}
-                    </p>
+                    {/* Explicit ID & Password credentials box */}
+                    <div className="p-2 bg-[#F4F6FB] dark:bg-white/5 rounded-xl border border-neutral-200 dark:border-white/10 space-y-1 font-mono text-[10px]">
+                      <div className="flex items-center justify-between">
+                        <span className="text-neutral-500 font-sans font-bold">ID / Email:</span>
+                        <span className="text-[#4787F2] font-bold truncate max-w-[170px]">{persona.email}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-neutral-500 font-sans font-bold">Password:</span>
+                        <span className="text-[#35AB4E] font-bold">{demoPassword}</span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-2.5 mt-2 border-t border-neutral-100 dark:border-white/10 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[#4787F2]">1-Tap Access</span>
+                    <span className="text-[10px] font-bold text-[#4787F2]">1-Tap Login</span>
                     <Button variant="primary" size="sm" className="text-[10px] py-1 px-3 h-auto font-bold bg-[#4787F2] group-hover:bg-[#3373E0]">
                       Open {persona.role.toUpperCase()}
                     </Button>
@@ -397,33 +407,6 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* 📱 MOBILE NUMBER PROMPT WHILE SIGNIN (Requested Feature) */}
-                <div className="p-3 bg-[#F4F6FB] dark:bg-white/5 rounded-2xl border border-neutral-200 dark:border-white/10 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-[11px] font-bold text-[#17181C] dark:text-white">
-                      Mobile Number (Linked with Account)
-                    </label>
-                    <span className="text-[9px] font-bold text-[#35AB4E] uppercase tracking-wider bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
-                      Hyperlocal Active
-                    </span>
-                  </div>
-                  <div className="flex rounded-xl border border-[#E3E8EF] dark:border-white/15 overflow-hidden bg-white dark:bg-[#171E2C]">
-                    <span className="bg-[#F4F6FB] dark:bg-white/10 px-3 py-2 text-xs font-bold text-[#17181C] dark:text-white border-r border-[#E3E8EF] dark:border-white/10 flex items-center">
-                      🇮🇳 +91
-                    </span>
-                    <input
-                      type="tel"
-                      value={phone.replace(/^\+91/, '')}
-                      onChange={(e) => setPhone('+91' + e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="98765 43210"
-                      className="flex-1 px-3 py-2 text-xs font-medium text-[#17181C] dark:text-white bg-transparent outline-none"
-                    />
-                  </div>
-                  <p className="text-[10px] text-[#687182] dark:text-neutral-400">
-                    Used for WhatsApp lead inquiries, OTP verifications &amp; UPI payouts.
-                  </p>
-                </div>
-
                 <Button
                   type="submit"
                   variant="primary"
@@ -432,7 +415,7 @@ export default function LoginPage() {
                   isLoading={loading}
                   rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  Sign In with Email &amp; Password
+                  Sign In
                 </Button>
               </form>
             )}
