@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { SEED_BUSINESSES } from '@adsspot/api';
 import { Card, Button, TrustedBadge } from '@adsspot/ui';
 import { ApkDownloadPromptModal } from '../../components/ApkDownloadPromptModal';
 import {
@@ -78,8 +77,19 @@ export default function ExplorePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [locationName, setLocationName] = useState('Vadodara, Gujarat');
   const [isStandaloneApp, setIsStandaloneApp] = useState(false);
+  const [merchants, setMerchants] = useState<any[]>([]);
 
   useEffect(() => {
+    // Fetch live merchants from PostgreSQL DB
+    fetch('/api/merchants')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.merchants && Array.isArray(data.merchants)) {
+          setMerchants(data.merchants);
+        }
+      })
+      .catch(() => {});
+
     // Detect if already running in standalone PWA / APK
     const isStandalone =
       typeof window !== 'undefined' &&
@@ -104,13 +114,13 @@ export default function ExplorePage() {
     return () => window.removeEventListener('adsspot_location_changed', updateLoc);
   }, []);
 
-  const filtered = SEED_BUSINESSES.filter((b) => {
+  const filtered = merchants.filter((b) => {
     const matchesCat = selectedCat === 'all' || b.category_id === selectedCat;
     const matchesSearch =
       searchQuery.trim() === '' ||
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.address.toLowerCase().includes(searchQuery.toLowerCase());
+      (b.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.address || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesSearch;
   });
 

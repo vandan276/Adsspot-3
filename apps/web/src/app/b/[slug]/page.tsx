@@ -16,11 +16,32 @@ import {
   QrCode,
 } from 'lucide-react';
 
+const DEFAULT_BIZ = {
+  id: '',
+  owner_id: '',
+  category_id: 'cat-1',
+  name: 'Loading Business...',
+  slug: '',
+  description: '',
+  address: '',
+  pincode: '390007',
+  lat: 22.3072,
+  lng: 73.1812,
+  phone: '',
+  whatsapp: '',
+  logo_url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200',
+  cover_url: 'https://images.unsplash.com/photo-1513094735237-8f2714d57c13?w=1200',
+  tier: 'elite' as const,
+  trusted: true,
+  status: 'active' as const,
+  created_at: new Date().toISOString(),
+};
+
 export default function EliteMicrositePage() {
   const params = useParams();
   const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params?.slug[0] : '';
 
-  const [biz, setBiz] = React.useState(SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!);
+  const [biz, setBiz] = React.useState(SEED_BUSINESSES.find((b) => b.slug === slug) || DEFAULT_BIZ);
 
   React.useEffect(() => {
     async function loadRealBiz() {
