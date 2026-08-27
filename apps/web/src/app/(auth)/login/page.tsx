@@ -15,7 +15,6 @@ import {
   Store,
   User,
   Crown,
-  Sparkles,
   Mail,
   Lock,
   Phone,
@@ -209,24 +208,24 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* 1. 1-CLICK ROLE QUICK LOGIN DIRECTORY */}
+        {/* 1. 1-CLICK SUPER ADMIN QUICK LOGIN */}
         <div className="bg-white dark:bg-[#121620] rounded-3xl p-5 sm:p-6 border border-[#E3E8EF] dark:border-white/10 shadow-sm space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 dark:border-white/10 pb-4">
             <div>
               <div className="inline-flex items-center gap-1 text-xs font-extrabold text-[#4787F2] uppercase tracking-wider mb-1">
-                <Sparkles className="w-3.5 h-3.5" /> Instant Role Access
+                <Crown className="w-3.5 h-3.5 text-[#E11D48]" /> Super Admin Access
               </div>
-              <h2 className="text-lg font-black text-[#17181C] dark:text-white">1-Click Staff &amp; Merchant Personas</h2>
+              <h2 className="text-lg font-black text-[#17181C] dark:text-white">Adsspot Master Admin Portal</h2>
               <p className="text-xs text-[#687182] dark:text-neutral-400 mt-0.5">
-                Select any email profile below to log in directly into their dedicated portal.
+                Global platform administration, merchants, moderation, pricing tiers &amp; audit trails.
               </p>
             </div>
             <span className="text-[11px] font-mono font-bold bg-[#F4F6FB] dark:bg-white/5 text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-xl border border-[#E3E8EF] dark:border-white/10">
-              Demo Password: adsspot123
+              Pass: adsspot123
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {DEMO_PERSONAS.map((persona) => {
               const dest = getRoleDestination(persona.role);
               const demoPassword = 'adsspot123';
@@ -238,36 +237,36 @@ export default function LoginPage() {
                     setPassword(demoPassword);
                     handleQuickLogin(persona);
                   }}
-                  className="p-3.5 rounded-2xl border border-[#E3E8EF] dark:border-white/10 hover:border-[#4787F2] dark:hover:border-[#4787F2] bg-white dark:bg-[#171E2C] hover:bg-[#F8FAFF] dark:hover:bg-[#1C2638] transition-all cursor-pointer group shadow-xs hover:shadow-md flex flex-col justify-between"
+                  className="p-4 rounded-2xl border border-[#E3E8EF] dark:border-white/10 hover:border-[#4787F2] dark:hover:border-[#4787F2] bg-white dark:bg-[#171E2C] hover:bg-[#F8FAFF] dark:hover:bg-[#1C2638] transition-all cursor-pointer group shadow-xs hover:shadow-md flex flex-col justify-between"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border flex items-center gap-1 ${roleBadges[persona.role] || 'bg-neutral-100 text-neutral-800'}`}>
                         {roleIcons[persona.role]}
-                        <span>{persona.role.replace('_', ' ')}</span>
+                        <span>SUPER ADMIN</span>
                       </span>
                       <span className="text-[10px] font-mono text-neutral-400 group-hover:text-[#4787F2] font-bold">
                         {dest} &rarr;
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <Avatar src={persona.avatar_url} name={persona.name} size="sm" />
+                    <div className="flex items-center gap-3">
+                      <Avatar src={persona.avatar_url} name={persona.name} size="md" />
                       <div className="overflow-hidden">
-                        <h4 className="text-xs font-black text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2] transition-colors">
-                          {persona.name}
+                        <h4 className="text-sm font-black text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2] transition-colors">
+                          Adsspot Admin
                         </h4>
-                        <span className="text-[10px] text-neutral-500 dark:text-neutral-400 truncate block">
-                          {persona.description.split('•')[0]}
+                        <span className="text-xs text-[#4787F2] font-medium truncate block">
+                          admin@adsspot.in
                         </span>
                       </div>
                     </div>
 
                     {/* Explicit ID & Password credentials box */}
-                    <div className="p-2 bg-[#F4F6FB] dark:bg-white/5 rounded-xl border border-neutral-200 dark:border-white/10 space-y-1 font-mono text-[10px]">
+                    <div className="p-2.5 bg-[#F4F6FB] dark:bg-white/5 rounded-xl border border-neutral-200 dark:border-white/10 space-y-1 font-mono text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 font-sans font-bold">ID / Email:</span>
-                        <span className="text-[#4787F2] font-bold truncate max-w-[170px]">{persona.email}</span>
+                        <span className="text-neutral-500 font-sans font-bold">Email ID:</span>
+                        <span className="text-[#4787F2] font-bold">admin@adsspot.in</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-neutral-500 font-sans font-bold">Password:</span>
@@ -276,15 +275,32 @@ export default function LoginPage() {
                     </div>
                   </div>
 
-                  <div className="pt-2.5 mt-2 border-t border-neutral-100 dark:border-white/10 flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[#4787F2]">1-Tap Login</span>
-                    <Button variant="primary" size="sm" className="text-[10px] py-1 px-3 h-auto font-bold bg-[#4787F2] group-hover:bg-[#3373E0]">
-                      Open {persona.role.toUpperCase()}
+                  <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-white/10 flex items-center justify-between">
+                    <span className="text-xs font-bold text-[#4787F2]">1-Tap Super Admin Access</span>
+                    <Button variant="primary" size="sm" className="text-xs py-1.5 px-4 font-bold bg-[#4787F2] group-hover:bg-[#3373E0]">
+                      Open Admin Panel &rarr;
                     </Button>
                   </div>
                 </div>
               );
             })}
+
+            <div className="p-4 rounded-2xl border border-dashed border-[#E3E8EF] dark:border-white/10 bg-[#F4F6FB]/50 dark:bg-white/[0.02] flex flex-col justify-between">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-wider block mb-1">
+                  Custom Accounts &amp; Merchants
+                </span>
+                <h4 className="text-sm font-black text-[#17181C] dark:text-white mb-1">
+                  Create or Sign In to Any Account
+                </h4>
+                <p className="text-xs text-[#687182] dark:text-neutral-400 leading-relaxed">
+                  Use the form below to register new merchants or shoppers with your own email and password. All data is saved directly in PostgreSQL.
+                </p>
+              </div>
+              <div className="pt-2 text-xs font-semibold text-[#4787F2]">
+                100% Live Database
+              </div>
+            </div>
           </div>
         </div>
 

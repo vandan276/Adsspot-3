@@ -38,19 +38,14 @@ async function seedDatabase() {
     const client = await pool.connect();
     console.log('🌱 Seeding initial records into AWS Aurora PostgreSQL...');
 
-    // 1. Seed Users
+    // 1. Seed Users (Super Admin Only)
     const users = [
-      { id: 'usr-consumer-1', phone: '+919876543210', full_name: 'Aarav Sharma', role: 'consumer' },
-      { id: 'usr-merchant-1', phone: '+919820012345', full_name: 'Rajesh Mehta', role: 'merchant' },
-      { id: 'usr-sm-1', phone: '+919811122233', full_name: 'Vikram Desai', role: 'sm' },
-      { id: 'usr-ro-1', phone: '+919822233344', full_name: 'Sunita Rao', role: 'ro' },
-      { id: 'usr-zo-1', phone: '+919833344455', full_name: 'Amitabh Joshi', role: 'zo' },
-      { id: 'usr-admin-1', phone: '+919844455566', full_name: 'Rohan Varma', role: 'super_admin' },
+      { id: 'usr-admin-1', phone: '+919999999999', full_name: 'Adsspot Admin', role: 'super_admin' },
     ];
 
     for (const u of users) {
       await client.query(
-        `INSERT INTO users (id, phone, full_name, role) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`,
+        `INSERT INTO users (id, phone, full_name, role) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET full_name = $3, phone = $2`,
         [u.id, u.phone, u.full_name, u.role]
       );
     }
