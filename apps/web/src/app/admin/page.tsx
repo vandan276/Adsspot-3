@@ -143,13 +143,13 @@ export default function AdminDashboardPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleCreateEmployee = (e: React.FormEvent) => {
+  const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!staffForm.name || !staffForm.email) {
       alert('Please provide staff full name and official email address.');
       return;
     }
-    const created = addEmployee(staffForm);
+    const created = await addEmployee(staffForm);
     setShowAddStaffModal(false);
     setStaffForm({
       name: '',

@@ -77,7 +77,7 @@ interface AuthContextType {
   loginWithPhone: (phone: string) => Promise<{ success: boolean; message: string }>;
   verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
   switchPersona: (personaId: string) => void;
-  addEmployee: (input: AddEmployeeInput) => AuthUser;
+  addEmployee: (input: AddEmployeeInput) => Promise<AuthUser>;
   addMerchant: (input: AddMerchantInput) => { user: AuthUser; business: Business };
   logout: () => void;
   personas: LoginDemoPersona[];
@@ -459,11 +459,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const addEmployee = (input: AddEmployeeInput): AuthUser => {
-    const newUserId = `usr-staff-${Date.now()}`;
-    const cleanPhone = (input.phone || '').trim();
-    const formattedPhone = cleanPhone ? (cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone}`) : '+910000000000';
+  const addEmployee = async (input: AddEmployeeInput): Promise<AuthUser> => {
+    const cleanPhone = (input.phone || '').trim().replace(/\s+/g, '');
+    const formattedPhone = cleanPhone ? (cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone}`) : `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`;
     const cleanEmail = (input.email || `${input.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@adsspot.in`).trim().toLowerCase();
+
+    let newUserId = `usr-staff-${Date.now()}`;
+    let newStaffId = `staff-${Date.now()}`;
+
+    // 1. Persist to PostgreSQL database directly and wait for result
+    try {
+      const res = await fetch('/api/staff', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: input.name,
+          email: cleanEmail,
+          password: input.password || 'adsspot123',
+          phone: formattedPhone,
+          role: input.role,
+          city_id: input.city_id || input.ro_city || 'Vadodara',
+          region_id: input.region_id || input.area_name || input.cluster_name || 'Central Gujarat',
+          reports_to: input.reports_to || null,
+          target_monthly: input.target_monthly || input.zone_target || 250000,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          newUserId = data.user.id;
+          newStaffId = data.staff_profile?.id || newStaffId;
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to persist staff to DB:', err);
+    }
 
     const newPersona: LoginDemoPersona = {
       id: newUserId,
@@ -474,52 +505,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       description: `${input.role.toUpperCase()} • ${input.city_id || input.ro_city || 'Territory'} • ${input.pincodes || input.area_name || input.cluster_name || ''}`,
       avatar_url:
         input.avatar_url ||
-        `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 1000)}?w=150&auto=format&fit=crop&q=80`,
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
     };
 
     const newStaffProfile: StaffProfile = {
-      id: `staff-${Date.now()}`,
+      id: newStaffId,
       user_id: newUserId,
       role: input.role,
       reports_to: input.reports_to || (input.role === 'sm' ? 'staff-ro-1' : input.role === 'ro' ? 'staff-zo-1' : null),
-      city_id: input.city_id || input.ro_city || 'city-mum',
-      region_id: input.region_id || input.area_name || input.cluster_name || 'reg-south',
+      city_id: input.city_id || input.ro_city || 'Vadodara',
+      region_id: input.region_id || input.area_name || input.cluster_name || 'Central Gujarat',
       target_monthly: input.target_monthly || input.zone_target || 250000,
       status: 'active',
       created_at: new Date().toISOString(),
     };
 
-    const updatedPersonas = [newPersona, ...personas];
-    const updatedStaff = [newStaffProfile, ...staffList];
-
-    setPersonas(updatedPersonas);
-    setStaffList(updatedStaff);
+    setPersonas((prev) => [newPersona, ...prev.filter((p) => p.email?.toLowerCase() !== cleanEmail && p.id !== newUserId)]);
+    setStaffList((prev) => [newStaffProfile, ...prev.filter((s) => s.user_id !== newUserId)]);
 
     if (typeof window !== 'undefined') {
-      localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updatedPersonas));
-      localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify(updatedStaff));
+      localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify([newPersona, ...personas.filter((p) => p.email?.toLowerCase() !== cleanEmail && p.id !== newUserId)]));
+      localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify([newStaffProfile, ...staffList.filter((s) => s.user_id !== newUserId)]));
     }
-
-    // Persist to PostgreSQL database asynchronously
-    fetch('/api/staff', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: input.name,
-        email: cleanEmail,
-        password: input.password || 'adsspot123',
-        phone: formattedPhone,
-        role: input.role,
-        city_id: input.city_id || input.ro_city || 'city-mum',
-        region_id: input.region_id || input.area_name || input.cluster_name || 'reg-south',
-        reports_to: input.reports_to || null,
-        target_monthly: input.target_monthly || input.zone_target || 250000,
-      }),
-    }).catch((err) => console.warn('Failed to persist staff to DB:', err));
 
     const createdAuthUser: AuthUser = {
       id: newUserId,
       phone: formattedPhone,
+      email: cleanEmail,
       full_name: input.name,
       avatar_url: newPersona.avatar_url,
       role: input.role,

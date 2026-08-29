@@ -59,56 +59,87 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanPhone = (phone || '').trim();
+    const cleanPhone = (phone || '').trim().replace(/\s+/g, '');
     const cleanPassword = password || 'adsspot123';
-    const userId = `usr-staff-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-    const staffId = `staff-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-
-    // 1. Insert or update user in PostgreSQL Aurora
-    await queryPostgres(
-      `INSERT INTO users (id, phone, email, password_hash, full_name, avatar_url, role)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       ON CONFLICT (email) DO UPDATE 
-       SET full_name = EXCLUDED.full_name, role = EXCLUDED.role, updated_at = NOW()`,
-      [
-        userId,
-        cleanPhone || `+910000000000`,
-        cleanEmail,
-        cleanPassword,
-        name,
-        `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80`,
-        role,
-      ]
+    
+    // 1. Check if user exists by email or phone
+    const checkRes = await queryPostgres(
+      `SELECT id, email, phone, role FROM users WHERE LOWER(email) = $1 OR (phone = $2 AND $2 != '') LIMIT 1`,
+      [cleanEmail, cleanPhone || 'NONE']
     );
 
-    // 2. Insert staff profile in PostgreSQL Aurora
+    let effectiveUserId: string;
+
+    if (checkRes?.rows?.length && checkRes.rows.length > 0) {
+      effectiveUserId = checkRes.rows[0].id;
+      await queryPostgres(
+        `UPDATE users 
+         SET full_name = $1, email = $2, password_hash = $3, role = $4, phone = COALESCE(NULLIF($5, ''), phone), updated_at = NOW() 
+         WHERE id = $6`,
+        [name, cleanEmail, cleanPassword, role, cleanPhone, effectiveUserId]
+      );
+    } else {
+      effectiveUserId = `usr-staff-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`;
+      await queryPostgres(
+        `INSERT INTO users (id, phone, email, password_hash, full_name, avatar_url, role, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())`,
+        [
+          effectiveUserId,
+          cleanPhone || `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+          cleanEmail,
+          cleanPassword,
+          name,
+          avatarUrl,
+          role,
+        ]
+      );
+    }
+
+    // 2. Ensure initial wallet exists
     await queryPostgres(
-      `INSERT INTO staff_profiles (id, user_id, role, reports_to, city_id, region_id, target_monthly, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
+      `INSERT INTO wallets (id, user_id, balance, currency, updated_at)
+       VALUES ($1, $2, 0.0, 'INR', NOW())
        ON CONFLICT (id) DO NOTHING`,
-      [
-        staffId,
-        userId,
-        role,
-        reports_to || null,
-        city_id,
-        region_id,
-        target_monthly,
-      ]
+      [`wallet-${effectiveUserId}`, effectiveUserId]
     );
+
+    // 3. Insert or update staff profile in PostgreSQL Aurora
+    const existingProfile = await queryPostgres(
+      `SELECT id FROM staff_profiles WHERE user_id = $1 LIMIT 1`,
+      [effectiveUserId]
+    );
+
+    let effectiveStaffId: string;
+    if (existingProfile?.rows?.length && existingProfile.rows.length > 0) {
+      effectiveStaffId = existingProfile.rows[0].id;
+      await queryPostgres(
+        `UPDATE staff_profiles 
+         SET role = $1, reports_to = $2, city_id = $3, region_id = $4, target_monthly = $5, status = 'active'
+         WHERE id = $6`,
+        [role, reports_to || null, city_id, region_id, target_monthly, effectiveStaffId]
+      );
+    } else {
+      effectiveStaffId = `staff-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      await queryPostgres(
+        `INSERT INTO staff_profiles (id, user_id, role, reports_to, city_id, region_id, target_monthly, status, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', NOW())`,
+        [effectiveStaffId, effectiveUserId, role, reports_to || null, city_id, region_id, target_monthly]
+      );
+    }
 
     return NextResponse.json({
       success: true,
       user: {
-        id: userId,
+        id: effectiveUserId,
         email: cleanEmail,
         phone: cleanPhone,
         full_name: name,
         role,
       },
       staff_profile: {
-        id: staffId,
-        user_id: userId,
+        id: effectiveStaffId,
+        user_id: effectiveUserId,
         role,
         target_monthly,
         city_id,
