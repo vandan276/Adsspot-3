@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth, SEED_AUDIT_LOGS, SEED_CATEGORIES } from '@adsspot/api';
+import { Role, Permission, DashboardType } from '@adsspot/types';
 
 import { Card, Avatar, Button, RoleBadge, TierBadge, TrustedBadge } from '@adsspot/ui';
 import {
@@ -21,10 +22,14 @@ import {
   Search,
   UserPlus,
   X,
+  Edit3,
+  Trash2,
+  Key,
+  Lock,
 } from 'lucide-react';
 
 export default function AdminDashboardPage() {
-  const { staffList, merchantList, addEmployee, addMerchant, personas, switchPersona } = useAuth();
+  const { user, isLoading, staffList, merchantList, addEmployee, addMerchant, refreshAuth } = useAuth();
   const [activeTab, setActiveTab] = useState<
     'overview' | 'tree' | 'merchants' | 'revenue' | 'moderation' | 'cms' | 'permissions'
   >('overview');
@@ -32,6 +37,22 @@ export default function AdminDashboardPage() {
   const [merchantTierFilter, setMerchantTierFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Dynamic Roles & Permissions State
+  const [dbRoles, setDbRoles] = useState<Role[]>([]);
+  const [allPermissions, setAllPermissions] = useState<Permission[]>([]);
+  const [permissionModules, setPermissionModules] = useState<Record<string, Permission[]>>({});
+  const [showCreateRoleModal, setShowCreateRoleModal] = useState(false);
+  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [roleSearchFilter, setRoleSearchFilter] = useState('');
+  const [roleForm, setRoleForm] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    dashboard_type: 'employee' as DashboardType,
+    permissions: [] as string[],
+  });
 
   // Modals
   const [showAddStaffModal, setShowAddStaffModal] = useState(false);
@@ -131,7 +152,7 @@ export default function AdminDashboardPage() {
           setLiveMerchants(data.merchants);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   };
 
   React.useEffect(() => {
@@ -194,40 +215,24 @@ export default function AdminDashboardPage() {
       alert('Please fill out all merchant details.');
       return;
     }
-    const { business } = addMerchant(merchantForm);
-
-    // Persist to PostgreSQL database directly
     try {
-      await fetch('/api/merchants/onboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bizName: merchantForm.business_name,
-          ownerName: merchantForm.owner_name,
-          phone: merchantForm.phone,
-          categoryId: merchantForm.category_id,
-          address: merchantForm.address,
-          pincode: merchantForm.pincode,
-          tier: merchantForm.tier,
-        }),
+      const { business } = await addMerchant(merchantForm);
+      refreshMerchants();
+      setShowAddMerchantModal(false);
+      setMerchantForm({
+        business_name: '',
+        owner_name: '',
+        phone: '',
+        category_id: 'cat-1',
+        address: '',
+        pincode: '400001',
+        tier: 'premium',
+        trusted: true,
       });
-    } catch (e) {
-      console.warn('Persist merchant DB fallback:', e);
+      showToast(`Merchant ${business.name} added with Digital Visiting Card (/card/${business.slug})!`);
+    } catch (e: any) {
+      alert('Error creating merchant: ' + (e?.message || 'Failed'));
     }
-
-    refreshMerchants();
-    setShowAddMerchantModal(false);
-    setMerchantForm({
-      business_name: '',
-      owner_name: '',
-      phone: '',
-      category_id: 'cat-1',
-      address: '',
-      pincode: '400001',
-      tier: 'premium',
-      trusted: true,
-    });
-    showToast(`Merchant ${business.name} added with Digital Visiting Card (/card/${business.slug})!`);
   };
 
   const filteredMerchants = liveMerchants.filter((b) => {
@@ -243,6 +248,168 @@ export default function AdminDashboardPage() {
     setModerationQueue((prev) => prev.filter((item) => item.id !== id));
     showToast('Content approved and published to live consumer feed!');
   };
+
+  const loadRolesAndPermissions = useCallback(async () => {
+    try {
+      const [rRes, pRes] = await Promise.all([
+        fetch('/api/roles'),
+        fetch('/api/permissions'),
+      ]);
+      if (rRes.ok) {
+        const rData = await rRes.json();
+        if (rData.success && Array.isArray(rData.roles)) {
+          setDbRoles(rData.roles);
+        }
+      }
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        if (pData.success) {
+          setAllPermissions(pData.permissions || []);
+          setPermissionModules(pData.grouped || {});
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load roles and permissions:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRolesAndPermissions();
+  }, [loadRolesAndPermissions]);
+
+  const handleOpenCreateRole = () => {
+    setRoleForm({
+      name: '',
+      slug: '',
+      description: '',
+      dashboard_type: 'employee',
+      permissions: ['merchants.view', 'posts.view', 'media.view'],
+    });
+    setShowCreateRoleModal(true);
+  };
+
+  const handleCreateRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!roleForm.name.trim()) {
+      alert('Please provide a role name');
+      return;
+    }
+    try {
+      const res = await fetch('/api/roles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(roleForm),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Failed to create role');
+        return;
+      }
+      showToast(`✓ Role "${data.role.name}" created and saved to database!`);
+      setShowCreateRoleModal(false);
+      loadRolesAndPermissions();
+      refreshAuth();
+    } catch (err: any) {
+      alert('Error creating role: ' + err.message);
+    }
+  };
+
+  const handleOpenEditRole = (role: Role) => {
+    setSelectedRole(role);
+    setRoleForm({
+      name: role.name,
+      slug: role.slug,
+      description: role.description || '',
+      dashboard_type: role.dashboard_type || 'employee',
+      permissions: role.permissions || [],
+    });
+    setShowEditRoleModal(true);
+  };
+
+  const handleUpdateRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRole) return;
+    try {
+      const res = await fetch(`/api/roles/${selectedRole.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(roleForm),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Failed to update role');
+        return;
+      }
+      showToast(`✓ Role "${selectedRole.name}" updated successfully!`);
+      setShowEditRoleModal(false);
+      loadRolesAndPermissions();
+      refreshAuth();
+    } catch (err: any) {
+      alert('Error updating role: ' + err.message);
+    }
+  };
+
+  const handleDeleteRole = async (role: Role) => {
+    if (role.is_system_role) {
+      alert('System roles are permanent and cannot be deleted.');
+      return;
+    }
+    if (!confirm(`Are you sure you want to delete role "${role.name}"? Users assigned to this role will be reverted to Consumer.`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/roles/${role.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Failed to delete role');
+        return;
+      }
+      showToast(`✓ Role "${role.name}" deleted from database.`);
+      loadRolesAndPermissions();
+      refreshAuth();
+    } catch (err: any) {
+      alert('Error deleting role: ' + err.message);
+    }
+  };
+
+  const handleToggleRoleActive = async (role: Role) => {
+    if (role.is_system_role) return;
+    try {
+      const res = await fetch(`/api/roles/${role.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: !role.is_active }),
+      });
+      if (res.ok) {
+        showToast(`Role ${role.name} status updated.`);
+        loadRolesAndPermissions();
+      }
+    } catch { }
+  };
+
+  // Route Guard: Ensure user is Super Admin
+  if (!isLoading && (!user || (user.role !== 'super_admin' && user.dashboard_type !== 'admin'))) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-6">
+        <Card padding="lg" className="max-w-md w-full text-center space-y-4 shadow-xl border border-red-200">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-black text-[#17181C]">Access Denied</h2>
+          <p className="text-xs text-[#687182]">
+            You do not have Super Admin permissions to access the Administration Control Center.
+          </p>
+          <div className="pt-2">
+            <Link href={user ? (user.dashboard_type === 'merchant' ? '/merchant' : user.dashboard_type === 'sm' ? '/sm' : user.dashboard_type === 'ro' ? '/ro' : user.dashboard_type === 'zo' ? '/zo' : '/feed') : '/login'}>
+              <Button variant="primary" size="md" className="w-full">
+                {user ? 'Return to Your Dashboard' : 'Sign In as Administrator'}
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex relative">
@@ -280,26 +447,45 @@ export default function AdminDashboardPage() {
                   Select Employee Designation &amp; Tier
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { id: 'sm', label: 'SM (Sales Manager)', desc: 'Field merchant visits & pincode leads', color: 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]' },
-                    { id: 'ro', label: 'RO (Regional Officer)', desc: 'Cluster oversight & SM team manager', color: 'border-[#35AB4E] bg-[#EBF9EE] text-[#35AB4E]' },
-                    { id: 'zo', label: 'ZO (Zone Officer)', desc: 'City/State zone & metro target head', color: 'border-[#F2B604] bg-[#FEF9E6] text-[#B45309]' },
-                    { id: 'super_admin', label: 'Super Admin', desc: 'Global platform operations & finance', color: 'border-[#981837] bg-[#FDF0F3] text-[#981837]' },
-                  ].map((r) => {
-                    const isSelected = staffForm.role === r.id;
+                  {(dbRoles.length > 0
+                    ? dbRoles.filter((r) => r.slug !== 'consumer')
+                    : [
+                      { id: 'role-sm', slug: 'sm', name: 'SM (Sales Manager)', description: 'Field merchant visits & pincode leads', dashboard_type: 'sm' },
+                      { id: 'role-ro', slug: 'ro', name: 'RO (Regional Officer)', description: 'Cluster oversight & SM team manager', dashboard_type: 'ro' },
+                      { id: 'role-zo', slug: 'zo', name: 'ZO (Zone Officer)', description: 'City/State zone & metro target head', dashboard_type: 'zo' },
+                      { id: 'role-super-admin', slug: 'super_admin', name: 'Super Admin', description: 'Global platform operations & finance', dashboard_type: 'admin' },
+                    ]
+                  ).map((r) => {
+                    const isSelected = staffForm.role === r.slug || (staffForm as any).role_id === r.id;
+                    const color =
+                      r.dashboard_type === 'admin'
+                        ? 'border-[#981837] bg-[#FDF0F3] text-[#981837]'
+                        : r.dashboard_type === 'zo'
+                          ? 'border-[#F2B604] bg-[#FEF9E6] text-[#B45309]'
+                          : r.dashboard_type === 'ro'
+                            ? 'border-[#35AB4E] bg-[#EBF9EE] text-[#35AB4E]'
+                            : 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]';
+
                     return (
                       <button
                         type="button"
                         key={r.id}
-                        onClick={() => setStaffForm({ ...staffForm, role: r.id as any })}
-                        className={`p-2.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                          isSelected
-                            ? `${r.color} font-bold shadow-xs ring-2 ring-offset-1 ring-[#4787F2]`
+                        onClick={() =>
+                          setStaffForm({
+                            ...staffForm,
+                            role: r.slug as any,
+                            ...((r.id ? { role_id: r.id } : {}) as any),
+                          })
+                        }
+                        className={`p-2.5 rounded-2xl border text-left transition-all flex flex-col justify-between ${isSelected
+                            ? `${color} font-bold shadow-xs ring-2 ring-offset-1 ring-[#4787F2]`
                             : 'border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50 dark:hover:bg-white/5 text-neutral-600 dark:text-neutral-300'
-                        }`}
+                          }`}
                       >
-                        <span className="text-xs font-black block leading-tight">{r.label}</span>
-                        <span className="text-[9px] opacity-80 mt-1 block leading-tight">{r.desc}</span>
+                        <span className="text-xs font-black block leading-tight">{r.name}</span>
+                        <span className="text-[9px] opacity-80 mt-1 block leading-tight truncate">
+                          {r.description || `${r.dashboard_type.toUpperCase()} Dashboard`}
+                        </span>
                       </button>
                     );
                   })}
@@ -852,57 +1038,50 @@ export default function AdminDashboardPage() {
           <nav className="space-y-1 text-xs font-semibold text-[#4A5260]">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'overview' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'overview' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Activity className="w-4 h-4" /> Global Overview
             </button>
             <button
               onClick={() => setActiveTab('tree')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'tree' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'tree' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Users className="w-4 h-4" /> Staff Hierarchy ({staffList.length})
             </button>
             <button
               onClick={() => setActiveTab('merchants')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'merchants' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'merchants' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Store className="w-4 h-4" /> All Merchants ({liveMerchants.length})
             </button>
             <button
               onClick={() => setActiveTab('revenue')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'revenue' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'revenue' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <DollarSign className="w-4 h-4" /> Memberships &amp; Revenue
             </button>
             <button
               onClick={() => setActiveTab('moderation')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'moderation' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'moderation' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <FileCheck className="w-4 h-4" /> Content Moderation ({moderationQueue.length})
             </button>
             <button
               onClick={() => setActiveTab('cms')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'cms' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'cms' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Layers className="w-4 h-4" /> Banner Template CMS
             </button>
             <button
               onClick={() => setActiveTab('permissions')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'permissions' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'permissions' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Sliders className="w-4 h-4" /> Roles &amp; Permissions
             </button>
@@ -1063,14 +1242,15 @@ export default function AdminDashboardPage() {
             {/* Live Staff Roster Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {staffList.map((st) => {
-                const p = personas.find((item) => item.id === st.user_id);
-                const name = p?.name || `Staff ${st.id.slice(-4)}`;
-                const phone = p?.phone || '+91 98765 43210';
+                const name = (st as any).user?.full_name || (st as any).name || `Staff ${st.id.slice(-4)}`;
+                const phone = (st as any).user?.phone || (st as any).phone || '+91 98765 43210';
+                const avatar = (st as any).user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(st.user_id)}`;
+                const email = (st as any).user?.email || (st as any).email || '';
                 return (
                   <div key={st.id} className="p-4 rounded-2xl bg-white border border-[#E3E8EF] shadow-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
-                        <Avatar src={p?.avatar_url} name={name} size="sm" />
+                        <Avatar src={avatar} name={name} size="sm" />
                         <div>
                           <h4 className="text-xs font-bold text-[#17181C]">{name}</h4>
                           <span className="text-[10px] text-[#687182]">{phone}</span>
@@ -1084,15 +1264,9 @@ export default function AdminDashboardPage() {
                       <span className="text-[#35AB4E] font-bold">Active</span>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        if (p) switchPersona(p.id);
-                        showToast(`Switched active context to ${name} (${st.role.toUpperCase()})`);
-                      }}
-                      className="w-full py-1.5 rounded-xl bg-[#EDF4FF] hover:bg-[#D9E8FF] text-[11px] font-bold text-[#4787F2] transition-colors"
-                    >
-                      Login as Persona →
-                    </button>
+                    <div className="text-[10px] font-mono text-[#687182] truncate">
+                      {email || `User ID: ${st.user_id}`}
+                    </div>
                   </div>
                 );
               })}
@@ -1123,11 +1297,10 @@ export default function AdminDashboardPage() {
                   <button
                     key={tier}
                     onClick={() => setMerchantTierFilter(tier)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase transition-colors ${
-                      merchantTierFilter === tier
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold uppercase transition-colors ${merchantTierFilter === tier
                         ? 'bg-[#4787F2] text-white shadow-sm'
                         : 'bg-white text-[#4A5260] border border-[#E3E8EF] hover:bg-neutral-50'
-                    }`}
+                      }`}
                   >
                     {tier}
                   </button>
@@ -1361,73 +1534,606 @@ export default function AdminDashboardPage() {
           </Card>
         )}
 
-        {/* TAB 7: PERMISSIONS MATRIX */}
+        {/* TAB 7: DYNAMIC ROLES & PERMISSION MANAGEMENT (RBAC) */}
         {activeTab === 'permissions' && (
-          <Card padding="lg" className="space-y-4">
-            <div className="flex items-center justify-between pb-4 border-b border-[#E3E8EF]">
+          <div className="space-y-6">
+            {/* Header with Actions */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#E3E8EF] shadow-xs">
               <div>
-                <h2 className="text-base font-bold text-[#17181C]">Role-Based Access Control (RBAC) Matrix</h2>
-                <p className="text-xs text-[#687182]">Enforced strictly at Supabase PostgreSQL Row Level Security layer</p>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-black text-[#17181C]">Dynamic Roles &amp; Permissions (RBAC)</h2>
+                  <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-[#EBF9EE] text-[#35AB4E]">
+                    PostgreSQL Enforced
+                  </span>
+                </div>
+                <p className="text-xs text-[#687182] mt-0.5">
+                  Create custom designations (e.g. Sales Executive, Support Lead, Accountant), assign module permissions, and choose target dashboards.
+                </p>
               </div>
-              <span className="text-xs font-bold text-[#35AB4E] bg-emerald-50 px-3 py-1 rounded-full">
-                RLS Enforced
-              </span>
+
+              <Button
+                variant="primary"
+                size="md"
+                className="bg-[#4787F2] hover:bg-[#3972D4] text-xs font-bold shrink-0"
+                onClick={handleOpenCreateRole}
+                leftIcon={<Plus className="w-4 h-4" />}
+              >
+                + Create Dynamic Role
+              </Button>
             </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-[#E3E8EF] text-[#687182] font-bold">
-                    <th className="pb-3">Resource / Table</th>
-                    <th className="pb-3">Consumer</th>
-                    <th className="pb-3">Merchant</th>
-                    <th className="pb-3">SM (Sales)</th>
-                    <th className="pb-3">RO (Regional)</th>
-                    <th className="pb-3">ZO (Zone)</th>
-                    <th className="pb-3">Super Admin</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E3E8EF] text-[11px]">
-                  <tr>
-                    <td className="py-2.5 font-mono font-bold text-[#17181C]">businesses</td>
-                    <td className="py-2.5 text-[#35AB4E]">Read-Only</td>
-                    <td className="py-2.5 text-[#4787F2]">Own Shop</td>
-                    <td className="py-2.5 text-[#4787F2]">Assigned Pincodes</td>
-                    <td className="py-2.5 text-[#4787F2]">Region Shops</td>
-                    <td className="py-2.5 text-[#4787F2]">City Shops</td>
-                    <td className="py-2.5 text-[#981837] font-bold">Full CRUD</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 font-mono font-bold text-[#17181C]">stories</td>
-                    <td className="py-2.5 text-[#35AB4E]">Read-Only</td>
-                    <td className="py-2.5 text-[#981837] font-bold">Elite Only (1/day)</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-[#981837] font-bold">Full CRUD</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 font-mono font-bold text-[#17181C]">staff_profiles</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-[#4787F2]">Own Profile</td>
-                    <td className="py-2.5 text-[#4787F2]">Assigned SMs</td>
-                    <td className="py-2.5 text-[#4787F2]">City ROs &amp; SMs</td>
-                    <td className="py-2.5 text-[#981837] font-bold">Full CRUD</td>
-                  </tr>
-                  <tr>
-                    <td className="py-2.5 font-mono font-bold text-[#17181C]">audit_logs</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-neutral-400">None</td>
-                    <td className="py-2.5 text-[#4787F2]">Region Logs</td>
-                    <td className="py-2.5 text-[#4787F2]">City Logs</td>
-                    <td className="py-2.5 text-[#981837] font-bold">Read-Only Global</td>
-                  </tr>
-                </tbody>
-              </table>
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <Card padding="md" className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#687182]">Total Roles</span>
+                <p className="text-2xl font-black text-[#17181C]">{dbRoles.length || 7}</p>
+                <span className="text-[10px] text-[#35AB4E] font-semibold">● Database Synced</span>
+              </Card>
+              <Card padding="md" className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#687182]">System Roles</span>
+                <p className="text-2xl font-black text-[#4787F2]">
+                  {dbRoles.filter((r) => r.is_system_role).length || 6}
+                </p>
+                <span className="text-[10px] text-[#687182]">Permanent platform roles</span>
+              </Card>
+              <Card padding="md" className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#687182]">Custom Roles</span>
+                <p className="text-2xl font-black text-[#A06E00]">
+                  {dbRoles.filter((r) => !r.is_system_role).length}
+                </p>
+                <span className="text-[10px] text-[#A06E00] font-semibold">User-defined</span>
+              </Card>
+              <Card padding="md" className="space-y-1">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#687182]">Available Permissions</span>
+                <p className="text-2xl font-black text-[#981837]">{allPermissions.length || 31}</p>
+                <span className="text-[10px] text-[#687182]">Across 9 functional modules</span>
+              </Card>
             </div>
-          </Card>
+
+            {/* Role Cards List */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black text-[#17181C] uppercase tracking-wider">
+                  Configured Roles ({dbRoles.length})
+                </h3>
+                <div className="relative w-64">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={roleSearchFilter}
+                    onChange={(e) => setRoleSearchFilter(e.target.value)}
+                    placeholder="Search roles or slugs..."
+                    className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {dbRoles
+                  .filter(
+                    (r) =>
+                      !roleSearchFilter ||
+                      r.name.toLowerCase().includes(roleSearchFilter.toLowerCase()) ||
+                      r.slug.toLowerCase().includes(roleSearchFilter.toLowerCase())
+                  )
+                  .map((role) => {
+                    const dashboardBadgeColor =
+                      role.dashboard_type === 'admin'
+                        ? 'bg-purple-100 text-purple-800'
+                        : role.dashboard_type === 'merchant'
+                          ? 'bg-amber-100 text-amber-800'
+                          : role.dashboard_type === 'sm'
+                            ? 'bg-blue-100 text-blue-800'
+                            : role.dashboard_type === 'ro'
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : role.dashboard_type === 'zo'
+                                ? 'bg-rose-100 text-rose-800'
+                                : 'bg-slate-100 text-slate-800';
+
+                    return (
+                      <Card
+                        key={role.id}
+                        padding="lg"
+                        className="space-y-4 border border-[#E3E8EF] hover:shadow-md transition-all flex flex-col justify-between"
+                      >
+                        <div className="space-y-3">
+                          {/* Role Header */}
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-sm font-black text-[#17181C]">{role.name}</h4>
+                                <span
+                                  className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${role.is_system_role
+                                      ? 'bg-neutral-100 text-neutral-600'
+                                      : 'bg-indigo-100 text-indigo-700'
+                                    }`}
+                                >
+                                  {role.is_system_role ? 'System Role' : 'Custom Role'}
+                                </span>
+                              </div>
+                              <p className="text-[11px] font-mono text-[#687182]">slug: {role.slug}</p>
+                            </div>
+
+                            <div className="flex items-center gap-1.5">
+                              {!role.is_system_role && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleRoleActive(role)}
+                                  className={`text-[9px] font-bold px-2 py-0.5 rounded-full transition-colors ${role.is_active !== false
+                                      ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                                      : 'bg-neutral-100 text-neutral-500 hover:bg-neutral-200'
+                                    }`}
+                                >
+                                  {role.is_active !== false ? '● Active' : '○ Inactive'}
+                                </button>
+                              )}
+                              <span
+                                className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full ${dashboardBadgeColor}`}
+                              >
+                                {role.dashboard_type.toUpperCase()} PANEL
+                              </span>
+                            </div>
+                          </div>
+
+                          <p className="text-xs text-[#687182] line-clamp-2">
+                            {role.description || 'Custom role configured for Adsspot workspace team members.'}
+                          </p>
+
+                          {/* Permissions summary */}
+                          <div className="pt-2 border-t border-[#F4F6FB] space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-bold text-[#17181C] flex items-center gap-1">
+                                <Key className="w-3 h-3 text-[#4787F2]" /> Assigned Permissions
+                              </span>
+                              <span className="text-[#687182] font-semibold">
+                                {role.permissions?.length || 0} granted
+                              </span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto no-scrollbar pt-1">
+                              {(role.permissions || []).map((permKey) => (
+                                <span
+                                  key={permKey}
+                                  className="text-[9px] font-mono bg-[#EDF4FF] text-[#4787F2] px-2 py-0.5 rounded-md font-semibold"
+                                >
+                                  {permKey}
+                                </span>
+                              ))}
+                              {(!role.permissions || role.permissions.length === 0) && (
+                                <span className="text-[10px] text-neutral-400 italic">No permissions assigned</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Actions footer */}
+                        <div className="flex items-center justify-between pt-3 border-t border-[#F4F6FB]">
+                          <span className="text-[11px] text-[#687182] font-semibold">
+                            👥 {role.user_count || 0} active users
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-xs py-1"
+                              onClick={() => handleOpenEditRole(role)}
+                              leftIcon={<Edit3 className="w-3.5 h-3.5" />}
+                            >
+                              Edit Permissions
+                            </Button>
+
+                            {!role.is_system_role && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs py-1 text-red-600 hover:bg-red-50 border-red-200"
+                                onClick={() => handleDeleteRole(role)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </Card>
+                    );
+                  })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL 1: CREATE DYNAMIC ROLE */}
+        {showCreateRoleModal && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-[#E3E8EF] max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-4 border-b border-[#E3E8EF] mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-[#4787F2] text-white flex items-center justify-center font-bold shadow-md">
+                    <Key className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-[#17181C]">Create New Dynamic Role</h3>
+                    <p className="text-xs text-[#687182]">
+                      Configure role identity, default dashboard panel, and granular module permissions
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCreateRoleModal(false)}
+                  className="text-neutral-400 hover:text-neutral-700 p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateRole} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-[#17181C] block mb-1">
+                      Role Display Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={roleForm.name}
+                      onChange={(e) => {
+                        const name = e.target.value;
+                        const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_');
+                        setRoleForm((prev) => ({ ...prev, name, slug }));
+                      }}
+                      placeholder="e.g. Sales Executive, Accountant, Content Lead"
+                      className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-[#17181C] block mb-1">
+                      Unique Role Slug *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={roleForm.slug}
+                      onChange={(e) => setRoleForm({ ...roleForm, slug: e.target.value })}
+                      placeholder="e.g. sales_executive"
+                      className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-mono text-[#4787F2] outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-[#17181C] block mb-1">
+                      Dashboard Type (Panel) *
+                    </label>
+                    <select
+                      value={roleForm.dashboard_type}
+                      onChange={(e) =>
+                        setRoleForm({ ...roleForm, dashboard_type: e.target.value as DashboardType })
+                      }
+                      className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#17181C] bg-white outline-none focus:border-[#4787F2]"
+                    >
+                      <option value="admin">Admin Control Center (/admin)</option>
+                      <option value="merchant">Merchant Studio (/merchant)</option>
+                      <option value="sm">Sales Manager Portal (/sm)</option>
+                      <option value="ro">Regional Officer Portal (/ro)</option>
+                      <option value="zo">Zone Officer Portal (/zo)</option>
+                      <option value="employee">General Employee Panel (/sm)</option>
+                      <option value="user">Consumer / Customer Feed (/feed)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-[#17181C] block mb-1">Role Description</label>
+                    <input
+                      type="text"
+                      value={roleForm.description}
+                      onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
+                      placeholder="Brief summary of duties and responsibilities"
+                      className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+                </div>
+
+                {/* Permissions Module Checkboxes */}
+                <div className="space-y-3 pt-2 border-t border-[#E3E8EF]">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black text-[#17181C] uppercase tracking-wider">
+                      Module Permissions Checklist ({roleForm.permissions.length} selected)
+                    </label>
+                    <div className="flex items-center gap-2 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRoleForm({
+                            ...roleForm,
+                            permissions: allPermissions.map((p) => p.key),
+                          })
+                        }
+                        className="text-[#4787F2] font-bold hover:underline"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-neutral-300">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setRoleForm({ ...roleForm, permissions: [] })}
+                        className="text-neutral-500 font-bold hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 max-h-64 overflow-y-auto p-3 bg-[#F4F6FB] rounded-2xl border border-[#E3E8EF]">
+                    {Object.entries(permissionModules).map(([moduleName, perms]) => {
+                      const allSelectedInModule = perms.every((p) =>
+                        roleForm.permissions.includes(p.key)
+                      );
+
+                      return (
+                        <div key={moduleName} className="bg-white p-3 rounded-xl border border-[#E3E8EF] space-y-2">
+                          <div className="flex items-center justify-between pb-1 border-b border-[#F4F6FB]">
+                            <span className="text-[11px] font-black uppercase text-[#17181C]">
+                              {moduleName} Module
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const moduleKeys = perms.map((p) => p.key);
+                                if (allSelectedInModule) {
+                                  setRoleForm({
+                                    ...roleForm,
+                                    permissions: roleForm.permissions.filter(
+                                      (k) => !moduleKeys.includes(k)
+                                    ),
+                                  });
+                                } else {
+                                  const combined = Array.from(
+                                    new Set([...roleForm.permissions, ...moduleKeys])
+                                  );
+                                  setRoleForm({ ...roleForm, permissions: combined });
+                                }
+                              }}
+                              className="text-[10px] font-bold text-[#4787F2]"
+                            >
+                              {allSelectedInModule ? 'Deselect Module' : 'Select Module'}
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {perms.map((perm) => {
+                              const isChecked = roleForm.permissions.includes(perm.key);
+                              return (
+                                <label
+                                  key={perm.key}
+                                  className={`flex items-start gap-2 p-2 rounded-lg border text-[11px] cursor-pointer transition-all ${isChecked
+                                      ? 'bg-[#EDF4FF] border-[#4787F2] text-[#4787F2] font-semibold'
+                                      : 'bg-white border-[#E3E8EF] text-[#687182] hover:border-neutral-300'
+                                    }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setRoleForm({
+                                          ...roleForm,
+                                          permissions: [...roleForm.permissions, perm.key],
+                                        });
+                                      } else {
+                                        setRoleForm({
+                                          ...roleForm,
+                                          permissions: roleForm.permissions.filter(
+                                            (k) => k !== perm.key
+                                          ),
+                                        });
+                                      }
+                                    }}
+                                    className="mt-0.5 rounded text-[#4787F2]"
+                                  />
+                                  <div>
+                                    <p className="font-bold text-[#17181C]">{perm.name}</p>
+                                    <p className="text-[10px] text-[#687182]">{perm.description}</p>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E3E8EF] flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    type="button"
+                    onClick={() => setShowCreateRoleModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    type="submit"
+                    className="bg-[#4787F2] hover:bg-[#3972D4] font-bold"
+                  >
+                    Create &amp; Persist Role to Database
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL 2: EDIT ROLE & PERMISSIONS */}
+        {showEditRoleModal && selectedRole && (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white rounded-3xl p-6 max-w-2xl w-full shadow-2xl border border-[#E3E8EF] max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-4 border-b border-[#E3E8EF] mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-[#35AB4E] text-white flex items-center justify-center font-bold shadow-md">
+                    <Edit3 className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-[#17181C]">
+                      Edit Role: {selectedRole.name}
+                    </h3>
+                    <p className="text-xs text-[#687182]">
+                      Update role configuration, assigned dashboard, and permissions
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowEditRoleModal(false)}
+                  className="text-neutral-400 hover:text-neutral-700 p-1"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateRole} className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-[#17181C] block mb-1">
+                      Role Display Name
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={roleForm.name}
+                      onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
+                      className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-semibold outline-none focus:border-[#4787F2]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-[#17181C] block mb-1">
+                      Target Dashboard Panel
+                    </label>
+                    <select
+                      value={roleForm.dashboard_type}
+                      onChange={(e) =>
+                        setRoleForm({ ...roleForm, dashboard_type: e.target.value as DashboardType })
+                      }
+                      className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#17181C] bg-white outline-none focus:border-[#4787F2]"
+                    >
+                      <option value="admin">Admin Control Center (/admin)</option>
+                      <option value="merchant">Merchant Studio (/merchant)</option>
+                      <option value="sm">Sales Manager Portal (/sm)</option>
+                      <option value="ro">Regional Officer Portal (/ro)</option>
+                      <option value="zo">Zone Officer Portal (/zo)</option>
+                      <option value="employee">General Employee Panel (/sm)</option>
+                      <option value="user">Consumer / Customer Feed (/feed)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Permissions Module Checkboxes */}
+                <div className="space-y-3 pt-2 border-t border-[#E3E8EF]">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-black text-[#17181C] uppercase tracking-wider">
+                      Module Permissions ({roleForm.permissions.length} active)
+                    </label>
+                    <div className="flex items-center gap-2 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setRoleForm({
+                            ...roleForm,
+                            permissions: allPermissions.map((p) => p.key),
+                          })
+                        }
+                        className="text-[#4787F2] font-bold hover:underline"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-neutral-300">|</span>
+                      <button
+                        type="button"
+                        onClick={() => setRoleForm({ ...roleForm, permissions: [] })}
+                        className="text-neutral-500 font-bold hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 max-h-64 overflow-y-auto p-3 bg-[#F4F6FB] rounded-2xl border border-[#E3E8EF]">
+                    {Object.entries(permissionModules).map(([moduleName, perms]) => (
+                      <div key={moduleName} className="bg-white p-3 rounded-xl border border-[#E3E8EF] space-y-2">
+                        <span className="text-[11px] font-black uppercase text-[#17181C] block pb-1 border-b border-[#F4F6FB]">
+                          {moduleName} Module
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {perms.map((perm) => {
+                            const isChecked = roleForm.permissions.includes(perm.key);
+                            return (
+                              <label
+                                key={perm.key}
+                                className={`flex items-start gap-2 p-2 rounded-lg border text-[11px] cursor-pointer transition-all ${isChecked
+                                    ? 'bg-[#EDF4FF] border-[#4787F2] text-[#4787F2] font-semibold'
+                                    : 'bg-white border-[#E3E8EF] text-[#687182] hover:border-neutral-300'
+                                  }`}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setRoleForm({
+                                        ...roleForm,
+                                        permissions: [...roleForm.permissions, perm.key],
+                                      });
+                                    } else {
+                                      setRoleForm({
+                                        ...roleForm,
+                                        permissions: roleForm.permissions.filter(
+                                          (k) => k !== perm.key
+                                        ),
+                                      });
+                                    }
+                                  }}
+                                  className="mt-0.5 rounded text-[#4787F2]"
+                                />
+                                <div>
+                                  <p className="font-bold text-[#17181C]">{perm.name}</p>
+                                  <p className="text-[10px] text-[#687182]">{perm.description}</p>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E3E8EF] flex items-center justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    type="button"
+                    onClick={() => setShowEditRoleModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    type="submit"
+                    className="bg-[#35AB4E] hover:bg-[#2e9644] font-bold"
+                  >
+                    Update Role &amp; Permissions in Database
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
       </main>
     </div>

@@ -115,9 +115,8 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
-      className={`bg-white border-b border-[#E3E8EF] sticky top-0 z-40 shadow-xs backdrop-blur-md bg-white/95 w-full transition-transform duration-300 ${
-        isStoryOpen ? '-translate-y-full pointer-events-none' : 'translate-y-0'
-      }`}
+      className={`bg-white border-b border-[#E3E8EF] sticky top-0 z-40 shadow-xs backdrop-blur-md bg-white/95 w-full transition-transform duration-300 ${isStoryOpen ? '-translate-y-full pointer-events-none' : 'translate-y-0'
+        }`}
     >
       {/* Language Toast */}
       {toastMessage && (
@@ -198,11 +197,10 @@ export const Navbar: React.FC = () => {
                         <button
                           key={lang.code}
                           onClick={() => handleSelectLanguage(lang)}
-                          className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between transition-colors ${
-                            isSelected
+                          className={`w-full px-3 py-2 text-left text-xs flex items-center justify-between transition-colors ${isSelected
                               ? 'bg-[#EDF4FF] text-[#4787F2] font-bold'
                               : 'text-[#17181C] hover:bg-[#F4F6FB]'
-                          }`}
+                            }`}
                         >
                           <div>
                             <span className="font-bold block">{lang.native}</span>

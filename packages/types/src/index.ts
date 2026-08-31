@@ -457,10 +457,58 @@ export interface AuditLog {
 }
 
 // ==========================================
-// 3. Auth & Session Types
+// 3. Auth, RBAC & Session Types
 // ==========================================
 
+export type DashboardType = 'admin' | 'merchant' | 'sm' | 'ro' | 'zo' | 'employee' | 'user';
+
+export interface Permission {
+  id: string;
+  key: string;
+  name: string;
+  description?: string | null;
+  module: string;
+  created_at: string;
+}
+
+export interface Role {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  dashboard_type: DashboardType;
+  is_system_role: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  permissions?: string[];
+  user_count?: number;
+}
+
+export interface RolePermission {
+  role_id: string;
+  permission_id: string;
+}
+
+export interface MediaRecord {
+  id: string;
+  owner_id?: string | null;
+  merchant_id?: string | null;
+  file_name: string;
+  storage_key: string;
+  file_url: string;
+  mime_type: string;
+  file_size: number;
+  visibility: 'public' | 'private';
+  status: 'active' | 'archived';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AuthUser extends User {
+  role_id?: string | null;
+  dashboard_type?: DashboardType;
+  permissions?: string[];
   staff_profile?: StaffProfile | null;
   business_profile?: Business | null;
   wallet?: Wallet | null;

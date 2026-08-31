@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth, SEED_BUSINESSES, SEED_POSTS, SEED_REVIEWS } from '@adsspot/api';
+import { useAuth, SEED_BUSINESSES, SEED_POSTS, SEED_REVIEWS, SEED_CATEGORIES } from '@adsspot/api';
 import { Card, Avatar, Button, TierBadge, TrustedBadge } from '@adsspot/ui';
 import {
   Store,
@@ -20,18 +20,123 @@ import {
   CheckCircle,
   Share2,
   Download,
+  ShieldCheck,
+  CreditCard,
+  Zap,
+  Building2,
+  X,
 } from 'lucide-react';
 
-
 export default function MerchantStudioPage() {
-  const { user } = useAuth();
-  const currentBiz = user?.business_profile || SEED_BUSINESSES[0]!;
+  const { user, isLoading, refreshAuth } = useAuth();
+  const [localBiz, setLocalBiz] = useState<any>(null);
+
+  const currentBiz = localBiz || user?.business_profile || (user?.role === 'super_admin' ? SEED_BUSINESSES[0]! : null);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'crm' | 'posts' | 'banners' | 'reviews' | 'billing'>('overview');
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [replyInput, setReplyInput] = useState<Record<string, string>>({});
   const [selectedTemplate, setSelectedTemplate] = useState<string>('diwali');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isUploadingMedia, setIsUploadingMedia] = useState(false);
+
+  // Membership & Upgrade State
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeTier, setUpgradeTier] = useState<'basic' | 'premium' | 'elite'>('elite');
+  const [upgradeCycle, setUpgradeCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [upgradePayMethod, setUpgradePayMethod] = useState<'upi' | 'card' | 'netbanking' | 'qr'>('upi');
+  const [upgradeUpiId, setUpgradeUpiId] = useState('merchant@okhdfcbank');
+  const [isProcessingUpgrade, setIsProcessingUpgrade] = useState(false);
+
+  // Unsubscribed Onboarding Form State
+  const [onboardBizName, setOnboardBizName] = useState(user?.full_name || 'My Store');
+  const [onboardCategory, setOnboardCategory] = useState('cat-1');
+  const [onboardAddress, setOnboardAddress] = useState('Fort, Mumbai');
+  const [onboardPincode, setOnboardPincode] = useState('400001');
+
+  const getPlanPrice = (tier: 'basic' | 'premium' | 'elite', cycle: 'monthly' | 'yearly') => {
+    if (tier === 'basic') return cycle === 'monthly' ? 999 : 9990;
+    if (tier === 'premium') return cycle === 'monthly' ? 2499 : 24990;
+    return cycle === 'monthly' ? 4999 : 49990;
+  };
+
+  const handleExecuteUpgrade = async (targetTier: 'basic' | 'premium' | 'elite', cycle: 'monthly' | 'yearly' = upgradeCycle) => {
+    setIsProcessingUpgrade(true);
+    try {
+      const price = getPlanPrice(targetTier, cycle);
+      const generatedPayId = `pay_rzp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+      const res = await fetch('/api/merchants/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tier: targetTier,
+          billingCycle: cycle,
+          bizName: currentBiz?.name || onboardBizName || user?.full_name || 'My Store',
+          ownerName: user?.full_name || 'Store Owner',
+          phone: user?.phone || '+919876543210',
+          categoryId: currentBiz?.category_id || onboardCategory,
+          address: currentBiz?.address || onboardAddress,
+          pincode: currentBiz?.pincode || onboardPincode,
+          paymentMethod: upgradePayMethod.toUpperCase(),
+          paymentId: generatedPayId,
+          amount: price,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Payment failed');
+      }
+
+      setLocalBiz(data.business);
+      setShowUpgradeModal(false);
+      await refreshAuth();
+      showToast(`🎉 Upgraded to ${targetTier.toUpperCase()} Tier! Payment ID: ${generatedPayId}`);
+    } catch (err: any) {
+      alert('Subscription upgrade error: ' + (err?.message || 'Failed'));
+    } finally {
+      setIsProcessingUpgrade(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'story' | 'post') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingMedia(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('module', target === 'story' ? 'stories' : 'posts');
+      if (user?.id) formData.append('user_id', user.id);
+      if (currentBiz?.id) formData.append('merchant_id', currentBiz.id);
+
+      const res = await fetch('/api/media/upload', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(`❌ Upload failed: ${data.error || 'Please sign in or retry.'}`);
+        return;
+      }
+
+      if (target === 'story') {
+        setNewStoryImage(data.file_url);
+        showToast(`✓ Story image uploaded! (${file.name})`);
+      } else {
+        setNewPostImage(data.file_url);
+        showToast(`✓ Post image uploaded! (${file.name})`);
+      }
+    } catch (err: any) {
+      showToast(`❌ Failed to upload image: ${err?.message || 'Network error'}`);
+    } finally {
+      setIsUploadingMedia(false);
+    }
+  };
 
   // CRM Leads Pipeline State (Feature G)
   const [leads, setLeads] = useState([
@@ -113,7 +218,7 @@ export default function MerchantStudioPage() {
           setMerchantPosts(data.posts);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     if (currentBiz?.id) {
       // 1. Fetch real stats
@@ -124,7 +229,7 @@ export default function MerchantStudioPage() {
             setBizStats(data.stats);
           }
         })
-        .catch(() => {});
+        .catch(() => { });
 
       // 2. Fetch real reviews
       fetch(`/api/interactions?businessId=${currentBiz.id}`)
@@ -140,7 +245,7 @@ export default function MerchantStudioPage() {
             }
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [currentBiz?.id]);
 
@@ -207,6 +312,210 @@ export default function MerchantStudioPage() {
     }
   };
 
+  // Route Guard: Merchant or Super Admin
+  if (!isLoading && (!user || (user.role !== 'merchant' && user.role !== 'super_admin' && user.dashboard_type !== 'merchant' && user.dashboard_type !== 'admin'))) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-6">
+        <Card padding="lg" className="max-w-md w-full text-center space-y-4 shadow-xl border border-amber-200">
+          <div className="w-16 h-16 bg-amber-100 text-[#A06E00] rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            🏪
+          </div>
+          <h2 className="text-xl font-black text-[#17181C]">Merchant Studio Access</h2>
+          <p className="text-xs text-[#687182]">
+            You need a registered merchant account or administrator permissions to access Merchant Studio.
+          </p>
+          <div className="pt-2 flex flex-col gap-2">
+            <Link href="/login">
+              <Button variant="primary" size="md" className="w-full">
+                Sign In as Merchant
+              </Button>
+            </Link>
+            <Link href="/pricing">
+              <Button variant="outline" size="md" className="w-full">
+                View Merchant Plans &amp; Pricing
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  // Paywall: If Merchant has not subscribed to any plan yet
+  if (!isLoading && !currentBiz && user?.role !== 'super_admin') {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-4 sm:p-6">
+        <Card padding="lg" className="max-w-2xl w-full space-y-6 shadow-2xl bg-white border border-[#E3E8EF]">
+          <div className="text-center space-y-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-[#981837] text-xs font-black">
+              🔥 50% Launch Discount Active
+            </div>
+            <h2 className="text-2xl font-black text-[#17181C]">Activate Your Merchant Membership</h2>
+            <p className="text-xs text-[#687182] max-w-md mx-auto">
+              Select a membership tier to unlock your Digital Visiting Card, neighborhood feed posting, and Banner Studio.
+            </p>
+          </div>
+
+          {/* Pricing Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Basic */}
+            <div
+              onClick={() => { setUpgradeTier('basic'); }}
+              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between ${upgradeTier === 'basic' ? 'border-[#4787F2] bg-[#EDF4FF]/50 ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] hover:border-neutral-300'
+                }`}
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <TierBadge tier="basic" size="sm" />
+                  <span className="text-[10px] font-bold text-[#4787F2] bg-blue-50 px-2 py-0.5 rounded-full">50% OFF</span>
+                </div>
+                <div>
+                  <span className="text-xs text-neutral-400 line-through font-bold">₹1,999/mo</span>
+                  <div className="text-xl font-black text-[#17181C]">₹999 <span className="text-[11px] font-normal text-neutral-500">/mo</span></div>
+                </div>
+                <ul className="text-[11px] text-neutral-600 space-y-1 pt-2 border-t border-neutral-100">
+                  <li>✓ Digital Card (/card)</li>
+                  <li>✓ Festival auto-banners</li>
+                  <li className="text-neutral-400 line-through">✗ Custom banners</li>
+                  <li className="text-neutral-400 line-through">✗ 24h Stories</li>
+                </ul>
+              </div>
+              <div className={`mt-3 py-1.5 rounded-xl text-center text-xs font-bold ${upgradeTier === 'basic' ? 'bg-[#4787F2] text-white' : 'bg-neutral-100 text-neutral-700'
+                }`}>
+                {upgradeTier === 'basic' ? 'Selected' : 'Select Basic'}
+              </div>
+            </div>
+
+            {/* Premium */}
+            <div
+              onClick={() => { setUpgradeTier('premium'); }}
+              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${upgradeTier === 'premium' ? 'border-[#35AB4E] bg-emerald-50/50 ring-2 ring-[#35AB4E]/20' : 'border-[#E3E8EF] hover:border-neutral-300'
+                }`}
+            >
+              <div className="absolute -top-2.5 right-3 bg-[#35AB4E] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                Most Popular
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between mt-1">
+                  <TierBadge tier="premium" size="sm" />
+                  <span className="text-[10px] font-bold text-[#35AB4E] bg-emerald-50 px-2 py-0.5 rounded-full">Save 50%</span>
+                </div>
+                <div>
+                  <span className="text-xs text-neutral-400 line-through font-bold">₹4,999/mo</span>
+                  <div className="text-xl font-black text-[#17181C]">₹2,499 <span className="text-[11px] font-normal text-neutral-500">/mo</span></div>
+                </div>
+                <ul className="text-[11px] text-neutral-600 space-y-1 pt-2 border-t border-neutral-100">
+                  <li>✓ Everything in Basic</li>
+                  <li>✓ 2 Custom Banners/wk</li>
+                  <li className="text-[#35AB4E] font-bold">✓ Green "Trusted" Badge</li>
+                  <li className="text-neutral-400 line-through">✗ 24h Stories</li>
+                </ul>
+              </div>
+              <div className={`mt-3 py-1.5 rounded-xl text-center text-xs font-bold ${upgradeTier === 'premium' ? 'bg-[#35AB4E] text-white' : 'bg-neutral-100 text-neutral-700'
+                }`}>
+                {upgradeTier === 'premium' ? 'Selected' : 'Select Premium'}
+              </div>
+            </div>
+
+            {/* Elite */}
+            <div
+              onClick={() => { setUpgradeTier('elite'); }}
+              className={`p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between ${upgradeTier === 'elite' ? 'border-[#981837] bg-red-50/40 ring-2 ring-[#981837]/20' : 'border-[#E3E8EF] hover:border-neutral-300'
+                }`}
+            >
+              <div className="absolute -top-2.5 right-3 bg-[#981837] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">
+                VIP Growth
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between mt-1">
+                  <TierBadge tier="elite" size="sm" />
+                  <span className="text-[10px] font-bold text-[#981837] bg-red-50 px-2 py-0.5 rounded-full">All Features</span>
+                </div>
+                <div>
+                  <span className="text-xs text-neutral-400 line-through font-bold">₹9,999/mo</span>
+                  <div className="text-xl font-black text-[#17181C]">₹4,999 <span className="text-[11px] font-normal text-neutral-500">/mo</span></div>
+                </div>
+                <ul className="text-[11px] text-neutral-600 space-y-1 pt-2 border-t border-neutral-100">
+                  <li>✓ Everything in Premium</li>
+                  <li className="text-[#981837] font-bold">✓ Daily 24h Stories</li>
+                  <li className="text-[#981837] font-bold">✓ Microsite (/b/[slug])</li>
+                  <li>✓ Daily Banners (365/yr)</li>
+                </ul>
+              </div>
+              <div className={`mt-3 py-1.5 rounded-xl text-center text-xs font-bold ${upgradeTier === 'elite' ? 'bg-[#981837] text-white' : 'bg-neutral-100 text-neutral-700'
+                }`}>
+                {upgradeTier === 'elite' ? 'Selected' : 'Select Elite'}
+              </div>
+            </div>
+          </div>
+
+          {/* Store Info Inputs */}
+          <div className="p-4 rounded-2xl bg-[#F4F6FB] border border-[#E3E8EF] space-y-3">
+            <h5 className="text-xs font-black text-[#17181C] flex items-center gap-1.5">
+              <Store className="w-3.5 h-3.5 text-[#4787F2]" /> Store Setup Details
+            </h5>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">Business / Store Name</label>
+                <input
+                  type="text"
+                  value={onboardBizName}
+                  onChange={(e) => setOnboardBizName(e.target.value)}
+                  placeholder="e.g. Royal Sweets &amp; Bakers"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E3E8EF] text-xs bg-white outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">Store Category</label>
+                <select
+                  value={onboardCategory}
+                  onChange={(e) => setOnboardCategory(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-[#E3E8EF] text-xs bg-white outline-none"
+                >
+                  {SEED_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">Store Address / Landmark</label>
+                <input
+                  type="text"
+                  value={onboardAddress}
+                  onChange={(e) => setOnboardAddress(e.target.value)}
+                  placeholder="e.g. Shop 4, Fort, Mumbai"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E3E8EF] text-xs bg-white outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-neutral-700 mb-1">Pincode Territory</label>
+                <input
+                  type="text"
+                  value={onboardPincode}
+                  onChange={(e) => setOnboardPincode(e.target.value)}
+                  placeholder="400001"
+                  className="w-full px-3 py-2 rounded-xl border border-[#E3E8EF] text-xs bg-white outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Instant Razorpay Activation Button */}
+          <Button
+            variant="primary"
+            size="md"
+            className="w-full font-black shadow-xl py-3.5 text-sm bg-[#35AB4E] hover:bg-[#2E9644] flex items-center justify-center gap-2"
+            isLoading={isProcessingUpgrade}
+            onClick={() => handleExecuteUpgrade(upgradeTier, upgradeCycle)}
+          >
+            <ShieldCheck className="w-4 h-4" /> Pay ₹{getPlanPrice(upgradeTier, upgradeCycle).toLocaleString()} via Razorpay &amp; Unlock Merchant Studio &rarr;
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex flex-col lg:flex-row relative pb-24 lg:pb-8">
@@ -232,49 +541,43 @@ export default function MerchantStudioPage() {
           <nav className="space-y-1 text-xs font-semibold text-[#4A5260]">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'overview' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'overview' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Store className="w-4 h-4" /> Business Overview
             </button>
             <button
               onClick={() => setActiveTab('crm')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'crm' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'crm' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Users className="w-4 h-4 text-[#35AB4E]" /> Customer Leads CRM
             </button>
             <button
               onClick={() => setActiveTab('posts')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'posts' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'posts' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <ImageIcon className="w-4 h-4" /> Posts &amp; Stories
             </button>
             <button
               onClick={() => setActiveTab('banners')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'banners' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'banners' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Sparkles className="w-4 h-4" /> Banner Studio AI
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'reviews' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'reviews' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <MessageSquare className="w-4 h-4" /> Customer Reviews
             </button>
             <button
               onClick={() => setActiveTab('billing')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'billing' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'billing' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Award className="w-4 h-4 text-amber-500" /> Plan &amp; Billing
             </button>
@@ -353,51 +656,46 @@ export default function MerchantStudioPage() {
           <div className="pt-3 border-t border-[#F4F6FB] flex gap-2 overflow-x-auto no-scrollbar pb-1">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${
-                activeTab === 'overview'
-                  ? 'bg-[#4787F2] text-white shadow-sm'
-                  : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
-              }`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${activeTab === 'overview'
+                ? 'bg-[#4787F2] text-white shadow-sm'
+                : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
+                }`}
             >
               <Store className="w-3.5 h-3.5" /> Overview
             </button>
             <button
               onClick={() => setActiveTab('posts')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${
-                activeTab === 'posts'
-                  ? 'bg-[#4787F2] text-white shadow-sm'
-                  : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
-              }`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${activeTab === 'posts'
+                ? 'bg-[#4787F2] text-white shadow-sm'
+                : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
+                }`}
             >
               <ImageIcon className="w-3.5 h-3.5" /> Posts &amp; Stories
             </button>
             <button
               onClick={() => setActiveTab('banners')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${
-                activeTab === 'banners'
-                  ? 'bg-[#4787F2] text-white shadow-sm'
-                  : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
-              }`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${activeTab === 'banners'
+                ? 'bg-[#4787F2] text-white shadow-sm'
+                : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
+                }`}
             >
               <Sparkles className="w-3.5 h-3.5" /> Banner Studio
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${
-                activeTab === 'reviews'
-                  ? 'bg-[#4787F2] text-white shadow-sm'
-                  : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
-              }`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${activeTab === 'reviews'
+                ? 'bg-[#4787F2] text-white shadow-sm'
+                : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
+                }`}
             >
               <MessageSquare className="w-3.5 h-3.5" /> Reviews
             </button>
             <button
               onClick={() => setActiveTab('billing')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${
-                activeTab === 'billing'
-                  ? 'bg-[#4787F2] text-white shadow-sm'
-                  : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
-              }`}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold shrink-0 flex items-center gap-1.5 transition-all ${activeTab === 'billing'
+                ? 'bg-[#4787F2] text-white shadow-sm'
+                : 'bg-[#F4F6FB] text-[#4A5260] hover:bg-neutral-200'
+                }`}
             >
               <Award className="w-3.5 h-3.5 text-amber-500" /> Plan &amp; Upgrade
             </button>
@@ -705,9 +1003,8 @@ export default function MerchantStudioPage() {
                 </div>
 
                 <div className="text-right">
-                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-                    hasStoryToday ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${hasStoryToday ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                    }`}>
                     {hasStoryToday ? '✓ 1 Active Story Live Today' : '● Ready to Publish Today'}
                   </span>
                 </div>
@@ -727,14 +1024,34 @@ export default function MerchantStudioPage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-[#17181C] block mb-1">Story Image URL</label>
-                      <input
-                        type="text"
-                        value={newStoryImage}
-                        onChange={(e) => setNewStoryImage(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full p-2.5 rounded-xl border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
-                      />
+                      <label className="text-[11px] font-bold text-[#17181C] block mb-1">Story Media / Photo</label>
+                      <div className="flex items-center gap-2">
+                        <label className={`cursor-pointer px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${isUploadingMedia ? 'bg-neutral-200 text-neutral-500' : 'bg-[#4787F2] text-white hover:bg-[#3972D4]'
+                          }`}>
+                          <ImageIcon className="w-3.5 h-3.5" />
+                          {isUploadingMedia ? 'Uploading...' : '📁 Upload Photo'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            disabled={isUploadingMedia}
+                            onChange={(e) => handleFileUpload(e, 'story')}
+                            className="hidden"
+                          />
+                        </label>
+                        <input
+                          type="text"
+                          value={newStoryImage}
+                          onChange={(e) => setNewStoryImage(e.target.value)}
+                          placeholder="Or paste image URL..."
+                          className="w-full p-2 rounded-xl border border-[#E3E8EF] text-xs outline-none focus:border-[#4787F2]"
+                        />
+                      </div>
+                      {newStoryImage && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <img src={newStoryImage} alt="Story Preview" className="w-10 h-14 object-cover rounded-lg border border-[#E3E8EF]" />
+                          <span className="text-[10px] text-[#35AB4E] font-bold">✓ Media Attached</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -765,7 +1082,7 @@ export default function MerchantStudioPage() {
                         size="sm"
                         className="w-full bg-[#4787F2] hover:bg-[#3972D4] text-xs py-2 font-bold"
                         onClick={handlePublishStory}
-                        disabled={hasStoryToday}
+                        disabled={hasStoryToday || isUploadingMedia}
                       >
                         {hasStoryToday ? 'Story Active for 24h' : '🚀 Publish 24h Story'}
                       </Button>
@@ -800,19 +1117,32 @@ export default function MerchantStudioPage() {
                 />
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
                   <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <label className={`cursor-pointer px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${isUploadingMedia ? 'bg-neutral-200 text-neutral-500' : 'bg-neutral-800 text-white hover:bg-neutral-700'
+                      }`}>
+                      <ImageIcon className="w-3.5 h-3.5" />
+                      {isUploadingMedia ? 'Uploading...' : 'Upload Image'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={isUploadingMedia}
+                        onChange={(e) => handleFileUpload(e, 'post')}
+                        className="hidden"
+                      />
+                    </label>
                     <input
                       type="text"
                       value={newPostImage}
                       onChange={(e) => setNewPostImage(e.target.value)}
-                      placeholder="Image URL..."
+                      placeholder="Or image URL..."
                       className="px-3 py-1.5 rounded-xl border border-[#E3E8EF] text-[11px] w-full sm:w-64 outline-none"
                     />
                   </div>
                   <Button
                     variant="primary"
                     size="sm"
-                    className="w-full sm:w-auto"
+                    className="w-full sm:w-auto font-bold"
                     onClick={handlePublishPost}
+                    disabled={isUploadingMedia}
                   >
                     Publish Post to Feed
                   </Button>
@@ -856,9 +1186,8 @@ export default function MerchantStudioPage() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   onClick={() => setSelectedTemplate('diwali')}
-                  className={`p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedTemplate === 'diwali' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
-                  }`}
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${selectedTemplate === 'diwali' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
+                    }`}
                 >
                   <span className="text-xs font-black block text-[#17181C]">🪔 Diwali Festival Dhamaka</span>
                   <span className="text-[10px] text-[#687182]">All tiers • Auto-stamped</span>
@@ -866,9 +1195,8 @@ export default function MerchantStudioPage() {
 
                 <button
                   onClick={() => setSelectedTemplate('ganesh')}
-                  className={`p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedTemplate === 'ganesh' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
-                  }`}
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${selectedTemplate === 'ganesh' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
+                    }`}
                 >
                   <span className="text-xs font-black block text-[#17181C]">🐘 Ganesh Chaturthi Special</span>
                   <span className="text-[10px] text-[#687182]">Premium &amp; Elite</span>
@@ -876,9 +1204,8 @@ export default function MerchantStudioPage() {
 
                 <button
                   onClick={() => setSelectedTemplate('gold')}
-                  className={`p-3.5 rounded-2xl border text-left transition-all ${
-                    selectedTemplate === 'gold' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
-                  }`}
+                  className={`p-3.5 rounded-2xl border text-left transition-all ${selectedTemplate === 'gold' ? 'border-[#4787F2] bg-[#EDF4FF] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] bg-white hover:border-neutral-300'
+                    }`}
                 >
                   <span className="text-xs font-black block text-[#17181C]">✨ Weekend Flash Sale / Mega Offer</span>
                   <span className="text-[10px] text-[#687182]">Elite Daily Template</span>
@@ -1153,8 +1480,17 @@ export default function MerchantStudioPage() {
                     <li>✗ Custom weekly banners</li>
                     <li>✗ Elite microsite &amp; stories</li>
                   </ul>
-                  <Button variant="outline" size="sm" className="w-full" disabled={currentBiz?.tier === 'basic'}>
-                    {currentBiz?.tier === 'basic' ? 'Current Plan' : 'Select Plan'}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={currentBiz?.tier === 'basic'}
+                    onClick={() => {
+                      setUpgradeTier('basic');
+                      setShowUpgradeModal(true);
+                    }}
+                  >
+                    {currentBiz?.tier === 'basic' ? 'Current Plan' : 'Select Basic Plan'}
                   </Button>
                 </div>
 
@@ -1182,7 +1518,10 @@ export default function MerchantStudioPage() {
                     size="sm"
                     className="w-full bg-[#35AB4E] hover:bg-[#2e9644]"
                     disabled={currentBiz?.tier === 'premium'}
-                    onClick={() => showToast('Upgraded to Premium! Green Trusted badge enabled.')}
+                    onClick={() => {
+                      setUpgradeTier('premium');
+                      setShowUpgradeModal(true);
+                    }}
                   >
                     {currentBiz?.tier === 'premium' ? 'Current Plan' : 'Claim 50% OFF • Upgrade'}
                   </Button>
@@ -1212,7 +1551,10 @@ export default function MerchantStudioPage() {
                     size="sm"
                     className="w-full bg-[#981837] hover:bg-[#7e142e]"
                     disabled={currentBiz?.tier === 'elite'}
-                    onClick={() => showToast('Upgraded to Elite! Microsite and 24h Stories unlocked.')}
+                    onClick={() => {
+                      setUpgradeTier('elite');
+                      setShowUpgradeModal(true);
+                    }}
                   >
                     {currentBiz?.tier === 'elite' ? 'Current Plan' : 'Claim 50% OFF • Upgrade'}
                   </Button>
@@ -1222,6 +1564,149 @@ export default function MerchantStudioPage() {
           </div>
         )}
       </main>
+
+      {/* RAZORPAY UPGRADE & PAYMENT MODAL */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 animate-fade-in">
+          <div className="max-w-lg w-full bg-white rounded-3xl p-6 shadow-2xl border border-neutral-200 space-y-5 relative">
+            <button
+              type="button"
+              onClick={() => setShowUpgradeModal(false)}
+              className="absolute top-4 right-4 p-2 rounded-full hover:bg-neutral-100 text-neutral-400 hover:text-black transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-[#35AB4E] flex items-center justify-center font-black">
+                ₹
+              </div>
+              <div>
+                <h3 className="text-base font-black text-[#17181C]">
+                  Upgrade to {upgradeTier.toUpperCase()} Membership
+                </h3>
+                <p className="text-xs text-[#687182]">
+                  Instant activation via Razorpay Payment Gateway
+                </p>
+              </div>
+            </div>
+
+            {/* Plan Selector & Cycle */}
+            <div className="grid grid-cols-3 gap-2">
+              {(['basic', 'premium', 'elite'] as const).map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setUpgradeTier(t)}
+                  className={`p-3 rounded-2xl border-2 text-center transition-all ${upgradeTier === t
+                    ? 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2] font-black'
+                    : 'border-neutral-200 text-neutral-600 font-bold'
+                    }`}
+                >
+                  <div className="text-xs capitalize">{t}</div>
+                  <div className="text-sm font-black mt-0.5">₹{getPlanPrice(t, upgradeCycle).toLocaleString()}</div>
+                </button>
+              ))}
+            </div>
+
+            {/* Billing Cycle Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F4F6FB] border border-[#E3E8EF]">
+              <span className="text-xs font-bold text-[#17181C]">Billing Frequency</span>
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-neutral-200 text-xs font-bold">
+                <button
+                  type="button"
+                  onClick={() => setUpgradeCycle('monthly')}
+                  className={`px-3 py-1 rounded-lg transition-all ${upgradeCycle === 'monthly' ? 'bg-[#17181C] text-white' : 'text-neutral-500'
+                    }`}
+                >
+                  Monthly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUpgradeCycle('yearly')}
+                  className={`px-3 py-1 rounded-lg transition-all ${upgradeCycle === 'yearly' ? 'bg-[#35AB4E] text-white' : 'text-emerald-600'
+                    }`}
+                >
+                  Annual (2 Mo Free)
+                </button>
+              </div>
+            </div>
+
+            {/* Payment Method */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-[#17181C] uppercase tracking-wider">
+                Select Payment Method
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setUpgradePayMethod('upi')}
+                  className={`p-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 ${upgradePayMethod === 'upi' ? 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]' : 'border-neutral-200 text-neutral-600'
+                    }`}
+                >
+                  <Zap className="w-4 h-4" /> UPI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUpgradePayMethod('card')}
+                  className={`p-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 ${upgradePayMethod === 'card' ? 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]' : 'border-neutral-200 text-neutral-600'
+                    }`}
+                >
+                  <CreditCard className="w-4 h-4" /> Card
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUpgradePayMethod('qr')}
+                  className={`p-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 ${upgradePayMethod === 'qr' ? 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]' : 'border-neutral-200 text-neutral-600'
+                    }`}
+                >
+                  <QrCode className="w-4 h-4" /> QR Code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUpgradePayMethod('netbanking')}
+                  className={`p-2 rounded-xl border text-xs font-bold flex flex-col items-center gap-1 ${upgradePayMethod === 'netbanking' ? 'border-[#4787F2] bg-[#EDF4FF] text-[#4787F2]' : 'border-neutral-200 text-neutral-600'
+                    }`}
+                >
+                  <Building2 className="w-4 h-4" /> Net Banking
+                </button>
+              </div>
+
+              {upgradePayMethod === 'upi' && (
+                <div className="pt-2">
+                  <input
+                    type="text"
+                    value={upgradeUpiId}
+                    onChange={(e) => setUpgradeUpiId(e.target.value)}
+                    placeholder="Enter UPI VPA (e.g. name@okhdfcbank)"
+                    className="w-full px-3 py-2 rounded-xl border border-neutral-200 text-xs outline-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Total & Action */}
+            <div className="pt-2 flex items-center justify-between border-t border-neutral-100">
+              <div>
+                <span className="text-[11px] text-neutral-500 block">Total Amount</span>
+                <div className="text-xl font-black text-[#17181C]">
+                  ₹{getPlanPrice(upgradeTier, upgradeCycle).toLocaleString()}
+                </div>
+              </div>
+
+              <Button
+                variant="primary"
+                size="md"
+                className="font-black bg-[#35AB4E] hover:bg-[#2e9644] px-6"
+                isLoading={isProcessingUpgrade}
+                onClick={() => handleExecuteUpgrade(upgradeTier, upgradeCycle)}
+              >
+                Pay &amp; Upgrade Now &rarr;
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

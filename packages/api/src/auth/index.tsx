@@ -1,20 +1,15 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AuthUser, UserRole, LoginDemoPersona, StaffProfile, Business } from '@adsspot/types';
-import {
-  DEMO_PERSONAS,
-  SEED_USERS,
-  SEED_STAFF_PROFILES,
-  SEED_BUSINESSES,
-} from '../seedData';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { AuthUser, UserRole, DashboardType, StaffProfile, Business, Role } from '@adsspot/types';
 
 export interface AddEmployeeInput {
   name: string;
   email: string;
   password?: string;
   phone: string;
-  role: 'sm' | 'ro' | 'zo' | 'super_admin';
+  role: 'sm' | 'ro' | 'zo' | 'super_admin' | string;
+  role_id?: string;
   employee_code?: string;
   joining_date?: string;
   salary_monthly?: number;
@@ -54,7 +49,7 @@ export interface AddEmployeeInput {
   avatar_url?: string;
 }
 
-interface AddMerchantInput {
+export interface AddMerchantInput {
   business_name: string;
   owner_name: string;
   phone: string;
@@ -65,334 +60,181 @@ interface AddMerchantInput {
   trusted?: boolean;
   lat?: number;
   lng?: number;
+  logo_url?: string;
+  cover_url?: string;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   role: UserRole;
+  dashboardType: DashboardType;
+  permissions: string[];
+  hasPermission: (key: string) => boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
-  loginWithEmail: (email: string, password?: string, phone?: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
-  signupWithEmail: (name: string, email: string, password?: string, phone?: string, role?: UserRole) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
+  loginWithEmail: (
+    email: string,
+    password?: string,
+    phone?: string
+  ) => Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }>;
+  signupWithEmail: (
+    name: string,
+    email: string,
+    password?: string,
+    phone?: string,
+    role?: UserRole
+  ) => Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }>;
   loginWithPhone: (phone: string) => Promise<{ success: boolean; message: string }>;
-  verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
-  switchPersona: (personaId: string) => void;
+  verifyOtp: (
+    phone: string,
+    otp: string
+  ) => Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }>;
   addEmployee: (input: AddEmployeeInput) => Promise<AuthUser>;
-  addMerchant: (input: AddMerchantInput) => { user: AuthUser; business: Business };
-  logout: () => void;
-  personas: LoginDemoPersona[];
+  addMerchant: (input: AddMerchantInput) => Promise<{ user: AuthUser; business: Business }>;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
   staffList: StaffProfile[];
   merchantList: Business[];
+  rolesList: Role[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'adsspot_auth_user_id';
-const CUSTOM_USERS_KEY = 'adsspot_custom_users';
-const CUSTOM_STAFF_KEY = 'adsspot_custom_staff';
-const CUSTOM_MERCHANTS_KEY = 'adsspot_custom_merchants';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [personas, setPersonas] = useState<LoginDemoPersona[]>(DEMO_PERSONAS);
-  const [staffList, setStaffList] = useState<StaffProfile[]>(SEED_STAFF_PROFILES);
-  const [merchantList, setMerchantList] = useState<Business[]>(SEED_BUSINESSES);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
+  const [merchantList, setMerchantList] = useState<Business[]>([]);
+  const [rolesList, setRolesList] = useState<Role[]>([]);
 
-  // Helper to construct fully hydrated AuthUser with per-user wallet
-  const buildAuthUser = (userId: string): AuthUser | null => {
-    const baseUser =
-      personas.find((p) => p.id === userId) ||
-      SEED_USERS.find((u) => u.id === userId);
-
-    if (!baseUser) return null;
-
-    const staffProfile = staffList.find((s) => s.user_id === userId) || null;
-    const businessProfile = merchantList.find((b) => b.owner_id === userId) || null;
-
-    // Retrieve per-user custom wallet balance or initialize based on role (new user = 0.00)
-    let userBalance = 0.0;
-    if (typeof window !== 'undefined') {
-      const storedWallet = localStorage.getItem(`adsspot_wallet_${userId}`);
-      if (storedWallet !== null) {
-        userBalance = parseFloat(storedWallet);
-      } else {
-        userBalance = 0.0;
-        localStorage.setItem(`adsspot_wallet_${userId}`, userBalance.toString());
-      }
-    }
-
-    const isSuperAdmin = userId === 'usr-admin-1' || baseUser.role === 'super_admin';
-    const computedName = isSuperAdmin ? 'Adsspot Admin' : ((baseUser as any).name || (baseUser as any).full_name || 'User');
-
-    return {
-      id: baseUser.id,
-      phone: baseUser.phone,
-      full_name: computedName,
-      avatar_url: baseUser.avatar_url,
-      role: baseUser.role,
-      created_at: (baseUser as any).created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      staff_profile: staffProfile,
-      business_profile: businessProfile,
-      wallet: {
-        id: `wallet-${userId}`,
-        user_id: userId,
-        balance: userBalance,
-        currency: 'INR',
-        updated_at: new Date().toISOString(),
-      },
-    };
-  };
-
-  // Load user and real database profile on mount
-  useEffect(() => {
-    async function initAuth() {
-      try {
-        if (typeof window !== 'undefined') {
-          // 0. Clean legacy mock personas from localStorage
-          const savedUsers = localStorage.getItem(CUSTOM_USERS_KEY);
-          if (savedUsers) {
-            try {
-              const parsed = JSON.parse(savedUsers);
-              if (Array.isArray(parsed)) {
-                const sanitized = parsed
-                  .filter((p: any) => !p.id.startsWith('usr-consumer') && !p.id.startsWith('usr-merch') && !p.id.startsWith('usr-sm') && !p.id.startsWith('usr-ro') && !p.id.startsWith('usr-zo'))
-                  .map((p: any) => p.id === 'usr-admin-1' ? { ...p, name: 'Adsspot Admin', email: 'admin@adsspot.in' } : p);
-                
-                if (!sanitized.find((p: any) => p.id === 'usr-admin-1')) {
-                  sanitized.unshift(DEMO_PERSONAS[0]);
-                }
-                setPersonas(sanitized);
-                localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(sanitized));
-              }
-            } catch {}
-          } else {
-            setPersonas(DEMO_PERSONAS);
-            localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(DEMO_PERSONAS));
-          }
-
-          // Fetch live staff from PostgreSQL database
-          try {
-            const staffRes = await fetch('/api/staff');
-            if (staffRes.ok) {
-              const staffData = await staffRes.json();
-              if (staffData.success && Array.isArray(staffData.staff)) {
-                setStaffList(staffData.staff);
-                localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify(staffData.staff));
-
-                const staffPersonas = staffData.staff.map((s: any) => ({
-                  id: s.user_id,
-                  name: s.user?.full_name || `Staff ${s.id.slice(-4)}`,
-                  email: s.user?.email || '',
-                  phone: s.user?.phone || '',
-                  role: s.role,
-                  description: `${s.role.toUpperCase()} • ${s.region_id || s.city_id || 'Territory'}`,
-                  avatar_url: s.user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-                }));
-                setPersonas((prev) => {
-                  const existingAdmin = prev.find((p) => p.id === 'usr-admin-1');
-                  return [existingAdmin || DEMO_PERSONAS[0], ...staffPersonas];
-                });
-              }
-            }
-          } catch (e) {
-            console.warn('Failed to load staff from API:', e);
-          }
-
-          // Fetch live merchants from PostgreSQL database
-          try {
-            const merchRes = await fetch('/api/merchants');
-            if (merchRes.ok) {
-              const merchData = await merchRes.json();
-              if (merchData.success && Array.isArray(merchData.merchants)) {
-                setMerchantList(merchData.merchants);
-                localStorage.setItem(CUSTOM_MERCHANTS_KEY, JSON.stringify(merchData.merchants));
-              }
-            }
-          } catch (e) {
-            console.warn('Failed to load merchants from API:', e);
-          }
-
-          const savedUserId = localStorage.getItem(AUTH_STORAGE_KEY);
-          if (savedUserId) {
-            // 1. Fetch real user & merchant business profile from AWS Aurora DB
-            try {
-              const res = await fetch(`/api/user/me?userId=${encodeURIComponent(savedUserId)}`);
-              if (res.ok) {
-                const data = await res.json();
-                if (data.success && data.user) {
-                  const fetchedUser = {
-                    ...data.user,
-                    full_name: (data.user.role === 'super_admin' || data.user.id === 'usr-admin-1') ? 'Adsspot Admin' : data.user.full_name,
-                  };
-                  setUser(fetchedUser);
-                  setIsLoading(false);
-                  return;
-                }
-              }
-            } catch (apiErr) {
-              console.warn('[AuthProvider] Direct DB fetch fallback to local storage:', apiErr);
-            }
-
-            // Fallback to local persona if offline or DB syncing
-            const fullUser = buildAuthUser(savedUserId);
-            if (fullUser) {
-              setUser(fullUser);
-            } else {
-              setUser(null);
-            }
-          } else {
-            setUser(null);
-          }
-        }
-      } catch {
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    initAuth();
-  }, []);
-
-  const loginWithPhone = async (phone: string): Promise<{ success: boolean; message: string }> => {
-    return { success: true, message: `OTP sent to ${phone}. (Use test OTP: 123456)` };
-  };
-
-  const verifyOtp = async (
-    phone: string,
-    otp: string
-  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
-    if (otp !== '123456' && otp.length !== 6) {
-      return { success: false, error: 'Invalid OTP code. Please enter 123456 for instant verification.' };
-    }
-
+  // 1. Initial server-side session authentication check
+  const refreshAuth = useCallback(async () => {
     try {
-      // 1. Sync with AWS Aurora PostgreSQL Database via API
-      const res = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp }),
+      // Check current session from /api/user/me
+      const res = await fetch('/api/user/me', {
+        headers: { 'Cache-Control': 'no-cache' },
       });
 
       if (res.ok) {
         const data = await res.json();
         if (data.success && data.user) {
-          const dbUser: AuthUser = data.user;
-          setUser(dbUser);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(AUTH_STORAGE_KEY, dbUser.id);
-            localStorage.setItem(`adsspot_wallet_${dbUser.id}`, (dbUser.wallet?.balance || 0).toString());
-          }
-          return { success: true, user: dbUser };
+          const authUser: AuthUser = data.user;
+          setUser(authUser);
+          setPermissions(data.permissions || authUser.permissions || []);
+        } else {
+          setUser(null);
+          setPermissions([]);
         }
+      } else {
+        setUser(null);
+        setPermissions([]);
       }
-    } catch (e) {
-      console.warn('[AuthProvider] Failed to reach /api/auth/verify-otp, falling back to local session:', e);
+
+      // Load merchants from PostgreSQL
+      try {
+        const merchRes = await fetch('/api/merchants');
+        if (merchRes.ok) {
+          const merchData = await merchRes.json();
+          if (merchData.success && Array.isArray(merchData.merchants)) {
+            setMerchantList(merchData.merchants);
+          }
+        }
+      } catch {}
+
+      // Load staff from PostgreSQL
+      try {
+        const staffRes = await fetch('/api/staff');
+        if (staffRes.ok) {
+          const staffData = await staffRes.json();
+          if (staffData.success && Array.isArray(staffData.staff)) {
+            setStaffList(staffData.staff);
+          }
+        }
+      } catch {}
+
+      // Load roles from PostgreSQL
+      try {
+        const rolesRes = await fetch('/api/roles');
+        if (rolesRes.ok) {
+          const rolesData = await rolesRes.json();
+          if (rolesData.success && Array.isArray(rolesData.roles)) {
+            setRolesList(rolesData.roles);
+          }
+        }
+      } catch {}
+    } catch (err) {
+      console.warn('[AuthProvider] Failed to initialize session from server:', err);
+      setUser(null);
+      setPermissions([]);
+    } finally {
+      setIsLoading(false);
     }
+  }, []);
 
-    // Fallback: Check if user already exists in persona list
-    let matchedPersona = personas.find((p) => p.phone === phone || p.phone.replace(/[^0-9]/g, '') === phone.replace(/[^0-9]/g, ''));
+  useEffect(() => {
+    refreshAuth();
+  }, [refreshAuth]);
 
-    if (!matchedPersona) {
-      const newUserId = `usr-real-${Date.now()}`;
-      matchedPersona = {
-        id: newUserId,
-        name: `User ${phone.slice(-4)}`,
-        phone: phone.startsWith('+91') ? phone : `+91${phone}`,
-        role: 'consumer',
-        description: 'Real registered consumer',
-        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${phone}`,
-      };
+  // Permission checker
+  const hasPermission = useCallback(
+    (key: string): boolean => {
+      if (!user) return false;
+      if (user.role === 'super_admin' || user.role_id === 'role-super-admin') return true;
+      return permissions.includes(key);
+    },
+    [user, permissions]
+  );
 
-      const updated = [matchedPersona, ...personas];
-      setPersonas(updated);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updated));
-      }
-    }
-
-    const fullUser = buildAuthUser(matchedPersona.id);
-    if (fullUser) {
-      setUser(fullUser);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_STORAGE_KEY, fullUser.id);
-      }
-      return { success: true, user: fullUser };
-    }
-
-    return { success: false, error: 'Authentication failed.' };
+  // Helper to determine destination URL
+  const getDestination = (role: string, dashboardType?: string): string => {
+    if (dashboardType === 'admin' || role === 'super_admin') return '/admin';
+    if (dashboardType === 'merchant' || role === 'merchant') return '/merchant';
+    if (dashboardType === 'sm' || role === 'sm') return '/sm';
+    if (dashboardType === 'ro' || role === 'ro') return '/ro';
+    if (dashboardType === 'zo' || role === 'zo') return '/zo';
+    if (dashboardType === 'employee') return '/sm';
+    return '/feed';
   };
 
+  // Login with Email & Password
   const loginWithEmail = async (
     email: string,
     password?: string,
     phone?: string
-  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }> => {
     try {
       const cleanEmail = email.trim().toLowerCase();
-      // 1. Check PostgreSQL backend via /api/auth/email
       const res = await fetch('/api/auth/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'login', email: cleanEmail, password, phone }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
-          const authUser: AuthUser = {
-            id: data.user.id,
-            email: data.user.email || cleanEmail,
-            phone: data.user.phone || phone || '+919876543210',
-            full_name: data.user.full_name || 'User',
-            avatar_url: data.user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
-            role: data.user.role || 'consumer',
-            created_at: data.user.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            staff_profile: data.user.staff_profile || null,
-            business_profile: data.user.business_profile || null,
-            wallet: {
-              id: `wallet-${data.user.id}`,
-              user_id: data.user.id,
-              balance: 1000.0,
-              currency: 'INR',
-              updated_at: new Date().toISOString(),
-            },
-          };
-
-          setUser(authUser);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(AUTH_STORAGE_KEY, authUser.id);
-          }
-          return { success: true, user: authUser };
-        }
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Authentication failed. Please check your credentials.' };
       }
 
-      // Fallback matching persona
-      const matched = personas.find(
-        (p) => p.email?.toLowerCase() === cleanEmail || cleanEmail.startsWith(p.role)
-      );
-      if (matched) {
-        switchPersona(matched.id);
-        const u = buildAuthUser(matched.id);
-        return { success: true, user: u || undefined };
-      }
+      const authUser: AuthUser = data.user;
+      setUser(authUser);
+      setPermissions(authUser.permissions || []);
+      const destination = data.destination || getDestination(authUser.role, authUser.dashboard_type);
 
-      return { success: false, error: 'User not found. Please sign up.' };
+      return { success: true, user: authUser, destination };
     } catch (e: any) {
       return { success: false, error: e?.message || 'Login failed.' };
     }
   };
 
+  // Signup with Email
   const signupWithEmail = async (
     name: string,
     email: string,
     password?: string,
     phone?: string,
     role: UserRole = 'consumer'
-  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }> => {
     try {
       const cleanEmail = email.trim().toLowerCase();
       const res = await fetch('/api/auth/email', {
@@ -408,140 +250,106 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }),
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
-          const authUser: AuthUser = {
-            id: data.user.id,
-            email: data.user.email || cleanEmail,
-            phone: data.user.phone || phone || '+919876543210',
-            full_name: data.user.full_name || name,
-            avatar_url: data.user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
-            role: data.user.role || role,
-            created_at: data.user.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            staff_profile: null,
-            business_profile: null,
-            wallet: {
-              id: `wallet-${data.user.id}`,
-              user_id: data.user.id,
-              balance: 0.0,
-              currency: 'INR',
-              updated_at: new Date().toISOString(),
-            },
-          };
-
-          const newPersona: LoginDemoPersona = {
-            id: authUser.id,
-            name: authUser.full_name,
-            email: authUser.email,
-            phone: authUser.phone,
-            role: authUser.role,
-            description: `Registered ${authUser.role}`,
-            avatar_url: authUser.avatar_url!,
-          };
-
-          const updated = [newPersona, ...personas];
-          setPersonas(updated);
-          setUser(authUser);
-          if (typeof window !== 'undefined') {
-            localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updated));
-            localStorage.setItem(AUTH_STORAGE_KEY, authUser.id);
-          }
-
-          return { success: true, user: authUser };
-        }
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Signup failed.' };
       }
 
-      return { success: false, error: 'Signup failed. Please try again.' };
+      const authUser: AuthUser = data.user;
+      setUser(authUser);
+      setPermissions(authUser.permissions || []);
+      const destination = getDestination(authUser.role, authUser.dashboard_type);
+
+      return { success: true, user: authUser, destination };
     } catch (e: any) {
       return { success: false, error: e?.message || 'Signup failed.' };
     }
   };
 
+  // Login with Phone
+  const loginWithPhone = async (phone: string): Promise<{ success: boolean; message: string }> => {
+    return { success: true, message: `OTP sent to ${phone}. (Use test OTP: 123456)` };
+  };
+
+  // Verify OTP
+  const verifyOtp = async (
+    phone: string,
+    otp: string
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }> => {
+    if (otp !== '123456' && otp.length !== 6) {
+      return { success: false, error: 'Invalid OTP code. Please enter 123456 for instant verification.' };
+    }
+
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'OTP verification failed.' };
+      }
+
+      const authUser: AuthUser = data.user;
+      setUser(authUser);
+      setPermissions(authUser.permissions || []);
+      const destination = data.destination || getDestination(authUser.role, authUser.dashboard_type);
+
+      return { success: true, user: authUser, destination };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Verification failed.' };
+    }
+  };
+
+  // Add Employee (Admin only)
   const addEmployee = async (input: AddEmployeeInput): Promise<AuthUser> => {
     const cleanPhone = (input.phone || '').trim().replace(/\s+/g, '');
     const formattedPhone = cleanPhone ? (cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone}`) : `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`;
     const cleanEmail = (input.email || `${input.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@adsspot.in`).trim().toLowerCase();
 
-    let newUserId = `usr-staff-${Date.now()}`;
-    let newStaffId = `staff-${Date.now()}`;
+    const res = await fetch('/api/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: input.name,
+        email: cleanEmail,
+        password: input.password || 'adsspot123',
+        phone: formattedPhone,
+        role: input.role,
+        role_id: input.role_id,
+        city_id: input.city_id || input.ro_city || 'Vadodara',
+        region_id: input.region_id || input.area_name || input.cluster_name || 'Central Gujarat',
+        reports_to: input.reports_to || null,
+        target_monthly: input.target_monthly || input.zone_target || 250000,
+      }),
+    });
 
-    // 1. Persist to PostgreSQL database directly and wait for result
-    try {
-      const res = await fetch('/api/staff', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: input.name,
-          email: cleanEmail,
-          password: input.password || 'adsspot123',
-          phone: formattedPhone,
-          role: input.role,
-          city_id: input.city_id || input.ro_city || 'Vadodara',
-          region_id: input.region_id || input.area_name || input.cluster_name || 'Central Gujarat',
-          reports_to: input.reports_to || null,
-          target_monthly: input.target_monthly || input.zone_target || 250000,
-        }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.user) {
-          newUserId = data.user.id;
-          newStaffId = data.staff_profile?.id || newStaffId;
-        }
-      }
-    } catch (err) {
-      console.warn('Failed to persist staff to DB:', err);
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to onboard staff member in database');
     }
 
-    const newPersona: LoginDemoPersona = {
-      id: newUserId,
-      name: input.name,
-      email: cleanEmail,
-      phone: formattedPhone,
-      role: input.role,
-      description: `${input.role.toUpperCase()} • ${input.city_id || input.ro_city || 'Territory'} • ${input.pincodes || input.area_name || input.cluster_name || ''}`,
-      avatar_url:
-        input.avatar_url ||
-        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
-    };
-
-    const newStaffProfile: StaffProfile = {
-      id: newStaffId,
-      user_id: newUserId,
-      role: input.role,
-      reports_to: input.reports_to || (input.role === 'sm' ? 'staff-ro-1' : input.role === 'ro' ? 'staff-zo-1' : null),
-      city_id: input.city_id || input.ro_city || 'Vadodara',
-      region_id: input.region_id || input.area_name || input.cluster_name || 'Central Gujarat',
-      target_monthly: input.target_monthly || input.zone_target || 250000,
-      status: 'active',
-      created_at: new Date().toISOString(),
-    };
-
-    setPersonas((prev) => [newPersona, ...prev.filter((p) => p.email?.toLowerCase() !== cleanEmail && p.id !== newUserId)]);
-    setStaffList((prev) => [newStaffProfile, ...prev.filter((s) => s.user_id !== newUserId)]);
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify([newPersona, ...personas.filter((p) => p.email?.toLowerCase() !== cleanEmail && p.id !== newUserId)]));
-      localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify([newStaffProfile, ...staffList.filter((s) => s.user_id !== newUserId)]));
-    }
+    const createdStaff: StaffProfile = data.staff_profile;
+    setStaffList((prev) => [createdStaff, ...prev.filter((s) => s.user_id !== data.user.id)]);
 
     const createdAuthUser: AuthUser = {
-      id: newUserId,
+      id: data.user.id,
       phone: formattedPhone,
       email: cleanEmail,
       full_name: input.name,
-      avatar_url: newPersona.avatar_url,
-      role: input.role,
+      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
+      role: (input.role as UserRole) || 'sm',
+      role_id: input.role_id || `role-${input.role}`,
+      dashboard_type: (input.role as DashboardType) || 'sm',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      staff_profile: newStaffProfile,
+      staff_profile: createdStaff,
       business_profile: null,
       wallet: {
-        id: `wallet-${newUserId}`,
-        user_id: newUserId,
+        id: `wallet-${data.user.id}`,
+        user_id: data.user.id,
         balance: 0.0,
         currency: 'INR',
         updated_at: new Date().toISOString(),
@@ -551,96 +359,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return createdAuthUser;
   };
 
-  const addMerchant = (input: AddMerchantInput): { user: AuthUser; business: Business } => {
-    const newOwnerId = `usr-merch-${Date.now()}`;
-    const slug = input.business_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  // Add Merchant with Real PostgreSQL Database Persistence
+  const addMerchant = async (input: AddMerchantInput): Promise<{ user: AuthUser; business: Business }> => {
     const formattedPhone = input.phone.startsWith('+91') ? input.phone : `+91${input.phone}`;
 
-    const newPersona: LoginDemoPersona = {
-      id: newOwnerId,
-      name: `${input.owner_name} (${input.business_name})`,
-      phone: formattedPhone,
-      role: 'merchant',
-      tier: input.tier,
-      description: `${input.tier.toUpperCase()} Merchant • ${input.address}`,
-      avatar_url: `https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150`,
-    };
+    const res = await fetch('/api/merchants/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bizName: input.business_name,
+        ownerName: input.owner_name,
+        phone: formattedPhone,
+        categoryId: input.category_id,
+        address: input.address,
+        pincode: input.pincode,
+        tier: input.tier,
+        trusted: input.trusted,
+        lat: input.lat,
+        lng: input.lng,
+      }),
+    });
 
-    const newBusiness: Business = {
-      id: `biz-${Date.now()}`,
-      owner_id: newOwnerId,
-      category_id: input.category_id,
-      name: input.business_name,
-      slug,
-      description: `Verified authentic local shop on Adsspot in ${input.pincode}.`,
-      address: input.address,
-      pincode: input.pincode,
-      lat: input.lat || 18.935 + (Math.random() * 0.02 - 0.01),
-      lng: input.lng || 72.832 + (Math.random() * 0.02 - 0.01),
-      phone: formattedPhone,
-      whatsapp: formattedPhone,
-      logo_url: `https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&auto=format&fit=crop&q=80`,
-      cover_url: `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80`,
-      trusted: !!input.trusted,
-      status: 'active',
-      tier: input.tier,
-      created_at: new Date().toISOString(),
-      stats: {
-        views_count: 100,
-        likes_count: 24,
-        followers_count: 12,
-        reviews_count: 5,
-        avg_rating: 5.0,
-      },
-    };
-
-    const updatedPersonas = [newPersona, ...personas];
-    const updatedMerchants = [newBusiness, ...merchantList];
-
-    setPersonas(updatedPersonas);
-    setMerchantList(updatedMerchants);
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updatedPersonas));
-      localStorage.setItem(CUSTOM_MERCHANTS_KEY, JSON.stringify(updatedMerchants));
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to persist merchant in database.');
     }
 
-    const createdAuthUser: AuthUser = {
-      id: newOwnerId,
-      phone: formattedPhone,
-      full_name: input.owner_name,
-      avatar_url: newPersona.avatar_url,
-      role: 'merchant',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      staff_profile: null,
-      business_profile: newBusiness,
-      wallet: {
-        id: `wallet-${newOwnerId}`,
-        user_id: newOwnerId,
-        balance: 10000.0,
-        currency: 'INR',
-        updated_at: new Date().toISOString(),
-      },
-    };
+    const newBusiness: Business = data.business;
+    const merchantUser: AuthUser = data.user;
 
-    return { user: createdAuthUser, business: newBusiness };
+    setMerchantList((prev) => [newBusiness, ...prev.filter((b) => b.id !== newBusiness.id)]);
+
+    return { user: merchantUser, business: newBusiness };
   };
 
-  const switchPersona = (personaId: string) => {
-    const fullUser = buildAuthUser(personaId);
-    if (fullUser) {
-      setUser(fullUser);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_STORAGE_KEY, fullUser.id);
-      }
-    }
-  };
-
-  const logout = () => {
+  // Logout
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
     setUser(null);
+    setPermissions([]);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      window.location.href = '/login';
     }
   };
 
@@ -649,19 +410,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         role: user?.role || 'consumer',
+        dashboardType: user?.dashboard_type || (user?.role === 'super_admin' ? 'admin' : user?.role === 'merchant' ? 'merchant' : user?.role === 'sm' ? 'sm' : user?.role === 'ro' ? 'ro' : user?.role === 'zo' ? 'zo' : 'user'),
+        permissions,
+        hasPermission,
         isAuthenticated: !!user,
         isLoading,
         loginWithEmail,
         signupWithEmail,
         loginWithPhone,
         verifyOtp,
-        switchPersona,
         addEmployee,
         addMerchant,
         logout,
-        personas,
+        refreshAuth,
         staffList,
         merchantList,
+        rolesList,
       }}
     >
       {children}

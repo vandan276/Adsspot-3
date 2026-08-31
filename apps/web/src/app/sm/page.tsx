@@ -16,8 +16,10 @@ import {
 } from 'lucide-react';
 
 
+import Link from 'next/link';
+
 export default function SMSalesPortalPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const [checkedIn, setCheckedIn] = useState(true);
   const [activeTab, setActiveTab] = useState<'territory' | 'attendance' | 'target' | 'leads' | 'commissions'>('territory');
   const [leads, setLeads] = useState(SEED_LEADS);
@@ -70,6 +72,29 @@ export default function SMSalesPortalPage() {
     showToast(`Lead "${name}" onboarded & marked as Converted!`);
   };
 
+  // Route Guard: SM or Admin
+  if (!isLoading && (!user || (user.role !== 'sm' && user.role !== 'ro' && user.role !== 'zo' && user.role !== 'super_admin' && user.dashboard_type !== 'sm' && user.dashboard_type !== 'employee' && user.dashboard_type !== 'admin'))) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-6">
+        <Card padding="lg" className="max-w-md w-full text-center space-y-4 shadow-xl border border-blue-200">
+          <div className="w-16 h-16 bg-blue-100 text-[#4787F2] rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            📍
+          </div>
+          <h2 className="text-xl font-black text-[#17181C]">Sales Manager Portal Access</h2>
+          <p className="text-xs text-[#687182]">
+            You need a Sales Manager or Staff profile to view field attendance, territory leads, and merchant onboarding.
+          </p>
+          <div className="pt-2">
+            <Link href="/login">
+              <Button variant="primary" size="md" className="w-full">
+                Sign In as Sales Executive
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex relative">
@@ -95,41 +120,36 @@ export default function SMSalesPortalPage() {
           <nav className="space-y-1 text-xs font-semibold text-[#4A5260]">
             <button
               onClick={() => setActiveTab('territory')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'territory' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'territory' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <MapPin className="w-4 h-4" /> Assigned Territory
             </button>
             <button
               onClick={() => setActiveTab('attendance')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'attendance' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'attendance' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Clock className="w-4 h-4" /> Attendance &amp; GPS ({checkedIn ? 'Checked In' : 'Off Duty'})
             </button>
             <button
               onClick={() => setActiveTab('target')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'target' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'target' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <TargetIcon className="w-4 h-4" /> Target Ring (75%)
             </button>
             <button
               onClick={() => setActiveTab('leads')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'leads' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'leads' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <Building2 className="w-4 h-4" /> Lead Pipeline ({leads.length})
             </button>
             <button
               onClick={() => setActiveTab('commissions')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${
-                activeTab === 'commissions' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
-              }`}
+              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'commissions' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+                }`}
             >
               <TrendingUp className="w-4 h-4" /> Commissions &amp; Payouts
             </button>
@@ -471,13 +491,12 @@ export default function SMSalesPortalPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-[#17181C]">{lead.business_name}</span>
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          lead.status === 'converted'
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${lead.status === 'converted'
                             ? 'bg-[#EBF9EE] text-[#1B6A2D]'
                             : lead.status === 'interested'
                               ? 'bg-[#EDF4FF] text-[#1D53B8]'
                               : 'bg-neutral-100 text-neutral-600'
-                        }`}
+                          }`}
                       >
                         {lead.status.toUpperCase()}
                       </span>

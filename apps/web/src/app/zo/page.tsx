@@ -11,7 +11,11 @@ import {
 } from 'lucide-react';
 
 
+import Link from 'next/link';
+import { useAuth } from '@adsspot/api';
+
 export default function ZODashboardPage() {
+  const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'regions' | 'targets' | 'announcements'>('overview');
   const [announcementText, setAnnouncementText] = useState('');
   const [announcements, setAnnouncements] = useState([
@@ -36,6 +40,30 @@ export default function ZODashboardPage() {
     ]);
     setAnnouncementText('');
   };
+
+  // Route Guard: ZO or Admin
+  if (!isLoading && (!user || (user.role !== 'zo' && user.role !== 'super_admin' && user.dashboard_type !== 'zo' && user.dashboard_type !== 'admin'))) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-6">
+        <Card padding="lg" className="max-w-md w-full text-center space-y-4 shadow-xl border border-rose-200">
+          <div className="w-16 h-16 bg-rose-100 text-[#981837] rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            🏢
+          </div>
+          <h2 className="text-xl font-black text-[#17181C]">Zone Officer Portal Access</h2>
+          <p className="text-xs text-[#687182]">
+            You need a Zone Officer or Administrator profile to view state-wide targets and appoint ROs.
+          </p>
+          <div className="pt-2">
+            <Link href="/login">
+              <Button variant="primary" size="md" className="w-full">
+                Sign In as Zone Officer
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex">

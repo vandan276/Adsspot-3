@@ -11,7 +11,12 @@ import {
 } from 'lucide-react';
 
 
+import Link from 'next/link';
+import { useAuth } from '@adsspot/api';
+import { Button } from '@adsspot/ui';
+
 export default function RODashboardPage() {
+  const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'sms' | 'coverage' | 'leaderboard'>('overview');
 
   const smList = [
@@ -46,6 +51,30 @@ export default function RODashboardPage() {
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
     },
   ];
+
+  // Route Guard: RO, ZO or Admin
+  if (!isLoading && (!user || (user.role !== 'ro' && user.role !== 'zo' && user.role !== 'super_admin' && user.dashboard_type !== 'ro' && user.dashboard_type !== 'zo' && user.dashboard_type !== 'admin'))) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-6">
+        <Card padding="lg" className="max-w-md w-full text-center space-y-4 shadow-xl border border-emerald-200">
+          <div className="w-16 h-16 bg-emerald-100 text-[#35AB4E] rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            🛡️
+          </div>
+          <h2 className="text-xl font-black text-[#17181C]">Regional Officer Portal Access</h2>
+          <p className="text-xs text-[#687182]">
+            You need a Regional Officer or Administrator profile to oversee SM team performance and cluster coverage.
+          </p>
+          <div className="pt-2">
+            <Link href="/login">
+              <Button variant="primary" size="md" className="w-full">
+                Sign In as Regional Officer
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex">

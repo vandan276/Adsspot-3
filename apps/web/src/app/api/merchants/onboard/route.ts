@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     if (effectiveUserId) {
       await queryPostgres(
         `UPDATE users 
-         SET role = 'merchant', full_name = COALESCE(NULLIF($2, ''), full_name), updated_at = NOW() 
+         SET role = 'merchant', role_id = 'role-merchant', full_name = COALESCE(NULLIF($2, ''), full_name), updated_at = NOW() 
          WHERE id = $1`,
         [effectiveUserId, ownerName]
       );
@@ -41,22 +41,29 @@ export async function POST(req: Request) {
       if (userRes?.rows[0]) {
         effectiveUserId = userRes.rows[0].id;
         await queryPostgres(
-          `UPDATE users SET role = 'merchant', full_name = COALESCE(NULLIF($2, ''), full_name), updated_at = NOW() WHERE id = $1`,
+          `UPDATE users SET role = 'merchant', role_id = 'role-merchant', full_name = COALESCE(NULLIF($2, ''), full_name), updated_at = NOW() WHERE id = $1`,
           [effectiveUserId, ownerName]
         );
       } else {
         effectiveUserId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
         await queryPostgres(
-          `INSERT INTO users (id, phone, full_name, avatar_url, role) 
-           VALUES ($1, $2, $3, $4, 'merchant')`,
+          `INSERT INTO users (id, phone, full_name, avatar_url, role, role_id, created_at, updated_at) 
+           VALUES ($1, $2, $3, $4, 'merchant', 'role-merchant', NOW(), NOW())`,
           [
             effectiveUserId,
             cleanPhone,
             ownerName || 'Merchant Owner',
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+            'https://api.dicebear.com/7.x/avataaars/svg?seed=' + encodeURIComponent(cleanPhone),
           ]
         );
       }
+    }
+
+    // Verify valid category_id in DB, fallback to 'cat-1' if not found
+    let effectiveCategoryId = categoryId || 'cat-1';
+    const catCheck = await queryPostgres('SELECT id FROM categories WHERE id = $1', [effectiveCategoryId]);
+    if (!catCheck?.rows?.[0]) {
+      effectiveCategoryId = 'cat-1';
     }
 
     // 2. Insert or Update Business in AWS Aurora PostgreSQL
@@ -76,7 +83,7 @@ export async function POST(req: Request) {
       [
         businessId,
         effectiveUserId,
-        categoryId || 'cat-food',
+        effectiveCategoryId,
         bizName,
         cleanSlug,
         `Verified business on Adsspot offering premium local services.`,

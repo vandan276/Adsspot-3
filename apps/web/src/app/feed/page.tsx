@@ -68,7 +68,7 @@ export default function MobileFeedPage() {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     fetch('/api/stories')
       .then((res) => res.json())
@@ -77,7 +77,7 @@ export default function MobileFeedPage() {
           setLiveStories(data.stories);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     fetch('/api/merchants')
       .then((res) => res.json())
@@ -86,7 +86,7 @@ export default function MobileFeedPage() {
           setLiveEliteMerchants(data.merchants.filter((m: any) => m.tier === 'elite'));
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   // Stories Player State
@@ -119,7 +119,7 @@ export default function MobileFeedPage() {
             });
           }
         }
-      } catch {}
+      } catch { }
     };
     updateLoc();
     window.addEventListener('adsspot_location_changed', updateLoc);
@@ -174,7 +174,7 @@ export default function MobileFeedPage() {
             }
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [user?.id]);
 
@@ -245,7 +245,7 @@ export default function MobileFeedPage() {
           map[id] = true;
         });
         setSavedPosts(map);
-      } catch {}
+      } catch { }
     } else if (user.id === 'usr-consumer-1') {
       setSavedPosts({ 'post-1': true, 'post-2': true });
       localStorage.setItem(storageKey, JSON.stringify(['post-1', 'post-2']));
@@ -277,7 +277,7 @@ export default function MobileFeedPage() {
       text,
       time: 'Just now',
     };
-    
+
     // Optimistic UI update
     setPostComments((prev) => ({
       ...prev,
@@ -552,11 +552,10 @@ export default function MobileFeedPage() {
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors text-left ${
-                    selectedCategory === cat.id
+                  className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors text-left ${selectedCategory === cat.id
                       ? 'bg-[#4787F2] text-white font-bold'
                       : 'hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-[#17181C] dark:text-neutral-200'
-                  }`}
+                    }`}
                 >
                   <span>{cat.name}</span>
                   <span className="text-[10px] opacity-70">→</span>
@@ -690,413 +689,408 @@ export default function MobileFeedPage() {
             </div>
           </div>
 
-      {/* 2.5 🔥 SPOT DROPS FLASH HOURLY DEALS (Only show if active real drops exist) */}
-      {SPOT_DROPS.length > 0 && (
-        <div className="bg-gradient-to-r from-[#FFF5F2]/80 via-[#FFF1EE]/80 to-[#FFEFEA]/80 dark:from-[#251016]/90 dark:via-[#1F0C12]/90 dark:to-[#220E14]/90 p-3 border-b border-[#FECDD3] dark:border-rose-950/60 space-y-2 backdrop-blur-md">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#E11D48] animate-ping" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#9F1239] dark:text-rose-400">
-                ⚡ Spot Drops — Hourly Flash Offers
-              </h3>
+          {/* 2.5 🔥 SPOT DROPS FLASH HOURLY DEALS (Only show if active real drops exist) */}
+          {SPOT_DROPS.length > 0 && (
+            <div className="bg-gradient-to-r from-[#FFF5F2]/80 via-[#FFF1EE]/80 to-[#FFEFEA]/80 dark:from-[#251016]/90 dark:via-[#1F0C12]/90 dark:to-[#220E14]/90 p-3 border-b border-[#FECDD3] dark:border-rose-950/60 space-y-2 backdrop-blur-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#E11D48] animate-ping" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-[#9F1239] dark:text-rose-400">
+                    ⚡ Spot Drops — Hourly Flash Offers
+                  </h3>
+                </div>
+                <span className="text-[10px] font-bold text-[#E11D48] dark:text-rose-300 bg-white dark:bg-rose-950/60 px-2 py-0.5 rounded-full border border-[#FECDD3] dark:border-rose-800/40 shadow-2xs">
+                  Limited Stock
+                </span>
+              </div>
+
+              <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
+                {SPOT_DROPS.map((drop) => {
+                  const isClaimed = !!claimedDrops[drop.id];
+                  const pct = Math.round((drop.claimedCount / drop.totalClaims) * 100);
+
+                  return (
+                    <div
+                      key={drop.id}
+                      className="min-w-[260px] sm:min-w-[280px] ios-glass-card rounded-2xl p-3 border border-[#FECDD3] shadow-sm flex flex-col justify-between space-y-2 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <img src={drop.logo} alt={drop.businessName} className="w-10 h-10 rounded-xl object-cover border border-neutral-100" />
+                        <div className="min-w-0 flex-1">
+                          <span className="text-[10px] text-[#687182] font-semibold block truncate">{drop.businessName}</span>
+                          <h4 className="text-xs font-black text-[#17181C] leading-tight truncate">{drop.title}</h4>
+                          <span className="text-[9px] text-[#E11D48] font-bold">Ends in {drop.endTime}</span>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[9px] font-bold text-[#687182]">
+                          <span>Claimed: {drop.claimedCount}/{drop.totalClaims}</span>
+                          <span>{pct}%</span>
+                        </div>
+                        <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-gradient-to-r from-[#E14D2A] to-[#E11D48] rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          setClaimedDrops((prev) => ({ ...prev, [drop.id]: true }));
+                          setActiveClaimModal(drop);
+                        }}
+                        className={`w-full py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs ${isClaimed
+                            ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
+                            : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
+                          }`}
+                      >
+                        {isClaimed ? (
+                          <>
+                            <CheckCircle className="w-3.5 h-3.5" /> Coupon Active ({drop.code})
+                          </>
+                        ) : (
+                          <>
+                            <span>Claim Spot Drop</span>
+                            <Gift className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <span className="text-[10px] font-bold text-[#E11D48] dark:text-rose-300 bg-white dark:bg-rose-950/60 px-2 py-0.5 rounded-full border border-[#FECDD3] dark:border-rose-800/40 shadow-2xs">
-              Limited Stock
-            </span>
-          </div>
+          )}
 
-          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-            {SPOT_DROPS.map((drop) => {
-              const isClaimed = !!claimedDrops[drop.id];
-              const pct = Math.round((drop.claimedCount / drop.totalClaims) * 100);
+          {/* Spot Drop Claim Modal */}
+          {activeClaimModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+              <div className="ios-glass-card bg-white/95 w-full max-w-sm rounded-3xl p-5 border border-white/80 shadow-2xl text-center space-y-4 animate-scale-up">
+                <div className="w-12 h-12 rounded-full bg-[#EBF9EE] text-[#35AB4E] flex items-center justify-center mx-auto shadow-sm">
+                  <Gift className="w-6 h-6" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black uppercase text-[#35AB4E] tracking-wider">Spot Drop Claimed!</span>
+                  <h3 className="text-base font-black text-[#17181C] mt-0.5">{activeClaimModal.title}</h3>
+                  <p className="text-xs text-[#687182] mt-1">{activeClaimModal.businessName} — {activeClaimModal.location}</p>
+                </div>
 
-              return (
-                <div
-                  key={drop.id}
-                  className="min-w-[260px] sm:min-w-[280px] ios-glass-card rounded-2xl p-3 border border-[#FECDD3] shadow-sm flex flex-col justify-between space-y-2 hover:shadow-md transition-all"
-                >
-                  <div className="flex items-start gap-2.5">
-                    <img src={drop.logo} alt={drop.businessName} className="w-10 h-10 rounded-xl object-cover border border-neutral-100" />
-                    <div className="min-w-0 flex-1">
-                      <span className="text-[10px] text-[#687182] font-semibold block truncate">{drop.businessName}</span>
-                      <h4 className="text-xs font-black text-[#17181C] leading-tight truncate">{drop.title}</h4>
-                      <span className="text-[9px] text-[#E11D48] font-bold">Ends in {drop.endTime}</span>
-                    </div>
-                  </div>
+                <div className="p-3 bg-[#F4F6FB] border border-dashed border-[#4787F2] rounded-2xl space-y-1">
+                  <span className="text-[10px] font-bold text-[#687182] block">Show this voucher code at store:</span>
+                  <span className="text-lg font-black text-[#4787F2] tracking-widest block font-mono">{activeClaimModal.code}</span>
+                </div>
 
-                  {/* Progress bar */}
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-[9px] font-bold text-[#687182]">
-                      <span>Claimed: {drop.claimedCount}/{drop.totalClaims}</span>
-                      <span>{pct}%</span>
-                    </div>
-                    <div className="w-full h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[#E14D2A] to-[#E11D48] rounded-full" style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setClaimedDrops((prev) => ({ ...prev, [drop.id]: true }));
-                      setActiveClaimModal(drop);
-                    }}
-                    className={`w-full py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs ${
-                      isClaimed
-                        ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
-                        : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
-                    }`}
+                <div className="flex gap-2">
+                  <a
+                    href={`https://wa.me/919876543210?text=Hi%20${encodeURIComponent(activeClaimModal.businessName)},%20I%20claimed%20the%20Spot%20Drop%20voucher%20${activeClaimModal.code}%20on%20Adsspot.`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 py-2.5 bg-[#25D366] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1 shadow-xs"
                   >
-                    {isClaimed ? (
-                      <>
-                        <CheckCircle className="w-3.5 h-3.5" /> Coupon Active ({drop.code})
-                      </>
-                    ) : (
-                      <>
-                        <span>Claim Spot Drop</span>
-                        <Gift className="w-3.5 h-3.5" />
-                      </>
-                    )}
+                    <span>WhatsApp Store</span>
+                  </a>
+                  <button
+                    onClick={() => setActiveClaimModal(null)}
+                    className="px-4 py-2.5 bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-200"
+                  >
+                    Done
                   </button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. CATEGORY PILLS */}
+          <div className="py-2.5 px-3 sm:px-4 flex gap-1.5 overflow-x-auto no-scrollbar">
+            <button
+              onClick={() => setSelectedCategory('all')}
+              className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${selectedCategory === 'all'
+                  ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                  : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
+                }`}
+            >
+              All
+            </button>
+            {SEED_CATEGORIES.map((cat) => {
+              if (cat.id === 'cat-b2b') {
+                return (
+                  <Link
+                    key={cat.id}
+                    href="/b2b"
+                    className="px-3 sm:px-3.5 py-1 rounded-full text-xs font-black shrink-0 transition-all bg-[#FFF1EE] dark:bg-[#2A1016] text-[#E14D2A] dark:text-rose-400 border border-[#E14D2A]/30 dark:border-rose-800/40 hover:bg-[#FFE4DE] dark:hover:bg-[#38141D] flex items-center gap-1 shadow-2xs"
+                  >
+                    <span>B2b</span>
+                    <span className="bg-[#E14D2A] text-white text-[8px] px-1 rounded-full">1Cr+</span>
+                  </Link>
+                );
+              }
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${selectedCategory === cat.id
+                      ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                      : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
+                    }`}
+                >
+                  {cat.name}
+                </button>
               );
             })}
           </div>
-        </div>
-      )}
 
-      {/* Spot Drop Claim Modal */}
-      {activeClaimModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
-          <div className="ios-glass-card bg-white/95 w-full max-w-sm rounded-3xl p-5 border border-white/80 shadow-2xl text-center space-y-4 animate-scale-up">
-            <div className="w-12 h-12 rounded-full bg-[#EBF9EE] text-[#35AB4E] flex items-center justify-center mx-auto shadow-sm">
-              <Gift className="w-6 h-6" />
-            </div>
-            <div>
-              <span className="text-[10px] font-black uppercase text-[#35AB4E] tracking-wider">Spot Drop Claimed!</span>
-              <h3 className="text-base font-black text-[#17181C] mt-0.5">{activeClaimModal.title}</h3>
-              <p className="text-xs text-[#687182] mt-1">{activeClaimModal.businessName} — {activeClaimModal.location}</p>
-            </div>
-
-            <div className="p-3 bg-[#F4F6FB] border border-dashed border-[#4787F2] rounded-2xl space-y-1">
-              <span className="text-[10px] font-bold text-[#687182] block">Show this voucher code at store:</span>
-              <span className="text-lg font-black text-[#4787F2] tracking-widest block font-mono">{activeClaimModal.code}</span>
-            </div>
-
-            <div className="flex gap-2">
-              <a
-                href={`https://wa.me/919876543210?text=Hi%20${encodeURIComponent(activeClaimModal.businessName)},%20I%20claimed%20the%20Spot%20Drop%20voucher%20${activeClaimModal.code}%20on%20Adsspot.`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 py-2.5 bg-[#25D366] text-white rounded-xl text-xs font-black flex items-center justify-center gap-1 shadow-xs"
-              >
-                <span>WhatsApp Store</span>
-              </a>
-              <button
-                onClick={() => setActiveClaimModal(null)}
-                className="px-4 py-2.5 bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-200"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. CATEGORY PILLS */}
-      <div className="py-2.5 px-3 sm:px-4 flex gap-1.5 overflow-x-auto no-scrollbar">
-        <button
-          onClick={() => setSelectedCategory('all')}
-          className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
-            selectedCategory === 'all'
-              ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
-              : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
-          }`}
-        >
-          All
-        </button>
-        {SEED_CATEGORIES.map((cat) => {
-          if (cat.id === 'cat-b2b') {
-            return (
-              <Link
-                key={cat.id}
-                href="/b2b"
-                className="px-3 sm:px-3.5 py-1 rounded-full text-xs font-black shrink-0 transition-all bg-[#FFF1EE] dark:bg-[#2A1016] text-[#E14D2A] dark:text-rose-400 border border-[#E14D2A]/30 dark:border-rose-800/40 hover:bg-[#FFE4DE] dark:hover:bg-[#38141D] flex items-center gap-1 shadow-2xs"
-              >
-                <span>B2b</span>
-                <span className="bg-[#E14D2A] text-white text-[8px] px-1 rounded-full">1Cr+</span>
-              </Link>
-            );
-          }
-
-          return (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${
-                selectedCategory === cat.id
-                  ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
-                  : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
-              }`}
-            >
-              {cat.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* 4. POSTS STREAM */}
-      <div className="px-2.5 sm:px-3 pb-4 space-y-3.5">
-        {filteredPosts.length === 0 ? (
-          <div className="ios-glass-card rounded-3xl p-8 text-center space-y-3 border border-[#E3E8EF] dark:border-white/10">
-            <div className="w-14 h-14 rounded-2xl bg-[#4787F2]/10 text-[#4787F2] mx-auto flex items-center justify-center text-2xl font-bold">
-              📢
-            </div>
-            <h3 className="text-base font-black text-[#17181C] dark:text-white">Live Hyperlocal Feed</h3>
-            <p className="text-xs text-[#687182] dark:text-neutral-400 max-w-sm mx-auto leading-relaxed">
-              No merchant posts published yet. Registered merchants can publish daily offers &amp; banners directly from Merchant Studio.
-            </p>
-            <Link
-              href="/merchant"
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold rounded-full shadow-md transition-all active:scale-95"
-            >
-              Open Merchant Studio &rarr;
-            </Link>
-          </div>
-        ) : (
-          filteredPosts.map((post) => {
-            const fallbackBiz = {
-              id: post.business_id || 'biz-default',
-              name: post.business_name || 'Verified Merchant',
-              slug: post.business_slug || '',
-              logo_url: post.business_logo || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150',
-              address: post.business_address || 'Vadodara',
-              tier: post.business_tier || 'basic',
-              trusted: true,
-              phone: '+919876543210',
-            };
-            const biz = post.business || fallbackBiz;
-            const isLiked = !!likedPosts[post.id];
-            const likesCount = likesCounts[post.id] ?? post.likes_count;
-            const isFollowing = !!followingBiz[biz.id];
-            const isSaved = !!savedPosts[post.id];
-            const commentsCount = (postComments[post.id] || []).length + (post.comments_count || 0);
-
-            return (
-              <div
-                key={post.id}
-                className="ios-glass-card rounded-3xl overflow-hidden"
-              >
-                {/* Post Header with Compact Follow Icon Button */}
-                <div className="p-3 flex items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <Avatar src={biz.logo_url} name={biz.name} size="sm" isElite={biz.tier === 'elite'} />
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        href={`/card/${biz.slug}`}
-                        className="font-bold text-xs text-[#17181C] dark:text-neutral-100 hover:text-[#4787F2] dark:hover:text-[#4787F2] leading-snug block break-words"
-                      >
-                        {biz.name}
-                      </Link>
-                      <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">
-                        <span className="truncate">{biz.address}</span>
-                        {biz.trusted && (
-                          <span className="shrink-0">
-                            <TrustedBadge size="sm" />
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleToggleFollow(biz.id, biz.name)}
-                    className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                      isFollowing
-                        ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
-                        : 'bg-[#4787F2] text-white hover:bg-[#3373E0]'
-                    }`}
-                  >
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </button>
+          {/* 4. POSTS STREAM */}
+          <div className="px-2.5 sm:px-3 pb-4 space-y-3.5">
+            {filteredPosts.length === 0 ? (
+              <div className="ios-glass-card rounded-3xl p-8 text-center space-y-3 border border-[#E3E8EF] dark:border-white/10">
+                <div className="w-14 h-14 rounded-2xl bg-[#4787F2]/10 text-[#4787F2] mx-auto flex items-center justify-center text-2xl font-bold">
+                  📢
                 </div>
-
-                {/* Post Image with Double-Tap Heart */}
-                <div
-                  className="relative aspect-square w-full bg-neutral-100 dark:bg-neutral-800 cursor-pointer overflow-hidden"
-                  onDoubleClick={() => handleDoubleTapPost(post.id)}
+                <h3 className="text-base font-black text-[#17181C] dark:text-white">Live Hyperlocal Feed</h3>
+                <p className="text-xs text-[#687182] dark:text-neutral-400 max-w-sm mx-auto leading-relaxed">
+                  No merchant posts published yet. Registered merchants can publish daily offers &amp; banners directly from Merchant Studio.
+                </p>
+                <Link
+                  href="/merchant"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold rounded-full shadow-md transition-all active:scale-95"
                 >
-                  <img
-                    src={post.image_urls?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800'}
-                    alt={biz.name}
-                    className="w-full h-full object-cover"
-                  />
-
-                  {doubleTapHeart === post.id && (
-                    <div className="absolute inset-0 flex items-center justify-center animate-ping pointer-events-none">
-                      <Heart className="w-20 h-20 text-white fill-white drop-shadow-2xl" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Post Actions Bar */}
-                <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => handleToggleLike(post.id)}
-                      className={`flex items-center gap-1 text-xs font-semibold ${
-                        isLiked ? 'text-[#E11D48]' : 'hover:text-[#4787F2] dark:hover:text-[#4787F2]'
-                      }`}
-                    >
-                      <Heart className={`w-5 h-5 ${isLiked ? 'fill-[#E11D48]' : ''}`} />
-                      <span>{likesCount}</span>
-                    </button>
-
-                    <button
-                      onClick={() => setOpenCommentsPostId(post.id)}
-                      className="flex items-center gap-1 text-xs font-semibold hover:text-[#4787F2] dark:hover:text-[#4787F2]"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      <span>{commentsCount}</span>
-                    </button>
-
-                    <button onClick={() => handleToggleSave(post.id)} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
-                      <Bookmark
-                        className={`w-5 h-5 ${isSaved ? 'text-[#4787F2] fill-[#4787F2]' : ''}`}
-                      />
-                    </button>
-
-                    <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
-                      <Share2 className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  {/* Direct Visiting Card and Authentic WhatsApp Icons */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Link
-                      href={`/card/${biz.slug}`}
-                      title="Digital Visiting Card"
-                      className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all active:scale-95 shadow-xs"
-                    >
-                      <QrCode className="w-4.5 h-4.5 text-neutral-700 dark:text-neutral-200" />
-                    </Link>
-
-                    <a
-                      href={`https://wa.me/${biz.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20saw%20your%20post%20on%20Adsspot!`}
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Chat on WhatsApp"
-                      className="w-8 h-8 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center justify-center transition-all active:scale-95 shadow-xs"
-                    >
-                      <WhatsAppIcon size={18} className="text-white" />
-                    </a>
-                  </div>
-                </div>
-
-                {/* Post Caption */}
-                <div className="px-3 pb-3 space-y-1">
-                  <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed break-words">
-                    <span className="font-bold text-[#17181C] dark:text-white mr-1">{biz.name}</span>
-                    {post.caption}
-                  </p>
-
-                  <button
-                    onClick={() => setOpenCommentsPostId(post.id)}
-                    className="text-[11px] text-neutral-400 dark:text-neutral-400 font-semibold hover:text-[#4787F2] dark:hover:text-[#4787F2] block"
-                  >
-                    View all {commentsCount} comments
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-      </div>
-
-      {/* =========================================================================
-          RIGHT COLUMN (Desktop Spotlight & Live Drops Rail - Visible on md+)
-          ========================================================================= */}
-      <aside className="hidden md:flex flex-col w-72 lg:w-80 shrink-0 space-y-4 sticky top-20">
-        {/* Elite Spotlight Card */}
-        <div className="ios-glass-card rounded-2xl p-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase text-[#F2B604] tracking-wider flex items-center gap-1">
-              <span>👑</span> Elite Spotlight
-            </span>
-            <span className="text-[9px] bg-[#EBF9EE] text-[#35AB4E] px-2 py-0.5 rounded-full font-bold">
-              Verified
-            </span>
-          </div>
-
-          <div className="space-y-2.5">
-            {liveEliteMerchants.length === 0 ? (
-              <div className="p-4 rounded-xl bg-[#F4F6FB] dark:bg-white/5 text-center text-xs text-[#687182] dark:text-neutral-400 space-y-2">
-                <p>No Elite merchants yet in this territory.</p>
-                <Link href="/pricing" className="text-[11px] font-bold text-[#4787F2] block hover:underline">
-                  Upgrade to Elite Tier →
+                  Open Merchant Studio &rarr;
                 </Link>
               </div>
             ) : (
-              liveEliteMerchants.slice(0, 3).map((eliteBiz) => (
-                <div key={eliteBiz.id} className="flex items-center justify-between p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5 hover:bg-[#EDF4FF]/50 transition-all group">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Avatar src={eliteBiz.logo_url} name={eliteBiz.name} size="sm" isElite={true} />
-                    <div className="min-w-0">
-                      <h5 className="text-xs font-bold text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2]">
-                        {eliteBiz.name}
-                      </h5>
-                      <span className="text-[10px] text-[#687182] dark:text-neutral-400 truncate block">
-                        {eliteBiz.address}
-                      </span>
+              filteredPosts.map((post) => {
+                const fallbackBiz = {
+                  id: post.business_id || 'biz-default',
+                  name: post.business_name || 'Verified Merchant',
+                  slug: post.business_slug || '',
+                  logo_url: post.business_logo || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150',
+                  address: post.business_address || 'Vadodara',
+                  tier: post.business_tier || 'basic',
+                  trusted: true,
+                  phone: '+919876543210',
+                };
+                const biz = post.business || fallbackBiz;
+                const isLiked = !!likedPosts[post.id];
+                const likesCount = likesCounts[post.id] ?? post.likes_count;
+                const isFollowing = !!followingBiz[biz.id];
+                const isSaved = !!savedPosts[post.id];
+                const commentsCount = (postComments[post.id] || []).length + (post.comments_count || 0);
+
+                return (
+                  <div
+                    key={post.id}
+                    className="ios-glass-card rounded-3xl overflow-hidden"
+                  >
+                    {/* Post Header with Compact Follow Icon Button */}
+                    <div className="p-3 flex items-center justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                        <Avatar src={biz.logo_url} name={biz.name} size="sm" isElite={biz.tier === 'elite'} />
+                        <div className="min-w-0 flex-1">
+                          <Link
+                            href={`/card/${biz.slug}`}
+                            className="font-bold text-xs text-[#17181C] dark:text-neutral-100 hover:text-[#4787F2] dark:hover:text-[#4787F2] leading-snug block break-words"
+                          >
+                            {biz.name}
+                          </Link>
+                          <div className="flex items-center gap-1.5 text-[10px] text-neutral-500 dark:text-neutral-400 mt-0.5">
+                            <span className="truncate">{biz.address}</span>
+                            {biz.trusted && (
+                              <span className="shrink-0">
+                                <TrustedBadge size="sm" />
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleToggleFollow(biz.id, biz.name)}
+                        className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${isFollowing
+                            ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
+                            : 'bg-[#4787F2] text-white hover:bg-[#3373E0]'
+                          }`}
+                      >
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </button>
+                    </div>
+
+                    {/* Post Image with Double-Tap Heart */}
+                    <div
+                      className="relative aspect-square w-full bg-neutral-100 dark:bg-neutral-800 cursor-pointer overflow-hidden"
+                      onDoubleClick={() => handleDoubleTapPost(post.id)}
+                    >
+                      <img
+                        src={post.image_urls?.[0] || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800'}
+                        alt={biz.name}
+                        className="w-full h-full object-cover"
+                      />
+
+                      {doubleTapHeart === post.id && (
+                        <div className="absolute inset-0 flex items-center justify-center animate-ping pointer-events-none">
+                          <Heart className="w-20 h-20 text-white fill-white drop-shadow-2xl" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Post Actions Bar */}
+                    <div className="p-3 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => handleToggleLike(post.id)}
+                          className={`flex items-center gap-1 text-xs font-semibold ${isLiked ? 'text-[#E11D48]' : 'hover:text-[#4787F2] dark:hover:text-[#4787F2]'
+                            }`}
+                        >
+                          <Heart className={`w-5 h-5 ${isLiked ? 'fill-[#E11D48]' : ''}`} />
+                          <span>{likesCount}</span>
+                        </button>
+
+                        <button
+                          onClick={() => setOpenCommentsPostId(post.id)}
+                          className="flex items-center gap-1 text-xs font-semibold hover:text-[#4787F2] dark:hover:text-[#4787F2]"
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          <span>{commentsCount}</span>
+                        </button>
+
+                        <button onClick={() => handleToggleSave(post.id)} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
+                          <Bookmark
+                            className={`w-5 h-5 ${isSaved ? 'text-[#4787F2] fill-[#4787F2]' : ''}`}
+                          />
+                        </button>
+
+                        <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
+                          <Share2 className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      {/* Direct Visiting Card and Authentic WhatsApp Icons */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Link
+                          href={`/card/${biz.slug}`}
+                          title="Digital Visiting Card"
+                          className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-200 flex items-center justify-center transition-all active:scale-95 shadow-xs"
+                        >
+                          <QrCode className="w-4.5 h-4.5 text-neutral-700 dark:text-neutral-200" />
+                        </Link>
+
+                        <a
+                          href={`https://wa.me/${biz.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20saw%20your%20post%20on%20Adsspot!`}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Chat on WhatsApp"
+                          className="w-8 h-8 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center justify-center transition-all active:scale-95 shadow-xs"
+                        >
+                          <WhatsAppIcon size={18} className="text-white" />
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Post Caption */}
+                    <div className="px-3 pb-3 space-y-1">
+                      <p className="text-xs text-neutral-800 dark:text-neutral-200 leading-relaxed break-words">
+                        <span className="font-bold text-[#17181C] dark:text-white mr-1">{biz.name}</span>
+                        {post.caption}
+                      </p>
+
+                      <button
+                        onClick={() => setOpenCommentsPostId(post.id)}
+                        className="text-[11px] text-neutral-400 dark:text-neutral-400 font-semibold hover:text-[#4787F2] dark:hover:text-[#4787F2] block"
+                      >
+                        View all {commentsCount} comments
+                      </button>
                     </div>
                   </div>
-                  <Link
-                    href={`/b/${eliteBiz.slug}`}
-                    className="px-2.5 py-1 rounded-full bg-[#4787F2] text-white text-[10px] font-bold shrink-0 hover:bg-[#3373E0] shadow-xs"
-                  >
-                    View
-                  </Link>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* Download App QR Code Card */}
-        <div className="ios-glass-card rounded-2xl p-4 text-center space-y-3">
-          <div className="w-10 h-10 rounded-2xl bg-[#EDF4FF] dark:bg-[#4787F2]/20 text-[#4787F2] flex items-center justify-center mx-auto">
-            <QrCode className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-black text-[#17181C] dark:text-white">Experience on Mobile</h4>
-            <p className="text-[11px] text-[#687182] dark:text-neutral-400 mt-0.5">
-              Scan with phone camera for GPS exploration &amp; daily story drops.
-            </p>
-          </div>
-          <Link
-            href="/download"
-            className="w-full py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:opacity-90 transition-all"
-          >
-            <span>Get APK &amp; PWA App</span>
-          </Link>
-        </div>
+        {/* =========================================================================
+          RIGHT COLUMN (Desktop Spotlight & Live Drops Rail - Visible on md+)
+          ========================================================================= */}
+        <aside className="hidden md:flex flex-col w-72 lg:w-80 shrink-0 space-y-4 sticky top-20">
+          {/* Elite Spotlight Card */}
+          <div className="ios-glass-card rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase text-[#F2B604] tracking-wider flex items-center gap-1">
+                <span>👑</span> Elite Spotlight
+              </span>
+              <span className="text-[9px] bg-[#EBF9EE] text-[#35AB4E] px-2 py-0.5 rounded-full font-bold">
+                Verified
+              </span>
+            </div>
 
-        {/* Merchant Onboarding Card */}
-        <div className="ios-glass-card rounded-2xl p-4 space-y-2 bg-gradient-to-br from-[#4787F2]/10 to-transparent border border-[#4787F2]/20">
-          <span className="text-[10px] font-black uppercase text-[#4787F2] tracking-wider block">Grow Your Store</span>
-          <h4 className="text-xs font-black text-[#17181C] dark:text-white">Are you a Business Owner?</h4>
-          <p className="text-[11px] text-[#687182] dark:text-neutral-400">
-            List your shop, launch festival banners, and get discovered by thousands in your pincode.
-          </p>
-          <Link
-            href="/onboard"
-            className="w-full py-2 rounded-xl bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 block text-center mt-2"
-          >
-            Claim Your Spot Free →
-          </Link>
-        </div>
-      </aside>
+            <div className="space-y-2.5">
+              {liveEliteMerchants.length === 0 ? (
+                <div className="p-4 rounded-xl bg-[#F4F6FB] dark:bg-white/5 text-center text-xs text-[#687182] dark:text-neutral-400 space-y-2">
+                  <p>No Elite merchants yet in this territory.</p>
+                  <Link href="/pricing" className="text-[11px] font-bold text-[#4787F2] block hover:underline">
+                    Upgrade to Elite Tier →
+                  </Link>
+                </div>
+              ) : (
+                liveEliteMerchants.slice(0, 3).map((eliteBiz) => (
+                  <div key={eliteBiz.id} className="flex items-center justify-between p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5 hover:bg-[#EDF4FF]/50 transition-all group">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <Avatar src={eliteBiz.logo_url} name={eliteBiz.name} size="sm" isElite={true} />
+                      <div className="min-w-0">
+                        <h5 className="text-xs font-bold text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2]">
+                          {eliteBiz.name}
+                        </h5>
+                        <span className="text-[10px] text-[#687182] dark:text-neutral-400 truncate block">
+                          {eliteBiz.address}
+                        </span>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/b/${eliteBiz.slug}`}
+                      className="px-2.5 py-1 rounded-full bg-[#4787F2] text-white text-[10px] font-bold shrink-0 hover:bg-[#3373E0] shadow-xs"
+                    >
+                      View
+                    </Link>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Download App QR Code Card */}
+          <div className="ios-glass-card rounded-2xl p-4 text-center space-y-3">
+            <div className="w-10 h-10 rounded-2xl bg-[#EDF4FF] dark:bg-[#4787F2]/20 text-[#4787F2] flex items-center justify-center mx-auto">
+              <QrCode className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-[#17181C] dark:text-white">Experience on Mobile</h4>
+              <p className="text-[11px] text-[#687182] dark:text-neutral-400 mt-0.5">
+                Scan with phone camera for GPS exploration &amp; daily story drops.
+              </p>
+            </div>
+            <Link
+              href="/download"
+              className="w-full py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm hover:opacity-90 transition-all"
+            >
+              <span>Get APK &amp; PWA App</span>
+            </Link>
+          </div>
+
+          {/* Merchant Onboarding Card */}
+          <div className="ios-glass-card rounded-2xl p-4 space-y-2 bg-gradient-to-br from-[#4787F2]/10 to-transparent border border-[#4787F2]/20">
+            <span className="text-[10px] font-black uppercase text-[#4787F2] tracking-wider block">Grow Your Store</span>
+            <h4 className="text-xs font-black text-[#17181C] dark:text-white">Are you a Business Owner?</h4>
+            <p className="text-[11px] text-[#687182] dark:text-neutral-400">
+              List your shop, launch festival banners, and get discovered by thousands in your pincode.
+            </p>
+            <Link
+              href="/onboard"
+              className="w-full py-2 rounded-xl bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold flex items-center justify-center gap-1 shadow-xs transition-all active:scale-95 block text-center mt-2"
+            >
+              Claim Your Spot Free →
+            </Link>
+          </div>
+        </aside>
+      </div>
     </div>
-  </div>
   );
 }

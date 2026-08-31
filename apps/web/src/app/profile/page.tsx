@@ -49,7 +49,7 @@ export default function ConsumerProfilePage() {
             });
           }
         })
-        .catch(() => {});
+        .catch(() => { });
     }
   }, [user?.id]);
 
@@ -182,41 +182,37 @@ export default function ConsumerProfilePage() {
       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
         <button
           onClick={() => setActiveTab('activity')}
-          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
-            activeTab === 'activity'
+          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${activeTab === 'activity'
               ? 'bg-[#4787F2] text-white shadow-sm'
               : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
-          }`}
+            }`}
         >
           Activity &amp; Deals
         </button>
         <button
           onClick={() => setActiveTab('following')}
-          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
-            activeTab === 'following'
+          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${activeTab === 'following'
               ? 'bg-[#4787F2] text-white shadow-sm'
               : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
-          }`}
+            }`}
         >
           Followed Stores ({followedBusinesses.length})
         </button>
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
-            activeTab === 'reviews'
+          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${activeTab === 'reviews'
               ? 'bg-[#4787F2] text-white shadow-sm'
               : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
-          }`}
+            }`}
         >
           My Reviews ({userInteractions.reviews.length || 1})
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${
-            activeTab === 'settings'
+          className={`px-4 py-2 rounded-full text-xs font-bold shrink-0 transition-all ${activeTab === 'settings'
               ? 'bg-[#4787F2] text-white shadow-sm'
               : 'bg-white dark:bg-[#121620] text-[#4A5260] dark:text-neutral-300 border border-[#E3E8EF] dark:border-white/10 hover:bg-neutral-50'
-          }`}
+            }`}
         >
           Settings
         </button>
