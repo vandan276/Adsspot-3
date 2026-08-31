@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { getAllBusinesses } from '@adsspot/api';
 import { Business } from '@adsspot/types';
 import { Card, Button, TrustedBadge } from '@adsspot/ui';
+import { ApkDownloadPromptModal } from '../../components/ApkDownloadPromptModal';
 import {
   MapPin,
   Map as MapIcon,
@@ -78,6 +79,8 @@ export default function ExplorePage() {
   const [viewMode, setViewMode] = useState<'split' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState('');
   const [locationName, setLocationName] = useState('Vadodara, Gujarat');
+  const [isStandaloneApp, setIsStandaloneApp] = useState(false);
+  const [merchants, setMerchants] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadBusinesses() {
@@ -85,9 +88,27 @@ export default function ExplorePage() {
       setBusinessesList(data);
     }
     loadBusinesses();
-  }, []);
 
-  useEffect(() => {
+    // Fetch live merchants from PostgreSQL DB
+    fetch('/api/merchants')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.merchants && Array.isArray(data.merchants)) {
+          setMerchants(data.merchants);
+        }
+      })
+      .catch(() => {});
+
+    // Detect if already running in standalone PWA / APK
+    const isStandalone =
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(display-mode: standalone)').matches ||
+        // @ts-expect-error navigator.standalone is iOS Safari specific
+        window.navigator.standalone === true ||
+        document.referrer.includes('android-app://'));
+
+    setIsStandaloneApp(Boolean(isStandalone));
+
     const updateLoc = () => {
       try {
         const storedLoc = localStorage.getItem('adsspot_user_location');
@@ -102,13 +123,14 @@ export default function ExplorePage() {
     return () => window.removeEventListener('adsspot_location_changed', updateLoc);
   }, []);
 
-  const filtered = businessesList.filter((b) => {
+  const displayList = merchants.length > 0 ? merchants : businessesList;
+  const filtered = displayList.filter((b) => {
     const matchesCat = selectedCat === 'all' || b.category_id === selectedCat;
     const matchesSearch =
       searchQuery.trim() === '' ||
       b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.address.toLowerCase().includes(searchQuery.toLowerCase());
+      (b.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.address || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesSearch;
   });
 
@@ -147,34 +169,87 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* 2. 🔍 SEARCH BAR ABOVE MAP */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
-          <Search className="w-4 h-4 text-[#4787F2]" />
+      {/* 2. 🔍 SEARCH BAR ABOVE MAP & RADIUS FILTER (Feature C) */}
+      <div className="space-y-2">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-neutral-400">
+            <Search className="w-4 h-4 text-[#4787F2]" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search restaurants, doctors, shops, services in Vadodara..."
+            className="w-full pl-10 pr-4 py-3 bg-white border border-[#E3E8EF] rounded-2xl text-xs sm:text-sm font-semibold text-[#17181C] placeholder:text-neutral-400 shadow-xs outline-none focus:border-[#4787F2] focus:ring-2 focus:ring-[#4787F2]/10 transition-all"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-neutral-400 hover:text-neutral-700"
+            >
+              Clear
+            </button>
+          )}
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search restaurants, doctors, shops, services in Vadodara..."
-          className="w-full pl-10 pr-4 py-3 bg-white border border-[#E3E8EF] rounded-2xl text-xs sm:text-sm font-semibold text-[#17181C] placeholder:text-neutral-400 shadow-xs outline-none focus:border-[#4787F2] focus:ring-2 focus:ring-[#4787F2]/10 transition-all"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-xs font-bold text-neutral-400 hover:text-neutral-700"
-          >
-            Clear
-          </button>
-        )}
+
+        {/* Live Proximity Radius Chips with Dynamic ETA indicators */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-[10px] font-bold text-[#687182] px-1">Radius:</span>
+          {['1 km (🚶 5 min)', '3 km (🚗 8 min)', '5 km (🚗 15 min)', 'Whole City'].map((rad, idx) => (
+            <button
+              key={idx}
+              className={`px-3 py-1 rounded-full text-xs font-bold shrink-0 transition-all active:scale-95 ${
+                idx === 1
+                  ? 'bg-[#17181C] text-white shadow-xs'
+                  : 'bg-white text-neutral-600 border border-[#E3E8EF] hover:border-neutral-300'
+              }`}
+            >
+              {rad}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 3. 🗺️ REAL-TIME INTERACTIVE MAP */}
-      <RealtimeExploreMap
-        businesses={filtered}
-        selectedCategory={selectedCat}
-        isFullScreen={viewMode === 'map'}
-      />
+      <div className="relative">
+        <RealtimeExploreMap
+          businesses={filtered}
+          selectedCategory={selectedCat}
+          isFullScreen={viewMode === 'map'}
+        />
+
+        {/* Floating App Access Gate Overlay — ONLY shown on standard Web Browsers, completely hidden in APK */}
+        {!isStandaloneApp && (
+          <div className="absolute bottom-4 left-4 right-4 z-[500] bg-white/95 backdrop-blur-md rounded-2xl p-3.5 border border-[#4787F2]/30 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 animate-fade-in">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-[#EDF4FF] text-[#4787F2] flex items-center justify-center shrink-0">
+                <Smartphone className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-[#17181C] leading-tight">Live GPS Navigation &amp; Pincode Filters</h4>
+                <p className="text-[10px] text-[#687182] font-semibold">Install the official Adsspot App for real-time 3D shop map</p>
+              </div>
+            </div>
+            <Link
+              href="/download"
+              className="w-full sm:w-auto px-4 py-2 bg-[#4787F2] hover:bg-[#3972D4] text-white rounded-full text-xs font-black flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 active:scale-95 transition-all whitespace-nowrap"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Open in App</span>
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* App Download Modal (Only active for Web Browser visitors, suppressed in APK) */}
+      {!isStandaloneApp && (
+        <ApkDownloadPromptModal
+          forceOpen={true}
+          title="Get the Adsspot App"
+          subtitle="Live GPS Map & Local Directory"
+          preventDismiss={false}
+        />
+      )}
 
       {/* 4. 📱 AUTHENTIC CATEGORY GRID SECTION (Matching Screenshot) */}
       <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#E3E8EF] shadow-xs space-y-3">
@@ -197,6 +272,34 @@ export default function ExplorePage() {
           {visibleCategoryItems.map((cat) => {
             const Icon = cat.icon;
             const isSelected = selectedCat === cat.id;
+
+            if (cat.id === 'cat-b2b') {
+              return (
+                <Link
+                  key={cat.id}
+                  href="/b2b"
+                  className="flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 hover:bg-neutral-50"
+                >
+                  {/* Top Badge (1Cr+) */}
+                  {cat.badge && (
+                    <span className="absolute -top-1.5 text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full border shadow-2xs bg-orange-50 text-orange-600 border-orange-200">
+                      {cat.badge}
+                    </span>
+                  )}
+                  {/* Icon Container */}
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs"
+                    style={{ backgroundColor: cat.bg }}
+                  >
+                    <Icon className="w-6 h-6" style={{ color: cat.color }} />
+                  </div>
+                  {/* Label */}
+                  <span className="text-[11px] text-center leading-tight tracking-tight max-w-[70px] font-bold text-[#17181C] group-hover:text-[#E14D2A]">
+                    {cat.name}
+                  </span>
+                </Link>
+              );
+            }
 
             return (
               <button
@@ -288,14 +391,32 @@ export default function ExplorePage() {
                 </div>
 
                 <div className="flex flex-col gap-1 shrink-0">
+                  <div className="flex items-center gap-1">
+                    <a
+                      href={`https://wa.me/${biz.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20found%20you%20on%20Adsspot.`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-7 h-7 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center justify-center transition-all active:scale-95 shadow-2xs"
+                      title="Chat on WhatsApp"
+                    >
+                      <span className="text-[10px] font-black">WA</span>
+                    </a>
+                    <a
+                      href={`tel:${biz.phone}`}
+                      className="w-7 h-7 rounded-full bg-[#F4F6FB] hover:bg-neutral-200 text-[#17181C] border border-[#E3E8EF] flex items-center justify-center transition-all active:scale-95 shadow-2xs text-[10px] font-black"
+                      title="Call Store"
+                    >
+                      📞
+                    </a>
+                  </div>
                   <Link href={`/card/${biz.slug}`}>
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" className="w-full text-[10px] py-1">
                       Card
                     </Button>
                   </Link>
                   {biz.tier === 'elite' && (
                     <Link href={`/b/${biz.slug}`}>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="w-full text-[10px] py-1">
                         Site
                       </Button>
                     </Link>

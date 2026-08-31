@@ -1,26 +1,55 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AuthUser, UserRole, LoginDemoPersona, StaffProfile, Business } from '@adsspot/types';
-import {
-  DEMO_PERSONAS,
-  SEED_USERS,
-  SEED_STAFF_PROFILES,
-  SEED_BUSINESSES,
-} from '../seedData';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { AuthUser, UserRole, DashboardType, StaffProfile, Business, Role } from '@adsspot/types';
 
-interface AddEmployeeInput {
+export interface AddEmployeeInput {
   name: string;
+  email: string;
+  password?: string;
   phone: string;
-  role: 'sm' | 'ro' | 'zo' | 'super_admin';
+  role: 'sm' | 'ro' | 'zo' | 'super_admin' | string;
+  role_id?: string;
+  employee_code?: string;
+  joining_date?: string;
+  salary_monthly?: number;
+  target_monthly?: number;
+
+  // Specific for SM (Sales Manager):
+  pincodes?: string;
+  area_name?: string;
   city_id?: string;
   region_id?: string;
-  pincode?: string;
-  target_monthly?: number;
+  reports_to?: string;
+  daily_visit_target?: number;
+  commission_rate?: number;
+  gps_tracking_enabled?: boolean;
+
+  // Specific for RO (Regional Officer):
+  cluster_name?: string;
+  ro_city?: string;
+  ro_zo_id?: string;
+  override_incentive?: number;
+  travel_allowance?: number;
+
+  // Specific for ZO (Zone Officer):
+  zone_state?: string;
+  metro_hq?: string;
+  zone_target?: number;
+  zone_budget?: number;
+
+  // Banking & Emergency:
+  emergency_name?: string;
+  emergency_phone?: string;
+  bank_account?: string;
+  ifsc?: string;
+  upi_id?: string;
+  pan_aadhaar?: string;
+
   avatar_url?: string;
 }
 
-interface AddMerchantInput {
+export interface AddMerchantInput {
   business_name: string;
   owner_name: string;
   phone: string;
@@ -31,266 +60,297 @@ interface AddMerchantInput {
   trusted?: boolean;
   lat?: number;
   lng?: number;
+  logo_url?: string;
+  cover_url?: string;
 }
 
 interface AuthContextType {
   user: AuthUser | null;
   role: UserRole;
+  dashboardType: DashboardType;
+  permissions: string[];
+  hasPermission: (key: string) => boolean;
   isAuthenticated: boolean;
   isLoading: boolean;
+  loginWithEmail: (
+    email: string,
+    password?: string,
+    phone?: string
+  ) => Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }>;
+  signupWithEmail: (
+    name: string,
+    email: string,
+    password?: string,
+    phone?: string,
+    role?: UserRole
+  ) => Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }>;
   loginWithPhone: (phone: string) => Promise<{ success: boolean; message: string }>;
-  verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; user?: AuthUser; error?: string }>;
-  switchPersona: (personaId: string) => void;
-  addEmployee: (input: AddEmployeeInput) => AuthUser;
-  addMerchant: (input: AddMerchantInput) => { user: AuthUser; business: Business };
-  logout: () => void;
-  personas: LoginDemoPersona[];
+  verifyOtp: (
+    phone: string,
+    otp: string
+  ) => Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }>;
+  addEmployee: (input: AddEmployeeInput) => Promise<AuthUser>;
+  addMerchant: (input: AddMerchantInput) => Promise<{ user: AuthUser; business: Business }>;
+  logout: () => Promise<void>;
+  refreshAuth: () => Promise<void>;
   staffList: StaffProfile[];
   merchantList: Business[];
+  rolesList: Role[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_STORAGE_KEY = 'adsspot_auth_user_id';
-const CUSTOM_USERS_KEY = 'adsspot_custom_users';
-const CUSTOM_STAFF_KEY = 'adsspot_custom_staff';
-const CUSTOM_MERCHANTS_KEY = 'adsspot_custom_merchants';
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [personas, setPersonas] = useState<LoginDemoPersona[]>(DEMO_PERSONAS);
-  const [staffList, setStaffList] = useState<StaffProfile[]>(SEED_STAFF_PROFILES);
-  const [merchantList, setMerchantList] = useState<Business[]>(SEED_BUSINESSES);
+  const [permissions, setPermissions] = useState<string[]>([]);
+  const [staffList, setStaffList] = useState<StaffProfile[]>([]);
+  const [merchantList, setMerchantList] = useState<Business[]>([]);
+  const [rolesList, setRolesList] = useState<Role[]>([]);
 
-  // Helper to construct fully hydrated AuthUser with per-user wallet
-  const buildAuthUser = (userId: string): AuthUser | null => {
-    const baseUser =
-      personas.find((p) => p.id === userId) ||
-      SEED_USERS.find((u) => u.id === userId);
-
-    if (!baseUser) return null;
-
-    const staffProfile = staffList.find((s) => s.user_id === userId) || null;
-    const businessProfile = merchantList.find((b) => b.owner_id === userId) || null;
-
-    // Retrieve per-user custom wallet balance or initialize based on role (new user = 0.00)
-    let userBalance = 0.0;
-    if (typeof window !== 'undefined') {
-      const storedWallet = localStorage.getItem(`adsspot_wallet_${userId}`);
-      if (storedWallet !== null) {
-        userBalance = parseFloat(storedWallet);
-      } else {
-        // Seed users have demo balances, real newly registered users start at ₹0.00
-        if (userId === 'usr-consumer-1') userBalance = 1540.0;
-        else if (userId === 'usr-merchant-1') userBalance = 10000.0;
-        else if (userId.startsWith('usr-staff')) userBalance = 5000.0;
-        else userBalance = 0.0;
-        localStorage.setItem(`adsspot_wallet_${userId}`, userBalance.toString());
-      }
-    }
-
-    return {
-      id: baseUser.id,
-      phone: baseUser.phone,
-      full_name: (baseUser as any).name || (baseUser as any).full_name || 'User',
-      avatar_url: baseUser.avatar_url,
-      role: baseUser.role,
-      created_at: (baseUser as any).created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      staff_profile: staffProfile,
-      business_profile: businessProfile,
-      wallet: {
-        id: `wallet-${userId}`,
-        user_id: userId,
-        balance: userBalance,
-        currency: 'INR',
-        updated_at: new Date().toISOString(),
-      },
-    };
-  };
-
-  // Load custom stored staff and merchants on mount
-  useEffect(() => {
+  // 1. Initial server-side session authentication check
+  const refreshAuth = useCallback(async () => {
     try {
-      if (typeof window !== 'undefined') {
-        let currentPersonas = DEMO_PERSONAS;
-        let currentStaff = SEED_STAFF_PROFILES;
-        let currentMerchants = SEED_BUSINESSES;
+      // Check current session from /api/user/me
+      const res = await fetch('/api/user/me', {
+        headers: { 'Cache-Control': 'no-cache' },
+      });
 
-        const storedPersonas = localStorage.getItem(CUSTOM_USERS_KEY);
-        const storedStaff = localStorage.getItem(CUSTOM_STAFF_KEY);
-        const storedMerchants = localStorage.getItem(CUSTOM_MERCHANTS_KEY);
-
-        if (storedPersonas) {
-          try {
-            currentPersonas = JSON.parse(storedPersonas);
-            setPersonas(currentPersonas);
-          } catch {}
-        }
-        if (storedStaff) {
-          try {
-            currentStaff = JSON.parse(storedStaff);
-            setStaffList(currentStaff);
-          } catch {}
-        }
-        if (storedMerchants) {
-          try {
-            currentMerchants = JSON.parse(storedMerchants);
-            setMerchantList(currentMerchants);
-          } catch {}
-        }
-
-        const savedUserId = localStorage.getItem(AUTH_STORAGE_KEY);
-        if (savedUserId) {
-          // Look up in loaded personas and seed users
-          const baseUser =
-            currentPersonas.find((p) => p.id === savedUserId) ||
-            SEED_USERS.find((u) => u.id === savedUserId);
-
-          if (baseUser) {
-            const staffProfile = currentStaff.find((s) => s.user_id === savedUserId) || null;
-            const businessProfile = currentMerchants.find((b) => b.owner_id === savedUserId) || null;
-
-            let userBalance = 0.0;
-            const storedWallet = localStorage.getItem(`adsspot_wallet_${savedUserId}`);
-            if (storedWallet !== null) {
-              userBalance = parseFloat(storedWallet);
-            } else {
-              userBalance = savedUserId === 'usr-consumer-1' ? 1540.0 : 0.0;
-            }
-
-            const hydratedUser: AuthUser = {
-              id: baseUser.id,
-              phone: baseUser.phone,
-              full_name: (baseUser as any).name || (baseUser as any).full_name || 'User',
-              avatar_url: baseUser.avatar_url,
-              role: baseUser.role,
-              created_at: (baseUser as any).created_at || new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              staff_profile: staffProfile,
-              business_profile: businessProfile,
-              wallet: {
-                id: `wallet-${savedUserId}`,
-                user_id: savedUserId,
-                balance: userBalance,
-                currency: 'INR',
-                updated_at: new Date().toISOString(),
-              },
-            };
-            setUser(hydratedUser);
-          } else {
-            setUser(null);
-          }
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          const authUser: AuthUser = data.user;
+          setUser(authUser);
+          setPermissions(data.permissions || authUser.permissions || []);
         } else {
           setUser(null);
+          setPermissions([]);
         }
+      } else {
+        setUser(null);
+        setPermissions([]);
       }
-    } catch {
+
+      // Load merchants from PostgreSQL
+      try {
+        const merchRes = await fetch('/api/merchants');
+        if (merchRes.ok) {
+          const merchData = await merchRes.json();
+          if (merchData.success && Array.isArray(merchData.merchants)) {
+            setMerchantList(merchData.merchants);
+          }
+        }
+      } catch {}
+
+      // Load staff from PostgreSQL
+      try {
+        const staffRes = await fetch('/api/staff');
+        if (staffRes.ok) {
+          const staffData = await staffRes.json();
+          if (staffData.success && Array.isArray(staffData.staff)) {
+            setStaffList(staffData.staff);
+          }
+        }
+      } catch {}
+
+      // Load roles from PostgreSQL
+      try {
+        const rolesRes = await fetch('/api/roles');
+        if (rolesRes.ok) {
+          const rolesData = await rolesRes.json();
+          if (rolesData.success && Array.isArray(rolesData.roles)) {
+            setRolesList(rolesData.roles);
+          }
+        }
+      } catch {}
+    } catch (err) {
+      console.warn('[AuthProvider] Failed to initialize session from server:', err);
       setUser(null);
+      setPermissions([]);
     } finally {
       setIsLoading(false);
     }
   }, []);
 
+  useEffect(() => {
+    refreshAuth();
+  }, [refreshAuth]);
+
+  // Permission checker
+  const hasPermission = useCallback(
+    (key: string): boolean => {
+      if (!user) return false;
+      if (user.role === 'super_admin' || user.role_id === 'role-super-admin') return true;
+      return permissions.includes(key);
+    },
+    [user, permissions]
+  );
+
+  // Helper to determine destination URL
+  const getDestination = (role: string, dashboardType?: string): string => {
+    if (dashboardType === 'admin' || role === 'super_admin') return '/admin';
+    if (dashboardType === 'merchant' || role === 'merchant') return '/merchant';
+    if (dashboardType === 'sm' || role === 'sm') return '/sm';
+    if (dashboardType === 'ro' || role === 'ro') return '/ro';
+    if (dashboardType === 'zo' || role === 'zo') return '/zo';
+    if (dashboardType === 'employee') return '/sm';
+    return '/feed';
+  };
+
+  // Login with Email & Password
+  const loginWithEmail = async (
+    email: string,
+    password?: string,
+    phone?: string
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }> => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email: cleanEmail, password, phone }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Authentication failed. Please check your credentials.' };
+      }
+
+      const authUser: AuthUser = data.user;
+      setUser(authUser);
+      setPermissions(authUser.permissions || []);
+      const destination = data.destination || getDestination(authUser.role, authUser.dashboard_type);
+
+      return { success: true, user: authUser, destination };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Login failed.' };
+    }
+  };
+
+  // Signup with Email
+  const signupWithEmail = async (
+    name: string,
+    email: string,
+    password?: string,
+    phone?: string,
+    role: UserRole = 'consumer'
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }> => {
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const res = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'signup',
+          name,
+          email: cleanEmail,
+          password,
+          phone,
+          role,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Signup failed.' };
+      }
+
+      const authUser: AuthUser = data.user;
+      setUser(authUser);
+      setPermissions(authUser.permissions || []);
+      const destination = getDestination(authUser.role, authUser.dashboard_type);
+
+      return { success: true, user: authUser, destination };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Signup failed.' };
+    }
+  };
+
+  // Login with Phone
   const loginWithPhone = async (phone: string): Promise<{ success: boolean; message: string }> => {
     return { success: true, message: `OTP sent to ${phone}. (Use test OTP: 123456)` };
   };
 
+  // Verify OTP
   const verifyOtp = async (
     phone: string,
     otp: string
-  ): Promise<{ success: boolean; user?: AuthUser; error?: string }> => {
+  ): Promise<{ success: boolean; user?: AuthUser; error?: string; destination?: string }> => {
     if (otp !== '123456' && otp.length !== 6) {
       return { success: false, error: 'Invalid OTP code. Please enter 123456 for instant verification.' };
     }
 
-    // Check if user already exists
-    let matchedPersona = personas.find((p) => p.phone === phone || p.phone.replace(/[^0-9]/g, '') === phone.replace(/[^0-9]/g, ''));
+    try {
+      const res = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp }),
+      });
 
-    // If new real user, dynamically register them as a Consumer
-    if (!matchedPersona) {
-      const newUserId = `usr-real-${Date.now()}`;
-      matchedPersona = {
-        id: newUserId,
-        name: `User ${phone.slice(-4)}`,
-        phone: phone.startsWith('+91') ? phone : `+91${phone}`,
-        role: 'consumer',
-        description: 'Real registered consumer',
-        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${phone}`,
-      };
-
-      const updated = [matchedPersona, ...personas];
-      setPersonas(updated);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updated));
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'OTP verification failed.' };
       }
-    }
 
-    const fullUser = buildAuthUser(matchedPersona.id);
-    if (fullUser) {
-      setUser(fullUser);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_STORAGE_KEY, fullUser.id);
-      }
-      return { success: true, user: fullUser };
-    }
+      const authUser: AuthUser = data.user;
+      setUser(authUser);
+      setPermissions(authUser.permissions || []);
+      const destination = data.destination || getDestination(authUser.role, authUser.dashboard_type);
 
-    return { success: false, error: 'Authentication failed.' };
+      return { success: true, user: authUser, destination };
+    } catch (e: any) {
+      return { success: false, error: e?.message || 'Verification failed.' };
+    }
   };
 
-  const addEmployee = (input: AddEmployeeInput): AuthUser => {
-    const newUserId = `usr-staff-${Date.now()}`;
-    const formattedPhone = input.phone.startsWith('+91') ? input.phone : `+91${input.phone}`;
+  // Add Employee (Admin only)
+  const addEmployee = async (input: AddEmployeeInput): Promise<AuthUser> => {
+    const cleanPhone = (input.phone || '').trim().replace(/\s+/g, '');
+    const formattedPhone = cleanPhone ? (cleanPhone.startsWith('+91') ? cleanPhone : `+91${cleanPhone}`) : `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`;
+    const cleanEmail = (input.email || `${input.name.toLowerCase().replace(/[^a-z0-9]/g, '')}@adsspot.in`).trim().toLowerCase();
 
-    const newPersona: LoginDemoPersona = {
-      id: newUserId,
-      name: input.name,
-      phone: formattedPhone,
-      role: input.role,
-      description: `${input.role.toUpperCase()} • ${input.city_id || 'Mumbai'} • ${input.pincode || '400001'}`,
-      avatar_url:
-        input.avatar_url ||
-        `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random() * 1000)}?w=150&auto=format&fit=crop&q=80`,
-    };
+    const res = await fetch('/api/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: input.name,
+        email: cleanEmail,
+        password: input.password || 'adsspot123',
+        phone: formattedPhone,
+        role: input.role,
+        role_id: input.role_id,
+        city_id: input.city_id || input.ro_city || 'Vadodara',
+        region_id: input.region_id || input.area_name || input.cluster_name || 'Central Gujarat',
+        reports_to: input.reports_to || null,
+        target_monthly: input.target_monthly || input.zone_target || 250000,
+      }),
+    });
 
-    const newStaffProfile: StaffProfile = {
-      id: `staff-${Date.now()}`,
-      user_id: newUserId,
-      role: input.role,
-      reports_to: input.role === 'sm' ? 'staff-ro-1' : input.role === 'ro' ? 'staff-zo-1' : null,
-      city_id: input.city_id || 'city-mum',
-      region_id: input.region_id || 'reg-mum-south',
-      target_monthly: input.target_monthly || 250000,
-      status: 'active',
-      created_at: new Date().toISOString(),
-    };
-
-    const updatedPersonas = [newPersona, ...personas];
-    const updatedStaff = [newStaffProfile, ...staffList];
-
-    setPersonas(updatedPersonas);
-    setStaffList(updatedStaff);
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updatedPersonas));
-      localStorage.setItem(CUSTOM_STAFF_KEY, JSON.stringify(updatedStaff));
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to onboard staff member in database');
     }
 
+    const createdStaff: StaffProfile = data.staff_profile;
+    setStaffList((prev) => [createdStaff, ...prev.filter((s) => s.user_id !== data.user.id)]);
+
     const createdAuthUser: AuthUser = {
-      id: newUserId,
+      id: data.user.id,
       phone: formattedPhone,
+      email: cleanEmail,
       full_name: input.name,
-      avatar_url: newPersona.avatar_url,
-      role: input.role,
+      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`,
+      role: (input.role as UserRole) || 'sm',
+      role_id: input.role_id || `role-${input.role}`,
+      dashboard_type: (input.role as DashboardType) || 'sm',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      staff_profile: newStaffProfile,
+      staff_profile: createdStaff,
       business_profile: null,
       wallet: {
-        id: `wallet-${newUserId}`,
-        user_id: newUserId,
-        balance: 5000.0,
+        id: `wallet-${data.user.id}`,
+        user_id: data.user.id,
+        balance: 0.0,
         currency: 'INR',
         updated_at: new Date().toISOString(),
       },
@@ -299,96 +359,49 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return createdAuthUser;
   };
 
-  const addMerchant = (input: AddMerchantInput): { user: AuthUser; business: Business } => {
-    const newOwnerId = `usr-merch-${Date.now()}`;
-    const slug = input.business_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  // Add Merchant with Real PostgreSQL Database Persistence
+  const addMerchant = async (input: AddMerchantInput): Promise<{ user: AuthUser; business: Business }> => {
     const formattedPhone = input.phone.startsWith('+91') ? input.phone : `+91${input.phone}`;
 
-    const newPersona: LoginDemoPersona = {
-      id: newOwnerId,
-      name: `${input.owner_name} (${input.business_name})`,
-      phone: formattedPhone,
-      role: 'merchant',
-      tier: input.tier,
-      description: `${input.tier.toUpperCase()} Merchant • ${input.address}`,
-      avatar_url: `https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150`,
-    };
+    const res = await fetch('/api/merchants/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bizName: input.business_name,
+        ownerName: input.owner_name,
+        phone: formattedPhone,
+        categoryId: input.category_id,
+        address: input.address,
+        pincode: input.pincode,
+        tier: input.tier,
+        trusted: input.trusted,
+        lat: input.lat,
+        lng: input.lng,
+      }),
+    });
 
-    const newBusiness: Business = {
-      id: `biz-${Date.now()}`,
-      owner_id: newOwnerId,
-      category_id: input.category_id,
-      name: input.business_name,
-      slug,
-      description: `Verified authentic local shop on Adsspot in ${input.pincode}.`,
-      address: input.address,
-      pincode: input.pincode,
-      lat: input.lat || 18.935 + (Math.random() * 0.02 - 0.01),
-      lng: input.lng || 72.832 + (Math.random() * 0.02 - 0.01),
-      phone: formattedPhone,
-      whatsapp: formattedPhone,
-      logo_url: `https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=200&auto=format&fit=crop&q=80`,
-      cover_url: `https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&auto=format&fit=crop&q=80`,
-      trusted: !!input.trusted,
-      status: 'active',
-      tier: input.tier,
-      created_at: new Date().toISOString(),
-      stats: {
-        views_count: 100,
-        likes_count: 24,
-        followers_count: 12,
-        reviews_count: 5,
-        avg_rating: 5.0,
-      },
-    };
-
-    const updatedPersonas = [newPersona, ...personas];
-    const updatedMerchants = [newBusiness, ...merchantList];
-
-    setPersonas(updatedPersonas);
-    setMerchantList(updatedMerchants);
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(CUSTOM_USERS_KEY, JSON.stringify(updatedPersonas));
-      localStorage.setItem(CUSTOM_MERCHANTS_KEY, JSON.stringify(updatedMerchants));
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || 'Failed to persist merchant in database.');
     }
 
-    const createdAuthUser: AuthUser = {
-      id: newOwnerId,
-      phone: formattedPhone,
-      full_name: input.owner_name,
-      avatar_url: newPersona.avatar_url,
-      role: 'merchant',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      staff_profile: null,
-      business_profile: newBusiness,
-      wallet: {
-        id: `wallet-${newOwnerId}`,
-        user_id: newOwnerId,
-        balance: 10000.0,
-        currency: 'INR',
-        updated_at: new Date().toISOString(),
-      },
-    };
+    const newBusiness: Business = data.business;
+    const merchantUser: AuthUser = data.user;
 
-    return { user: createdAuthUser, business: newBusiness };
+    setMerchantList((prev) => [newBusiness, ...prev.filter((b) => b.id !== newBusiness.id)]);
+
+    return { user: merchantUser, business: newBusiness };
   };
 
-  const switchPersona = (personaId: string) => {
-    const fullUser = buildAuthUser(personaId);
-    if (fullUser) {
-      setUser(fullUser);
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(AUTH_STORAGE_KEY, fullUser.id);
-      }
-    }
-  };
-
-  const logout = () => {
+  // Logout
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch {}
     setUser(null);
+    setPermissions([]);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(AUTH_STORAGE_KEY);
+      window.location.href = '/login';
     }
   };
 
@@ -397,17 +410,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         role: user?.role || 'consumer',
+        dashboardType: user?.dashboard_type || (user?.role === 'super_admin' ? 'admin' : user?.role === 'merchant' ? 'merchant' : user?.role === 'sm' ? 'sm' : user?.role === 'ro' ? 'ro' : user?.role === 'zo' ? 'zo' : 'user'),
+        permissions,
+        hasPermission,
         isAuthenticated: !!user,
         isLoading,
+        loginWithEmail,
+        signupWithEmail,
         loginWithPhone,
         verifyOtp,
-        switchPersona,
         addEmployee,
         addMerchant,
         logout,
-        personas,
+        refreshAuth,
         staffList,
         merchantList,
+        rolesList,
       }}
     >
       {children}

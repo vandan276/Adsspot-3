@@ -7,6 +7,7 @@ import { FloatingMobileNav } from '../components/FloatingMobileNav';
 
 import { LocationPromptModal } from '../components/LocationPromptModal';
 import { AppSplashScreenWrapper } from '../components/AppSplashScreenWrapper';
+import { ApkDownloadPromptModal } from '../components/ApkDownloadPromptModal';
 
 export const metadata: Metadata = {
   title: 'Adsspot — Hyperlocal Business Discovery & Marketing Platform',
@@ -41,13 +42,31 @@ export default function RootLayout({
         />
         <link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet" />
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var saved = localStorage.getItem('adsspot_theme');
+                  var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (saved === 'dark' || (!saved && prefersDark)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
       </head>
 
-      <body className="min-h-screen bg-[#F4F6FB] text-[#17181C] antialiased flex flex-col">
+      <body className="min-h-screen bg-[#F4F6FB] dark:bg-[#0B0E14] text-[#17181C] dark:text-[#F9FAFB] antialiased flex flex-col transition-colors duration-200">
         <AuthProvider>
           <AppSplashScreenWrapper />
           <Navbar />
           <LocationPromptModal />
+          <ApkDownloadPromptModal />
           <main className="flex-1 flex flex-col">{children}</main>
           <FloatingMobileNav />
         </AuthProvider>

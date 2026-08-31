@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'mapbox-gl/dist/mapbox-gl.css';
-
-
 :root {
   --font-jakarta: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-inter: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -14,6 +11,20 @@
   --deep-crimson: #981837;
   --ink: #17181C;
   --canvas: #F4F6FB;
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --border-color: #E3E8EF;
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --subtext: #687182;
+}
+
+html.dark {
+  --ink: #F9FAFB;
+  --canvas: #0B0E14;
+  --card-bg: rgba(20, 24, 33, 0.75);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --nav-bg: rgba(11, 14, 20, 0.92);
+  --subtext: #9CA3AF;
+  color-scheme: dark;
 }
 
 body {
@@ -22,13 +33,38 @@ body {
   color: var(--ink);
   margin: 0;
   padding: 0;
+  transition: background-color 0.3s ease, color 0.3s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-jakarta);
   letter-spacing: -0.02em;
+}
+
+/* BentoMotion Reference Grid & Mesh Texture */
+.bentomotion-grid-texture {
+  background-color: #EAE6FA;
+  background-image:
+    linear-gradient(to right, rgba(138, 120, 200, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(138, 120, 200, 0.15) 1px, transparent 1px),
+    radial-gradient(circle at 15% 20%, rgba(147, 129, 255, 0.25) 0%, transparent 50%),
+    radial-gradient(circle at 85% 80%, rgba(255, 120, 160, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(71, 135, 242, 0.18) 0%, transparent 60%);
+  background-size: 72px 72px, 72px 72px, 100% 100%, 100% 100%, 100% 100%;
+}
+
+.subtle-glass-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(71, 135, 242, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(71, 135, 242, 0.08) 1px, transparent 1px);
+  background-size: 56px 56px;
 }
 
 /* Spot Ring Conic Gradient Animation */
@@ -36,6 +72,7 @@ h1, h2, h3, h4, h5, h6 {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -58,6 +95,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translateY(-80px) scale(1.6);
@@ -68,3 +106,426 @@ h1, h2, h3, h4, h5, h6 {
   animation: float-up 1.2s ease-out forwards;
 }
 
+/* =========================================================================
+   TRUE 3D LIQUID GLASS (Clean Optics & Smooth Lens Curves)
+   ========================================================================= */
+
+.pure-liquid-glass {
+  position: relative;
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0.12) 40%,
+      rgba(255, 255, 255, 0.05) 70%,
+      rgba(255, 255, 255, 0.25) 100%);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow:
+    0 15px 35px -8px rgba(30, 20, 70, 0.12),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -2px 3px 0 rgba(100, 90, 160, 0.15);
+}
+
+.pure-liquid-glass-card {
+  position: relative;
+  background: linear-gradient(140deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.15) 30%,
+      rgba(255, 255, 255, 0.08) 65%,
+      rgba(255, 255, 255, 0.3) 100%);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border-radius: 40px;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    /* Soft ambient drop shadow */
+    0 30px 60px -12px rgba(60, 45, 120, 0.16),
+    0 10px 20px -5px rgba(0, 0, 0, 0.05),
+    /* Top & Left bright specular refraction sheen */
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.95),
+    inset 2px 3px 8px 0 rgba(255, 255, 255, 0.4),
+    /* Bottom & Right subtle lens edge refraction */
+    inset -2px -3px 8px 0 rgba(100, 80, 160, 0.15),
+    inset 0 -1.5px 3px 0 rgba(60, 40, 110, 0.2);
+}
+
+/* Notification Pill Badge */
+.liquid-glass-badge {
+  background: radial-gradient(circle at 35% 30%, #FF6B6B 0%, #E60023 55%, #8B0014 100%);
+  box-shadow:
+    0 10px 24px -4px rgba(230, 0, 35, 0.45),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px 0 rgba(0, 0, 0, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
+}
+
+.liquid-glass-subtle {
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(255, 255, 255, 0.1) 100%);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 15px 35px -8px rgba(0, 0, 0, 0.08),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 4px 0 rgba(100, 80, 160, 0.12);
+}
+
+.liquid-glass-btn-primary {
+  background: #17181C;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.25);
+}
+
+.liquid-glass-btn-secondary {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px) saturate(160%);
+  -webkit-backdrop-filter: blur(8px) saturate(160%);
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  color: #17181C;
+  box-shadow:
+    0 8px 20px -4px rgba(0, 0, 0, 0.06),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Applied globally across all cards (ios-glass-card) */
+.ios-glass-card {
+  position: relative;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border-radius: 24px;
+  border: 1.5px solid var(--border-color);
+  box-shadow:
+    0 18px 40px -10px rgba(0, 0, 0, 0.1),
+    0 4px 12px -2px rgba(0, 0, 0, 0.04),
+    inset 0 2px 3px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.25s ease;
+}
+
+html.dark .ios-glass-card {
+  background: linear-gradient(140deg,
+      rgba(26, 32, 44, 0.8) 0%,
+      rgba(17, 22, 31, 0.75) 50%,
+      rgba(20, 25, 36, 0.85) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 20px 45px -10px rgba(0, 0, 0, 0.6),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+html.dark .pure-liquid-glass {
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.04) 40%,
+      rgba(255, 255, 255, 0.08) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 15px 35px -8px rgba(0, 0, 0, 0.4),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25);
+}
+
+html.dark .pure-liquid-glass-card {
+  background: linear-gradient(140deg,
+      rgba(30, 36, 50, 0.85) 0%,
+      rgba(18, 22, 32, 0.8) 50%,
+      rgba(22, 28, 40, 0.9) 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 30px 60px -12px rgba(0, 0, 0, 0.7),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.2);
+}
+
+.ios-glass-card:hover {
+  border-color: rgba(71, 135, 242, 0.5);
+  box-shadow:
+    0 24px 50px -10px rgba(71, 135, 242, 0.2),
+    0 6px 16px -2px rgba(0, 0, 0, 0.05),
+    inset 0 2px 4px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* =========================================================================
+   COMPREHENSIVE FULL-WEBSITE DARK THEME RULES
+   ========================================================================= */
+
+html.dark,
+html.dark body {
+  background-color: #0B0E14 !important;
+  color: #F9FAFB !important;
+  color-scheme: dark;
+}
+
+/* Background transformations */
+html.dark section,
+html.dark main,
+html.dark footer {
+  background-color: transparent;
+}
+
+html.dark .bg-white,
+html.dark [class*="bg-white"] {
+  background-color: #121620 !important;
+  color: #F9FAFB !important;
+}
+
+html.dark section.bg-white,
+html.dark div.bg-white {
+  background-color: #121620 !important;
+}
+
+html.dark [class*="bg-[#F4F6FB]"],
+html.dark [class*="bg-[#f4f6fb]"],
+html.dark [class*="bg-[#F8FAFC]"],
+html.dark [class*="bg-[#f8fafc]"],
+html.dark [class*="bg-[#FAFBFD]"],
+html.dark [class*="bg-[#fafbfd]"],
+html.dark [class*="bg-[#F1F5F9]"],
+html.dark [class*="bg-[#f1f5f9]"],
+html.dark [class*="bg-slate-50"],
+html.dark [class*="bg-gray-50"],
+html.dark [class*="bg-zinc-50"],
+html.dark [class*="bg-neutral-50"],
+html.dark .bg-\[\#F4F6FB\],
+html.dark .bg-\[\#f4f6fb\],
+html.dark .bg-\[\#F8FAFC\],
+html.dark .bg-\[\#f8fafc\] {
+  background-color: #0B0E14 !important;
+}
+
+html.dark [class*="bg-[#EDF4FF]"],
+html.dark [class*="bg-[#edf4ff]"],
+html.dark [class*="bg-[#EFF5FF]"],
+html.dark [class*="bg-[#E0F2FE]"],
+html.dark [class*="bg-[#EEF2FF]"],
+html.dark .bg-\[\#EDF4FF\],
+html.dark .bg-\[\#edf4ff\] {
+  background-color: rgba(71, 135, 242, 0.18) !important;
+  color: #93C5FD !important;
+}
+
+html.dark [class*="bg-[#FFF8E6]"],
+html.dark [class*="bg-[#FFFDF5]"],
+html.dark [class*="bg-[#fff8e6]"],
+html.dark [class*="bg-[#FEF3C7]"],
+html.dark [class*="bg-[#FEF9C3]"],
+html.dark [class*="bg-[#FFFBEB]"],
+html.dark [class*="bg-[#FFF7ED]"],
+html.dark .bg-\[\#FFF8E6\],
+html.dark .bg-\[\#FFFDF5\],
+html.dark .bg-\[\#fff8e6\] {
+  background-color: rgba(242, 182, 4, 0.15) !important;
+  color: #FDE047 !important;
+}
+
+html.dark [class*="bg-[#EBF9EE]"],
+html.dark [class*="bg-[#ebf9ee]"],
+html.dark [class*="bg-[#EBF9F3]"],
+html.dark [class*="bg-[#ECFDF5]"],
+html.dark [class*="bg-[#F0FDFA]"],
+html.dark [class*="bg-[#F0FDF4]"],
+html.dark .bg-\[\#EBF9EE\],
+html.dark .bg-\[\#ebf9ee\] {
+  background-color: rgba(53, 171, 78, 0.18) !important;
+  color: #86EFAC !important;
+}
+
+html.dark [class*="bg-[#FBECEF]"],
+html.dark [class*="bg-[#fbecef]"],
+html.dark [class*="bg-[#FFF1EE]"],
+html.dark [class*="bg-[#FFF1F2]"],
+html.dark [class*="bg-[#FDF0F8]"],
+html.dark [class*="bg-[#FCE7F3]"],
+html.dark [class*="bg-[#F5EEFD]"],
+html.dark .bg-\[\#FBECEF\],
+html.dark .bg-\[\#fbecef\] {
+  background-color: rgba(152, 24, 55, 0.25) !important;
+  color: #FCA5A5 !important;
+}
+
+/* Typography in Dark Mode */
+html.dark [class*="text-[#17181C]"],
+html.dark [class*="text-[#17181c]"],
+html.dark .text-\[\#17181C\],
+html.dark .text-\[\#17181c\],
+html.dark .text-neutral-900,
+html.dark .text-neutral-800,
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #F9FAFB !important;
+}
+
+html.dark [class*="text-[#4A5260]"],
+html.dark [class*="text-[#4a5260]"],
+html.dark .text-\[\#4A5260\],
+html.dark .text-\[\#4a5260\],
+html.dark .text-neutral-700,
+html.dark .text-gray-700,
+html.dark .text-slate-700 {
+  color: #E5E7EB !important;
+}
+
+html.dark [class*="text-[#687182]"],
+html.dark [class*="text-[#687182]"],
+html.dark .text-\[\#687182\],
+html.dark .text-\[\#687182\],
+html.dark .text-neutral-600,
+html.dark .text-neutral-500,
+html.dark .text-neutral-400,
+html.dark .text-gray-600,
+html.dark .text-gray-500,
+html.dark .text-gray-400,
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #9CA3AF !important;
+}
+
+html.dark .bg-neutral-100,
+html.dark .bg-neutral-200,
+html.dark .bg-gray-100,
+html.dark .bg-gray-200,
+html.dark .bg-slate-100,
+html.dark .bg-slate-200 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+  color: #F9FAFB !important;
+}
+
+html.dark .border-neutral-100,
+html.dark .border-neutral-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-slate-100,
+html.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark [class*="text-[#1D53B8]"],
+html.dark [class*="text-[#1d53b8]"],
+html.dark .text-\[\#1D53B8\],
+html.dark .text-\[\#1d53b8\] {
+  color: #93C5FD !important;
+}
+
+html.dark [class*="text-[#A06E00]"],
+html.dark [class*="text-[#a06e00]"],
+html.dark .text-\[\#A06E00\],
+html.dark .text-\[\#a06e00\] {
+  color: #FDE047 !important;
+}
+
+html.dark [class*="text-[#1B6A2D]"],
+html.dark [class*="text-[#1b6a2d]"],
+html.dark .text-\[\#1B6A2D\],
+html.dark .text-\[\#1b6a2d\] {
+  color: #86EFAC !important;
+}
+
+/* Border overrides in Dark Mode */
+html.dark [class*="border-[#E3E8EF]"],
+html.dark [class*="border-[#e3e8ef]"],
+html.dark .border-\[\#E3E8EF\],
+html.dark .border-\[\#e3e8ef\],
+html.dark hr {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark .divide-\[\#E3E8EF\]> :not([hidden])~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Cards & Glass Containers in Dark Mode */
+html.dark .ios-glass-card {
+  background: linear-gradient(140deg,
+      rgba(22, 28, 40, 0.9) 0%,
+      rgba(14, 18, 26, 0.85) 50%,
+      rgba(18, 24, 34, 0.95) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    0 20px 45px -10px rgba(0, 0, 0, 0.7),
+    inset 0 1px 2px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .ios-glass-card:hover {
+  border-color: rgba(71, 135, 242, 0.6) !important;
+  box-shadow:
+    0 24px 50px -10px rgba(71, 135, 242, 0.25),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+html.dark .pure-liquid-glass {
+  background: linear-gradient(135deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.04) 40%,
+      rgba(255, 255, 255, 0.08) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow:
+    0 15px 35px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+html.dark .pure-liquid-glass-card {
+  background: linear-gradient(140deg,
+      rgba(24, 30, 44, 0.9) 0%,
+      rgba(14, 18, 28, 0.85) 50%,
+      rgba(18, 24, 36, 0.95) 100%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow:
+    0 30px 60px -12px rgba(0, 0, 0, 0.8),
+    inset 0 1.5px 3px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Form Inputs, Dropdowns, Selects & Modals */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #171C28 !important;
+  color: #F9FAFB !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #6B7280 !important;
+}
+
+/* Header & Navigation Bar in Dark Mode */
+html.dark header {
+  background-color: rgba(11, 14, 20, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Aside sidebars in Dark Mode */
+html.dark aside {
+  background-color: #121620 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Floating Bottom Navigation in Dark Mode */
+html.dark nav.fixed,
+html.dark nav.pointer-events-auto {
+  background-color: rgba(18, 22, 32, 0.94) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Modals & Popovers */
+html.dark [role="dialog"],
+html.dark .modal-content,
+html.dark .dropdown-menu {
+  background-color: #141824 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: #F9FAFB !important;
+}

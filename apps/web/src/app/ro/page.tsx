@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { SEED_LEADS } from '@adsspot/api';
 import { Card, Avatar, RoleBadge } from '@adsspot/ui';
 import {
   Shield,
@@ -12,7 +11,12 @@ import {
 } from 'lucide-react';
 
 
+import Link from 'next/link';
+import { useAuth } from '@adsspot/api';
+import { Button } from '@adsspot/ui';
+
 export default function RODashboardPage() {
+  const { user, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'sms' | 'coverage' | 'leaderboard'>('overview');
 
   const smList = [
@@ -47,6 +51,30 @@ export default function RODashboardPage() {
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
     },
   ];
+
+  // Route Guard: RO, ZO or Admin
+  if (!isLoading && (!user || (user.role !== 'ro' && user.role !== 'zo' && user.role !== 'super_admin' && user.dashboard_type !== 'ro' && user.dashboard_type !== 'zo' && user.dashboard_type !== 'admin'))) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex items-center justify-center p-6">
+        <Card padding="lg" className="max-w-md w-full text-center space-y-4 shadow-xl border border-emerald-200">
+          <div className="w-16 h-16 bg-emerald-100 text-[#35AB4E] rounded-full flex items-center justify-center mx-auto text-2xl font-black">
+            🛡️
+          </div>
+          <h2 className="text-xl font-black text-[#17181C]">Regional Officer Portal Access</h2>
+          <p className="text-xs text-[#687182]">
+            You need a Regional Officer or Administrator profile to oversee SM team performance and cluster coverage.
+          </p>
+          <div className="pt-2">
+            <Link href="/login">
+              <Button variant="primary" size="md" className="w-full">
+                Sign In as Regional Officer
+              </Button>
+            </Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex">
@@ -122,7 +150,7 @@ export default function RODashboardPage() {
           </div>
         </div>
 
-        {/* TAB 1: OVERVIEW */}
+        {/* TAB 1: OVERVIEW WITH MULTI-LAYER TARGET RINGS (Feature M) */}
         {activeTab === 'overview' && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -139,31 +167,94 @@ export default function RODashboardPage() {
               </Card>
 
               <Card padding="md" className="border-l-4 border-l-[#F2B604]">
-                <span className="text-xs font-bold text-[#687182] uppercase">Total Regional Leads</span>
-                <p className="text-2xl font-black text-[#17181C] mt-2">{SEED_LEADS.length * 4}</p>
-                <span className="text-[11px] text-[#687182] mt-1 block">34 conversions this month</span>
+                <span className="text-xs font-bold text-[#687182] uppercase">Total Merchant Conversions</span>
+                <p className="text-2xl font-black text-[#17181C] mt-2">48 Stores</p>
+                <span className="text-[11px] text-[#4787F2] font-semibold mt-1 block">32 Elite • 16 Premium</span>
               </Card>
             </div>
 
-            <Card padding="lg">
-              <h2 className="text-base font-bold text-[#17181C] mb-4 pb-3 border-b border-[#E3E8EF]">
-                Live SM Check-In Feed
-              </h2>
-              <div className="space-y-3">
+            {/* Apple Fitness-Style Multi-Layer Target Performance Rings (Feature M) */}
+            <Card padding="lg" className="space-y-4 bg-gradient-to-br from-white to-[#F4F6FB] border border-[#E3E8EF] shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-[#E3E8EF] pb-3">
+                <div>
+                  <h3 className="text-base font-black text-[#17181C] flex items-center gap-2">
+                    🎯 Multi-Layer Regional Target Rings
+                  </h3>
+                  <p className="text-xs text-[#687182]">Real-time tracking of Field Visits, Merchant Closings, and Monthly GMV</p>
+                </div>
+                <span className="text-xs font-black px-3 py-1 bg-[#EBF9EE] text-[#35AB4E] rounded-full">
+                  ⚡ 83% Overall Region Pace
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+                {/* Ring 1: Revenue Target */}
+                <div className="p-4 bg-white rounded-2xl border border-[#E3E8EF] text-center space-y-2 shadow-2xs">
+                  <div className="w-20 h-20 rounded-full border-8 border-[#4787F2] border-r-[#4787F2]/20 flex items-center justify-center font-black text-sm text-[#17181C] mx-auto shadow-inner">
+                    83%
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-[#17181C]">Revenue Volume</h4>
+                    <p className="text-[10px] text-[#687182]">₹12.45L / ₹15.00L</p>
+                  </div>
+                </div>
+
+                {/* Ring 2: Elite Merchant Onboardings */}
+                <div className="p-4 bg-white rounded-2xl border border-[#E3E8EF] text-center space-y-2 shadow-2xs">
+                  <div className="w-20 h-20 rounded-full border-8 border-[#35AB4E] border-b-[#35AB4E]/20 flex items-center justify-center font-black text-sm text-[#17181C] mx-auto shadow-inner">
+                    92%
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-[#17181C]">Elite Subscriptions</h4>
+                    <p className="text-[10px] text-[#687182]">32 / 35 Target</p>
+                  </div>
+                </div>
+
+                {/* Ring 3: Daily Field Visits */}
+                <div className="p-4 bg-white rounded-2xl border border-[#E3E8EF] text-center space-y-2 shadow-2xs">
+                  <div className="w-20 h-20 rounded-full border-8 border-[#F2B604] border-l-[#F2B604]/20 flex items-center justify-center font-black text-sm text-[#17181C] mx-auto shadow-inner">
+                    78%
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-[#17181C]">GPS Field Visits</h4>
+                    <p className="text-[10px] text-[#687182]">47 / 60 Today</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* SM Micro Detail Grid */}
+            <div className="space-y-4">
+              <h2 className="text-base font-bold text-[#17181C]">Assigned SM Micro-Detail &amp; Conversions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {smList.map((sm) => (
-                  <div key={sm.id} className="p-4 bg-[#F4F6FB] rounded-xl border border-[#E3E8EF] flex items-center justify-between">
+                  <Card key={sm.id} padding="md" className="space-y-3">
                     <div className="flex items-center gap-3">
                       <Avatar src={sm.avatar} name={sm.name} size="md" />
                       <div>
-                        <span className="text-sm font-bold text-[#17181C]">{sm.name}</span>
-                        <p className="text-xs text-[#687182]">{sm.pincodes} • {sm.checkin}</p>
+                        <h4 className="text-xs font-bold text-[#17181C]">{sm.name}</h4>
+                        <p className="text-[11px] text-[#687182]">{sm.pincodes}</p>
                       </div>
                     </div>
-                    <span className="text-xs font-bold text-[#35AB4E]">{sm.targetPct}% Target</span>
-                  </div>
+
+                    <div className="space-y-1 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-[#687182]">GPS Status:</span>
+                        <span className="font-bold text-[#35AB4E]">{sm.checkin}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#687182]">Target Achievement:</span>
+                        <span className="font-black text-[#4787F2]">{sm.targetPct}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[#687182]">Today&apos;s Visits / Closings:</span>
+                        <span className="font-bold text-[#17181C]">{sm.visits} visits • {sm.conversions} closed</span>
+                      </div>
+                    </div>
+                  </Card>
                 ))}
               </div>
-            </Card>
+            </div>
           </>
         )}
 

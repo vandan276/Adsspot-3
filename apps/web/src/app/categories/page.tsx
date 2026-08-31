@@ -656,35 +656,72 @@ export default function AllCategoriesPage() {
             return (
               <div key={cat.id} className="transition-colors hover:bg-neutral-50/50">
                 {/* Category Header Row */}
-                <button
-                  onClick={() => toggleExpand(cat.id)}
-                  className="w-full px-4 py-3.5 flex items-center justify-between text-left gap-3 group"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0">
-                    <div
-                      className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
-                      style={{ backgroundColor: cat.bgColor }}
-                    >
-                      <Icon className="w-5 h-5" style={{ color: cat.iconColor }} />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-[#17181C] block truncate">
-                        {cat.name}
-                      </span>
-                      <span className="text-[11px] text-[#687182] font-medium block truncate">
-                        {cat.subcategories.length} sub-services available
-                      </span>
-                    </div>
-                  </div>
+                {cat.id === 'b2b-manufacturers' ? (
+                  <div className="w-full px-4 py-3.5 flex items-center justify-between text-left gap-3 group">
+                    <Link href="/b2b" className="flex items-center gap-3.5 min-w-0 flex-1">
+                      <div
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
+                        style={{ backgroundColor: cat.bgColor }}
+                      >
+                        <Icon className="w-5 h-5" style={{ color: cat.iconColor }} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs sm:text-sm font-bold text-[#17181C] block truncate">
+                            {cat.name}
+                          </span>
+                          <span className="bg-[#E14D2A] text-white text-[8px] font-black px-1.5 rounded-full">
+                            1Cr+ Portal
+                          </span>
+                        </div>
+                        <span className="text-[11px] text-[#E14D2A] font-bold block truncate">
+                          Tap to open dedicated B2B Portal →
+                        </span>
+                      </div>
+                    </Link>
 
-                  <div className="flex items-center gap-1.5 text-neutral-400 group-hover:text-[#4787F2] transition-colors shrink-0">
-                    {isExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 stroke-[2]" />
-                    )}
+                    <button
+                      onClick={() => toggleExpand(cat.id)}
+                      className="p-1 text-neutral-400 hover:text-[#4787F2] transition-colors shrink-0"
+                    >
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 stroke-[2]" />
+                      )}
+                    </button>
                   </div>
-                </button>
+                ) : (
+                  <button
+                    onClick={() => toggleExpand(cat.id)}
+                    className="w-full px-4 py-3.5 flex items-center justify-between text-left gap-3 group"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs group-hover:scale-105 transition-transform"
+                        style={{ backgroundColor: cat.bgColor }}
+                      >
+                        <Icon className="w-5 h-5" style={{ color: cat.iconColor }} />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-xs sm:text-sm font-bold text-[#17181C] block truncate">
+                          {cat.name}
+                        </span>
+                        <span className="text-[11px] text-[#687182] font-medium block truncate">
+                          {cat.subcategories.length} sub-services available
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-neutral-400 group-hover:text-[#4787F2] transition-colors shrink-0">
+                      {isExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 stroke-[2]" />
+                      )}
+                    </div>
+                  </button>
+                )}
 
                 {/* Subcategories Accordion */}
                 {isExpanded && (

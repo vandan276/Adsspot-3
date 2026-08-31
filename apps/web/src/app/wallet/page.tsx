@@ -203,9 +203,8 @@ export default function WalletPage() {
               <div key={tx.id} className="py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      tx.type === 'credit' ? 'bg-emerald-100 text-[#1B6A2D]' : 'bg-red-100 text-[#981837]'
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.type === 'credit' ? 'bg-emerald-100 text-[#1B6A2D]' : 'bg-red-100 text-[#981837]'
+                      }`}
                   >
                     {tx.type === 'credit' ? <ArrowDownLeft className="w-4 h-4" /> : <ArrowUpRight className="w-4 h-4" />}
                   </div>
@@ -215,9 +214,8 @@ export default function WalletPage() {
                   </div>
                 </div>
                 <span
-                  className={`text-xs font-black ${
-                    tx.type === 'credit' ? 'text-[#35AB4E]' : 'text-[#981837]'
-                  }`}
+                  className={`text-xs font-black ${tx.type === 'credit' ? 'text-[#35AB4E]' : 'text-[#981837]'
+                    }`}
                 >
                   {tx.type === 'credit' ? '+' : '-'} ₹{tx.amount.toFixed(2)}
                 </span>

@@ -33,6 +33,7 @@ export default function BusinessRegistrationPage() {
   };
 
   const [createdSlug, setCreatedSlug] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCompleteRegistration = async () => {
     if (!bizName || !ownerName || !phone) {
@@ -40,23 +41,54 @@ export default function BusinessRegistrationPage() {
       return;
     }
 
+    setIsSubmitting(true);
     const generatedSlug = bizName.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || `shop-${Date.now()}`;
     setCreatedSlug(generatedSlug);
 
-    await createBusinessListing({
-      name: bizName,
-      slug: generatedSlug,
-      owner_id: user?.id || 'usr-merchant-1',
-      category_id: category,
-      address: address || 'Vadodara, Gujarat',
-      pincode: pincode || '390007',
-      phone: phone,
-      whatsapp: phone,
-      tier: selectedTier,
-    });
+    try {
+      await createBusinessListing({
+        name: bizName,
+        slug: generatedSlug,
+        owner_id: user?.id || 'usr-merchant-1',
+        category_id: category,
+        address: address || 'Vadodara, Gujarat',
+        pincode: pincode || '390007',
+        phone: phone,
+        whatsapp: phone,
+        tier: selectedTier,
+      });
 
-    setStep(3);
-    showToast('🎉 Business listing & Digital Visiting Card created!');
+      const res = await fetch('/api/merchants/onboard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user?.id,
+          bizName,
+          ownerName,
+          phone,
+          categoryId: category,
+          address,
+          pincode,
+          tier: selectedTier,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          // If auth user in session, update local storage cache too
+          if (typeof window !== 'undefined' && data.user) {
+            localStorage.setItem('adsspot_auth_user_id', data.user.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[Onboard] Backend sync warning, continuing registration:', err);
+    } finally {
+      setIsSubmitting(false);
+      setStep(3);
+      showToast('🎉 Business listing & Digital Visiting Card created!');
+    }
   };
 
   return (
@@ -286,10 +318,11 @@ export default function BusinessRegistrationPage() {
             <Button
               variant="primary"
               size="md"
+              disabled={isSubmitting}
               className="w-full font-bold text-xs py-3 mt-3 flex items-center justify-center gap-1.5"
               onClick={handleCompleteRegistration}
             >
-              Complete Registration &amp; Activate Digital Card <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? 'Saving to Database...' : 'Complete Registration & Activate Digital Card'} <ArrowRight className="w-4 h-4" />
             </Button>
           </Card>
         )}
