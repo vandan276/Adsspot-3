@@ -19,9 +19,20 @@ export async function POST(req: NextRequest) {
       bizName,
       ownerName,
       phone,
+      whatsapp,
       categoryId,
       address,
       pincode,
+      lat,
+      lng,
+      description,
+      logoUrl,
+      coverUrl,
+      email,
+      website,
+      instagram,
+      upiId,
+      openingHours,
       paymentMethod = 'UPI',
       paymentId,
       amount,
@@ -47,6 +58,7 @@ export async function POST(req: NextRequest) {
     const cleanBizName = (bizName || dbUser.full_name || 'My Store').trim();
     const cleanOwnerName = (ownerName || dbUser.full_name || 'Store Owner').trim();
     const cleanPhone = (phone || dbUser.phone || '+919876543210').trim().replace(/\s+/g, '');
+    const cleanWhatsapp = (whatsapp || cleanPhone).trim().replace(/\s+/g, '');
     const baseSlug = cleanBizName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || `shop-${Date.now()}`;
     let cleanSlug = baseSlug;
     const slugCheck = await queryPostgres('SELECT id, owner_id FROM businesses WHERE slug = $1 LIMIT 1', [cleanSlug]);
@@ -54,6 +66,10 @@ export async function POST(req: NextRequest) {
       cleanSlug = `${baseSlug}-${Math.random().toString(36).substring(2, 6)}`;
     }
     const generatedPaymentId = paymentId || `pay_rzp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    // Parse coordinates
+    const latitude = Number(lat) && !isNaN(Number(lat)) ? Number(lat) : 18.9322;
+    const longitude = Number(lng) && !isNaN(Number(lng)) ? Number(lng) : 72.8347;
 
     // 2. Validate / fallback category
     let effectiveCategoryId = categoryId || 'cat-1';
@@ -70,7 +86,7 @@ export async function POST(req: NextRequest) {
     const isTrusted = tier === 'premium' || tier === 'elite';
 
     if (existingBizRes?.rows && existingBizRes.rows.length > 0) {
-      // Update existing business tier & status
+      // Update existing business tier, coordinates, & status
       businessId = existingBizRes.rows[0].id;
       const updateBizRes = await queryPostgres(
         `UPDATE businesses 
@@ -80,10 +96,42 @@ export async function POST(req: NextRequest) {
              category_id = COALESCE(NULLIF($4, ''), category_id),
              address = COALESCE(NULLIF($5, ''), address),
              pincode = COALESCE(NULLIF($6, ''), pincode),
+             lat = $7,
+             lng = $8,
+             phone = COALESCE(NULLIF($9, ''), phone),
+             whatsapp = COALESCE(NULLIF($10, ''), whatsapp),
+             description = COALESCE(NULLIF($11, ''), description),
+             logo_url = COALESCE(NULLIF($12, ''), logo_url),
+             cover_url = COALESCE(NULLIF($13, ''), cover_url),
+             email = COALESCE(NULLIF($14, ''), email),
+             website = COALESCE(NULLIF($15, ''), website),
+             instagram = COALESCE(NULLIF($16, ''), instagram),
+             upi_id = COALESCE(NULLIF($17, ''), upi_id),
+             opening_hours = COALESCE(NULLIF($18, ''), opening_hours),
              status = 'active'
-         WHERE id = $7
+         WHERE id = $19
          RETURNING *`,
-        [cleanBizName, tier, isTrusted, effectiveCategoryId, address || 'Fort, Mumbai', pincode || '400001', businessId]
+        [
+          cleanBizName,
+          tier,
+          isTrusted,
+          effectiveCategoryId,
+          address || 'Fort, Mumbai',
+          pincode || '400001',
+          latitude,
+          longitude,
+          cleanPhone,
+          cleanWhatsapp,
+          description || null,
+          logoUrl || null,
+          coverUrl || null,
+          email || null,
+          website || null,
+          instagram || null,
+          upiId || null,
+          openingHours || '09:00 AM - 09:30 PM (All Days)',
+          businessId,
+        ]
       );
       business = updateBizRes?.rows[0];
     } else {
@@ -91,10 +139,14 @@ export async function POST(req: NextRequest) {
       const insertBizRes = await queryPostgres(
         `INSERT INTO businesses (
           id, owner_id, category_id, name, slug, description, address, pincode,
-          lat, lng, phone, whatsapp, logo_url, cover_url, trusted, status, tier, created_at
+          lat, lng, phone, whatsapp, logo_url, cover_url,
+          email, website, instagram, upi_id, opening_hours,
+          trusted, status, tier, created_at
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8,
-          $9, $10, $11, $12, $13, $14, $15, 'active', $16, NOW()
+          $9, $10, $11, $12, $13, $14,
+          $15, $16, $17, $18, $19,
+          $20, 'active', $21, NOW()
         )
         ON CONFLICT (slug) DO UPDATE
         SET owner_id = EXCLUDED.owner_id,
@@ -102,6 +154,20 @@ export async function POST(req: NextRequest) {
             tier = EXCLUDED.tier,
             trusted = EXCLUDED.trusted,
             category_id = EXCLUDED.category_id,
+            address = EXCLUDED.address,
+            pincode = EXCLUDED.pincode,
+            lat = EXCLUDED.lat,
+            lng = EXCLUDED.lng,
+            phone = EXCLUDED.phone,
+            whatsapp = EXCLUDED.whatsapp,
+            description = EXCLUDED.description,
+            logo_url = EXCLUDED.logo_url,
+            cover_url = EXCLUDED.cover_url,
+            email = EXCLUDED.email,
+            website = EXCLUDED.website,
+            instagram = EXCLUDED.instagram,
+            upi_id = EXCLUDED.upi_id,
+            opening_hours = EXCLUDED.opening_hours,
             status = 'active'
         RETURNING *`,
         [
@@ -110,15 +176,20 @@ export async function POST(req: NextRequest) {
           effectiveCategoryId,
           cleanBizName,
           cleanSlug,
-          `Verified business on Adsspot offering premium local products & services.`,
+          description || `Verified business on Adsspot offering premium local products & services.`,
           address || 'Fort, Mumbai',
           pincode || '400001',
-          18.9322,
-          72.8347,
+          latitude,
+          longitude,
           cleanPhone,
-          cleanPhone,
-          dbUser.avatar_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
+          cleanWhatsapp,
+          logoUrl || dbUser.avatar_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=200&auto=format&fit=crop&q=80',
+          coverUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
+          email || null,
+          website || null,
+          instagram || null,
+          upiId || null,
+          openingHours || '09:00 AM - 09:30 PM (All Days)',
           isTrusted,
           tier,
         ]
@@ -144,16 +215,50 @@ export async function POST(req: NextRequest) {
       [subId, business?.id || businessId, planId, generatedPaymentId]
     );
 
-    // 5. Create / ensure Digital Card entry
+    // 5. Create / ensure Digital Card entry with social & upi config
+    const themeConfig = {
+      theme: 'royal_blue',
+      social_links: {
+        instagram: instagram || undefined,
+        website: website || undefined,
+        email: email || undefined,
+        upi_id: upiId || undefined,
+        opening_hours: openingHours || undefined,
+      },
+    };
+
     const cardId = `card-${Date.now()}`;
     await queryPostgres(
       `INSERT INTO digital_cards (id, business_id, theme_config, click_counts, updated_at)
-       VALUES ($1, $2, '{"theme": "royal_blue"}', '{"views": 1, "whatsapp": 0, "calls": 0}', NOW())
-       ON CONFLICT (business_id) DO NOTHING`,
-      [cardId, business?.id || businessId]
+       VALUES ($1, $2, $3, '{"views": 1, "whatsapp": 0, "calls": 0}', NOW())
+       ON CONFLICT (business_id) DO UPDATE
+       SET theme_config = EXCLUDED.theme_config, updated_at = NOW()`,
+      [cardId, business?.id || businessId, JSON.stringify(themeConfig)]
     );
 
-    // 6. Upgrade user role in users table
+    // 6. Create / Update Microsite entry
+    await queryPostgres(
+      `INSERT INTO microsites (id, business_id, hero_title, about_text, gallery_urls, hours, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       ON CONFLICT (business_id) DO UPDATE
+       SET hero_title = EXCLUDED.hero_title,
+           about_text = EXCLUDED.about_text,
+           hours = EXCLUDED.hours,
+           updated_at = NOW()`,
+      [
+        `site-${Date.now()}`,
+        business?.id || businessId,
+        cleanBizName,
+        description || 'Welcome to our official business microsite on Adsspot.',
+        JSON.stringify([
+          coverUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
+          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&auto=format&fit=crop&q=80',
+        ]),
+        JSON.stringify({ "all_days": openingHours || "09:00 AM - 10:00 PM" })
+      ]
+    );
+
+    // 7. Upgrade user role in users table
     await queryPostgres(
       `UPDATE users 
        SET role = 'merchant', 

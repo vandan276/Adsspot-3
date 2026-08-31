@@ -83,6 +83,11 @@ CREATE TABLE IF NOT EXISTS businesses (
     whatsapp VARCHAR(20),
     logo_url TEXT,
     cover_url TEXT,
+    email VARCHAR(256),
+    website VARCHAR(512),
+    instagram VARCHAR(128),
+    upi_id VARCHAR(128),
+    opening_hours VARCHAR(256),
     trusted BOOLEAN DEFAULT FALSE,
     tier VARCHAR(32) NOT NULL DEFAULT 'basic', -- basic, premium, elite
     status VARCHAR(32) DEFAULT 'active',
