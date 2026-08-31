@@ -219,7 +219,7 @@ export const Navbar: React.FC = () => {
           {/* User Profile Avatar Link */}
           {isAuthenticated && user ? (
             <div className="flex items-center gap-2 shrink-0">
-              {user.role !== 'consumer' && (
+              {user.role && user.role !== 'consumer' && (
                 <Link href={getPortalLink()} className="hidden sm:block">
                   <Button variant="primary" size="sm" leftIcon={<LayoutDashboard className="w-3.5 h-3.5" />}>
                     {getPortalLabel()}
@@ -228,21 +228,23 @@ export const Navbar: React.FC = () => {
               )}
 
               <Link
-                href={user.role === 'consumer' ? '/profile' : getPortalLink()}
+                href={user.role === 'consumer' || !user.role ? '/profile' : getPortalLink()}
                 className="flex items-center gap-2 group shrink-0"
                 title="My Profile"
               >
                 <Avatar
-                  src={user.avatar_url}
-                  name={user.role === 'super_admin' ? 'Adsspot Admin' : user.full_name}
+                  src={user.avatar_url || undefined}
+                  name={user.role === 'super_admin' ? 'Adsspot Admin' : user.full_name || 'Consumer'}
                   size="sm"
                   isElite={user.business_profile?.tier === 'elite'}
                 />
                 <div className="hidden lg:flex flex-col">
                   <span className="text-xs font-bold text-[#17181C] dark:text-white group-hover:text-[#4787F2] transition-colors leading-none truncate max-w-[130px]">
-                    {user.role === 'super_admin' ? 'Adsspot Admin' : user.full_name}
+                    {user.role === 'super_admin' ? 'Adsspot Admin' : user.full_name || 'Consumer'}
                   </span>
-                  <span className="text-[10px] text-[#687182] dark:text-neutral-400 capitalize">{user.role.replace('_', ' ')}</span>
+                  <span className="text-[10px] text-[#687182] dark:text-neutral-400 capitalize">
+                    {(user.role || 'consumer').replace(/_/g, ' ')}
+                  </span>
                 </div>
               </Link>
 

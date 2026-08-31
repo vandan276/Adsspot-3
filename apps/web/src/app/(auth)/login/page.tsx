@@ -98,9 +98,11 @@ export default function LoginPage() {
     try {
       const res = await loginWithEmail(email, password, phone);
       if (res.success && res.user) {
-        setSuccessMsg(`Welcome back, ${res.user.full_name}!`);
-        const dest = getRoleDestination(res.user.role);
-        setTimeout(() => router.push(dest), 500);
+        setSuccessMsg(`Welcome back, ${res.user?.full_name || 'User'}!`);
+        const dest = res.destination || getRoleDestination(res.user?.role || 'consumer');
+        setTimeout(() => {
+          window.location.href = dest;
+        }, 300);
       } else {
         setError(res.error || 'Authentication failed. Please check your credentials.');
       }
@@ -206,9 +208,11 @@ export default function LoginPage() {
           setMerchantCheckoutStep('plans');
           setSuccessMsg(`Account created! Please select a membership plan to activate your Merchant Studio.`);
         } else {
-          setSuccessMsg(`Account created! Welcome, ${res.user.full_name}!`);
-          const dest = getRoleDestination(res.user.role);
-          setTimeout(() => router.push(dest), 500);
+          setSuccessMsg(`Account created! Welcome, ${res.user?.full_name || name || 'User'}!`);
+          const dest = res.destination || getRoleDestination(res.user?.role || signupRole || 'consumer');
+          setTimeout(() => {
+            window.location.href = dest;
+          }, 300);
         }
       } else {
         setError(res.error || 'Signup failed. Please try again.');
