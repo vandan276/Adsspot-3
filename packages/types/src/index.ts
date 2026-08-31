@@ -123,6 +123,11 @@ export interface Business {
   whatsapp: string;
   logo_url?: string | null;
   cover_url?: string | null;
+  email?: string | null;
+  website?: string | null;
+  instagram?: string | null;
+  upi_id?: string | null;
+  opening_hours?: string | null;
   trusted: boolean;
   status: BusinessStatus;
   tier: MembershipTier;
