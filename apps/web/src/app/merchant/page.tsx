@@ -29,6 +29,23 @@ import {
 } from 'lucide-react';
 
 export default function MerchantStudioPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F4F6FB] flex items-center justify-center p-6">
+          <div className="animate-pulse flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#4787F2]/20" />
+            <div className="h-4 w-32 bg-neutral-200 rounded-md" />
+          </div>
+        </div>
+      }
+    >
+      <MerchantStudioContent />
+    </React.Suspense>
+  );
+}
+
+function MerchantStudioContent() {
   const { user, isLoading, refreshAuth } = useAuth();
   const [localBiz, setLocalBiz] = useState<any>(null);
 
