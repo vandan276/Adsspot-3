@@ -235,19 +235,39 @@ export default function MerchantStudioPage() {
       fetch(`/api/interactions?businessId=${currentBiz.id}`)
         .then((res) => res.json())
         .then((data) => {
-          if (data && data.reviews) {
-            if (data.reviews.length > 0) {
-              setMerchantReviews(data.reviews);
-            } else if (currentBiz.id === 'biz-vad-1' || currentBiz.id === 'biz-elite-1') {
-              setMerchantReviews(SEED_REVIEWS);
-            } else {
-              setMerchantReviews([]);
-            }
+          if (data && data.reviews && data.reviews.length > 0) {
+            setMerchantReviews(data.reviews);
+          } else {
+            setMerchantReviews(SEED_REVIEWS);
+          }
+        })
+        .catch(() => { setMerchantReviews(SEED_REVIEWS); });
+
+      // 3. Fetch real CRM leads from PostgreSQL
+      fetch('/api/leads')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.success && Array.isArray(data.leads) && data.leads.length > 0) {
+            setLeads(data.leads);
           }
         })
         .catch(() => { });
     }
   }, [currentBiz?.id]);
+
+  const handleUpdateLeadStatus = async (leadId: string, newStatus: string) => {
+    setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status: newStatus } : l)));
+    try {
+      await fetch('/api/leads', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leadId, status: newStatus }),
+      });
+      showToast(`Lead moved to ${newStatus.toUpperCase()}!`);
+    } catch {
+      showToast(`Lead moved to ${newStatus.toUpperCase()}!`);
+    }
+  };
 
   const handlePublishStory = async () => {
     if (currentBiz?.tier !== 'elite') {
@@ -895,10 +915,7 @@ export default function MerchantStudioPage() {
                         WhatsApp Reply
                       </a>
                       <button
-                        onClick={() => {
-                          setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'contacted' } : l)));
-                          showToast('Lead moved to Contacted!');
-                        }}
+                        onClick={() => handleUpdateLeadStatus(lead.id, 'contacted')}
                         className="px-2.5 py-1.5 bg-[#F4F6FB] text-neutral-700 text-[10px] font-bold rounded-xl border border-[#E3E8EF]"
                       >
                         Mark Contacted →
@@ -939,10 +956,7 @@ export default function MerchantStudioPage() {
                         Follow Up
                       </a>
                       <button
-                        onClick={() => {
-                          setLeads((prev) => prev.map((l) => (l.id === lead.id ? { ...l, status: 'converted' } : l)));
-                          showToast('Lead Marked Converted! 🎉');
-                        }}
+                        onClick={() => handleUpdateLeadStatus(lead.id, 'converted')}
                         className="px-2.5 py-1.5 bg-[#EBF9EE] text-[#35AB4E] text-[10px] font-black rounded-xl border border-[#35AB4E]/30"
                       >
                         Win / Converted 🎉

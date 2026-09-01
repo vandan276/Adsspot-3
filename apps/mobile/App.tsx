@@ -33,7 +33,6 @@ import {
   MapPin,
   Plus,
   Search,
-  Check,
   LogOut,
   AdsspotBrandLockupNative,
   AdsspotLogoMarkNative,
@@ -94,7 +93,7 @@ class MobileErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySta
 }
 
 function MobileAppInner() {
-  const { user, role, switchPersona, personas } = useAuth();
+  const { user, role, logout } = useAuth();
   const [showSplash, setShowSplash] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'home' | 'wallet' | 'explore' | 'saved' | 'profile'>('home');
   const [panelMode, setPanelMode] = useState<'consumer' | 'merchant' | 'sm'>('consumer');
@@ -657,15 +656,15 @@ function MobileAppInner() {
           <View style={styles.walletSectionBox}>
             <Text style={styles.boxHeading}>Account Details</Text>
             <View style={{ paddingVertical: 8, gap: 10 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={{ fontSize: 12, color: '#687182' }}>Account Status</Text>
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#35AB4E' }}>● Active &amp; Verified</Text>
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={{ fontSize: 12, color: '#687182' }}>Pincode Territory</Text>
                 <Text style={{ fontSize: 12, fontWeight: '700', color: '#17181C' }}>Mumbai 400001</Text>
               </View>
-              <View style={{ flexDirection: 'row', justifyContent: 'between', alignItems: 'center' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={{ fontSize: 12, color: '#687182' }}>Adsspot Unified ID</Text>
                 <Text style={{ fontSize: 11, fontFamily: 'monospace', color: '#4787F2' }}>{user?.id || 'GUEST'}</Text>
               </View>

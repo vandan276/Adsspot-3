@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { getAllBusinesses } from '@adsspot/api';
+import { Business } from '@adsspot/types';
 import { Card, Button, TrustedBadge } from '@adsspot/ui';
 import { ApkDownloadPromptModal } from '../../components/ApkDownloadPromptModal';
 import {
@@ -72,6 +74,7 @@ const RealtimeExploreMap = dynamic(
 );
 
 export default function ExplorePage() {
+  const [businessesList, setBusinessesList] = useState<Business[]>([]);
   const [selectedCat, setSelectedCat] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'split' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +83,12 @@ export default function ExplorePage() {
   const [merchants, setMerchants] = useState<any[]>([]);
 
   useEffect(() => {
+    async function loadBusinesses() {
+      const data = await getAllBusinesses();
+      setBusinessesList(data);
+    }
+    loadBusinesses();
+
     // Fetch live merchants from PostgreSQL DB
     fetch('/api/merchants')
       .then((res) => res.json())
@@ -114,7 +123,8 @@ export default function ExplorePage() {
     return () => window.removeEventListener('adsspot_location_changed', updateLoc);
   }, []);
 
-  const filtered = merchants.filter((b) => {
+  const displayList = merchants.length > 0 ? merchants : businessesList;
+  const filtered = displayList.filter((b) => {
     const matchesCat = selectedCat === 'all' || b.category_id === selectedCat;
     const matchesSearch =
       searchQuery.trim() === '' ||
