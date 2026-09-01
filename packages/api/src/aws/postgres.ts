@@ -2,16 +2,16 @@ import { Pool, QueryResult, QueryResultRow } from 'pg';
 
 let pool: Pool | null = null;
 
-export const getPostgresPool = (): Pool | null => {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    return null;
-  }
+export const DEFAULT_AURORA_DATABASE_URL =
+  'postgresql://postgres:zygpaf-7fomji-nokguS@database-1.cluster-cn06w4osksyi.ap-south-1.rds.amazonaws.com:5432/postgres';
+
+export const getPostgresPool = (): Pool => {
+  const connectionString = process.env.DATABASE_URL || DEFAULT_AURORA_DATABASE_URL;
 
   if (!pool) {
     pool = new Pool({
       connectionString,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+      ssl: { rejectUnauthorized: false },
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 5000,
