@@ -675,7 +675,7 @@ export default function AllCategoriesPage() {
                           </span>
                         </div>
                         <span className="text-[11px] text-[#E14D2A] font-bold block truncate">
-                          Tap to open dedicated B2B Portal →
+                          Explore B2B Portal &amp; 20+ Sectors →
                         </span>
                       </div>
                     </Link>
@@ -683,6 +683,7 @@ export default function AllCategoriesPage() {
                     <button
                       onClick={() => toggleExpand(cat.id)}
                       className="p-1 text-neutral-400 hover:text-[#4787F2] transition-colors shrink-0"
+                      title="Show subcategories"
                     >
                       {isExpanded ? (
                         <ChevronDown className="w-4 h-4 text-[#4787F2] stroke-[2.5]" />
@@ -733,7 +734,7 @@ export default function AllCategoriesPage() {
                       {cat.subcategories.map((sub, idx) => (
                         <Link
                           key={idx}
-                          href={`/explore?q=${encodeURIComponent(sub)}`}
+                          href={cat.id === 'b2b-manufacturers' ? `/b2b?q=${encodeURIComponent(sub)}` : `/explore?q=${encodeURIComponent(sub)}`}
                           className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E3E8EF] hover:border-[#4787F2] hover:bg-[#EDF4FF]/40 text-xs font-semibold text-[#17181C] transition-all group"
                         >
                           <span className="truncate">{sub}</span>

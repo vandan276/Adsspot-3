@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowLeft,
   Search,
@@ -106,35 +106,95 @@ const SIMILAR_SEARCH_PRODUCTS = [
   },
 ];
 
-const TOP_RANKED_PRODUCTS = [
-  {
-    id: 'top-1',
-    name: 'Communications Industrial Board',
-    image: 'https://images.unsplash.com/photo-1517055729445-fa7d27394b48?w=400&auto=format&fit=crop&q=80',
-    supplier: 'Vertex Power Systems Ltd',
-    location: 'Makarpura GIDC, Vadodara',
-  },
-  {
-    id: 'top-2',
-    name: 'Professional Audio Control Board',
-    image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=400&auto=format&fit=crop&q=80',
-    supplier: 'Matrix Audio Instruments',
-    location: 'Manjusar GIDC, Vadodara',
-  },
-];
+
 
 export default function B2BPortalPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-[#F4F6FB]" />}>
+      <B2BPortalContent />
+    </React.Suspense>
+  );
+}
+
+function B2BPortalContent() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = useSearchParams();
+  const initialQ = searchParams?.get('q') || '';
+  const initialCategory = searchParams?.get('category') || '';
+
+  const [searchQuery, setSearchQuery] = useState(initialQ);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [leadQty, setLeadQty] = useState('10');
   const [leadUnits, setLeadUnits] = useState('Units');
   const [postSuccess, setPostSuccess] = useState(false);
+  const [liveMerchants, setLiveMerchants] = useState<any[]>([]);
+  const [isLoadingMerchants, setIsLoadingMerchants] = useState(true);
+
+  React.useEffect(() => {
+    async function loadB2BMerchants() {
+      try {
+        const res = await fetch('/api/merchants');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.merchants && Array.isArray(data.merchants)) {
+            setLiveMerchants(data.merchants);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load B2B merchants:', err);
+      } finally {
+        setIsLoadingMerchants(false);
+      }
+    }
+    loadB2BMerchants();
+  }, []);
+
+  React.useEffect(() => {
+    if (initialQ) setSearchQuery(initialQ);
+    if (initialCategory) setSelectedCategory(initialCategory);
+  }, [initialQ, initialCategory]);
 
   const handlePostReq = (e: React.FormEvent) => {
     e.preventDefault();
     setPostSuccess(true);
     setTimeout(() => setPostSuccess(false), 3000);
   };
+
+  // Filter live verified B2B merchants
+  const b2bFilteredMerchants = liveMerchants.filter((biz) => {
+    const q = searchQuery.toLowerCase().trim();
+    const cat = selectedCategory.toLowerCase().trim();
+
+    const isB2BSector = [
+      'industrial-machinery',
+      'chemicals',
+      'electronic-component',
+      'electronics',
+      'construction-real-estate',
+      'agriculture',
+      'apparel-fashion',
+      'packaging-printing',
+      'b2b-manufacturers',
+      'cat-b2b',
+      'cat-3',
+      'security-cctv',
+    ].includes(biz.category_id);
+
+    if (cat && biz.category_id !== cat) {
+      return false;
+    }
+
+    if (!q) {
+      return isB2BSector;
+    }
+
+    const matchesName = (biz.name || '').toLowerCase().includes(q);
+    const matchesDesc = (biz.description || '').toLowerCase().includes(q);
+    const matchesAddress = (biz.address || '').toLowerCase().includes(q);
+    const matchesCat = (biz.category_id || '').toLowerCase().includes(q);
+
+    return matchesName || matchesDesc || matchesAddress || matchesCat;
+  });
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] text-[#17181C] pb-28">
@@ -391,10 +451,12 @@ export default function B2BPortalPage() {
             {B2B_QUICK_CATEGORIES.map((cat) => (
               <Link
                 key={cat.id}
-                href={`/b2b/categories?selected=${cat.id}`}
+                href={`/b2b?category=${encodeURIComponent(cat.id)}`}
                 className="flex flex-col items-center gap-1.5 group text-center"
               >
-                <div className="relative w-14 h-14 rounded-full overflow-hidden p-0.5 bg-[#F4F6FB] border border-[#E3E8EF] group-hover:border-[#4787F2] group-hover:scale-105 group-hover:shadow-md transition-all shadow-2xs">
+                <div className={`relative w-14 h-14 rounded-full overflow-hidden p-0.5 bg-[#F4F6FB] border transition-all shadow-2xs ${
+                  selectedCategory === cat.id ? 'border-[#4787F2] ring-2 ring-[#4787F2]/30 scale-105' : 'border-[#E3E8EF] group-hover:border-[#4787F2] group-hover:scale-105'
+                }`}>
                   <img
                     src={cat.image}
                     alt={cat.name}
@@ -406,7 +468,9 @@ export default function B2BPortalPage() {
                     </span>
                   )}
                 </div>
-                <span className="text-[10px] font-bold text-[#17181C] group-hover:text-[#4787F2] leading-tight max-w-[70px]">
+                <span className={`text-[10px] leading-tight max-w-[70px] ${
+                  selectedCategory === cat.id ? 'font-black text-[#4787F2]' : 'font-bold text-[#17181C] group-hover:text-[#4787F2]'
+                }`}>
                   {cat.name}
                 </span>
               </Link>
@@ -442,66 +506,134 @@ export default function B2BPortalPage() {
           </div>
         </div>
 
-        {/* 7. TOP-RANKED CATEGORIES FOR YOU WITH 1-TAP WHATSAPP & CALL */}
-        <div className="space-y-2.5">
+        {/* 7. VERIFIED B2B MANUFACTURERS & WHOLESALE SUPPLIERS (Live Database Directory) */}
+        <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-black uppercase tracking-wider text-[#17181C]">
-              Top-Ranked Categories For You
-            </h3>
-            <Link href="/b2b/categories" className="text-neutral-400 hover:text-[#4787F2] transition-colors">
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {TOP_RANKED_PRODUCTS.map((item) => (
-              <div
-                key={item.id}
-                className="bg-white rounded-3xl overflow-hidden border border-[#E3E8EF] shadow-2xs hover:shadow-md hover:border-[#4787F2]/40 transition-all group flex flex-col justify-between"
+            <div className="flex items-center gap-1.5">
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#17181C]">
+                Verified B2B Suppliers ({b2bFilteredMerchants.length})
+              </h3>
+              <span className="bg-[#35AB4E]/15 text-[#2A9641] text-[9px] font-black px-2 py-0.5 rounded-full border border-[#35AB4E]/30">
+                GST Verified
+              </span>
+            </div>
+            {selectedCategory && (
+              <button
+                onClick={() => {
+                  setSelectedCategory('');
+                  setSearchQuery('');
+                }}
+                className="text-[11px] font-bold text-[#E14D2A] hover:underline"
               >
-                <div className="h-36 w-full bg-[#F4F6FB] overflow-hidden relative">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <span className="absolute top-2.5 left-2.5 bg-white/90 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[9px] font-extrabold text-[#17181C] shadow-2xs">
-                    ⭐ 4.9 Verified Supplier
-                  </span>
-                </div>
-
-                <div className="p-3.5 space-y-2.5">
-                  <div className="space-y-0.5">
-                    <h4 className="text-xs font-black text-[#17181C] leading-tight">
-                      {item.name}
-                    </h4>
-                    <p className="text-[11px] text-[#687182] font-semibold truncate">{item.supplier}</p>
-                    <span className="text-[10px] text-[#4787F2] font-bold flex items-center gap-1 pt-0.5">
-                      <MapPin className="w-3 h-3" /> {item.location}
-                    </span>
-                  </div>
-
-                  {/* 1-Tap Quick Action Speed-Dials (WhatsApp & Call) */}
-                  <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
-                    <a
-                      href={`https://wa.me/919876543210?text=Hi%20${encodeURIComponent(item.supplier)},%20I%20am%20interested%20in%20your%20${encodeURIComponent(item.name)}%20listed%20on%20Adsspot.`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex-1 py-1.5 px-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl text-[10px] font-black flex items-center justify-center gap-1 shadow-2xs active:scale-95 transition-all"
-                    >
-                      <span>WhatsApp</span>
-                    </a>
-                    <a
-                      href="tel:+919876543210"
-                      className="py-1.5 px-3 bg-[#F4F6FB] hover:bg-neutral-200 text-[#17181C] rounded-xl text-[10px] font-bold border border-[#E3E8EF] active:scale-95 transition-all"
-                    >
-                      Call Now
-                    </a>
-                  </div>
-                </div>
-              </div>
-            ))}
+                Clear Filter ✕
+              </button>
+            )}
           </div>
+
+          {isLoadingMerchants ? (
+            <div className="p-8 text-center bg-white rounded-3xl border border-[#E3E8EF] shadow-2xs space-y-2">
+              <div className="w-8 h-8 rounded-full border-3 border-[#4787F2] border-t-transparent animate-spin mx-auto" />
+              <p className="text-xs font-bold text-neutral-500">Loading verified B2B suppliers from database...</p>
+            </div>
+          ) : b2bFilteredMerchants.length === 0 ? (
+            <div className="p-8 text-center bg-white rounded-3xl border border-[#E3E8EF] shadow-2xs space-y-2">
+              <span className="text-3xl block">🏭</span>
+              <p className="text-xs font-bold text-[#17181C]">No suppliers found for this search filter</p>
+              <p className="text-[11px] text-[#687182]">Try searching for machinery, chemicals, packaging, or textiles.</p>
+              <button
+                onClick={() => {
+                  setSelectedCategory('');
+                  setSearchQuery('');
+                }}
+                className="mt-2 text-xs font-black px-4 py-2 bg-[#4787F2] text-white rounded-xl shadow-xs active:scale-95"
+              >
+                View All B2B Suppliers
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {b2bFilteredMerchants.map((biz) => (
+                <div
+                  key={biz.id}
+                  className="bg-white rounded-3xl overflow-hidden border border-[#E3E8EF] shadow-2xs hover:shadow-md hover:border-[#4787F2]/40 transition-all group flex flex-col justify-between"
+                >
+                  <div className="h-36 w-full bg-[#F4F6FB] overflow-hidden relative">
+                    <img
+                      src={biz.cover_url || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400'}
+                      alt={biz.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                      <span className="bg-white/95 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[9px] font-extrabold text-[#17181C] shadow-2xs">
+                        ⭐ 4.9 Verified Supplier
+                      </span>
+                      {biz.tier === 'elite' && (
+                        <span className="bg-[#981837] text-white px-2 py-0.5 rounded-full text-[8px] font-black uppercase shadow-2xs">
+                          Elite
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 space-y-2.5">
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-black text-[#17181C] leading-tight line-clamp-1">
+                        {biz.name}
+                      </h4>
+                      <p className="text-[11px] text-[#687182] font-semibold line-clamp-2">{biz.description}</p>
+                      <span className="text-[10px] text-[#4787F2] font-bold flex items-center gap-1 pt-0.5">
+                        <MapPin className="w-3 h-3 shrink-0" /> <span className="truncate">{biz.address}</span>
+                      </span>
+                    </div>
+
+                    {/* Action buttons: WhatsApp, Call, Digital Card, Microsite */}
+                    <div className="space-y-1.5 pt-1 border-t border-neutral-100">
+                      <div className="flex items-center gap-1.5">
+                        <a
+                          href={`https://wa.me/${(biz.whatsapp || biz.phone || '').replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20found%20you%20on%20Adsspot%20B2B%20Portal.`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 py-1.5 px-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl text-[10px] font-black flex items-center justify-center gap-1 shadow-2xs active:scale-95 transition-all"
+                        >
+                          <span>WhatsApp RFQ</span>
+                        </a>
+                        <a
+                          href={`tel:${biz.phone}`}
+                          className="py-1.5 px-3 bg-[#F4F6FB] hover:bg-neutral-200 text-[#17181C] rounded-xl text-[10px] font-bold border border-[#E3E8EF] active:scale-95 transition-all"
+                        >
+                          Call
+                        </a>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <Link
+                          href={`/card/${biz.slug}`}
+                          className="py-1.5 px-2 bg-[#EDF4FF] hover:bg-[#DCE9FE] text-[#4787F2] rounded-xl text-[10px] font-black text-center border border-[#4787F2]/20 active:scale-95 transition-all"
+                        >
+                          Digital Card 📇
+                        </Link>
+                        {biz.tier === 'elite' ? (
+                          <Link
+                            href={`/b/${biz.slug}`}
+                            className="py-1.5 px-2 bg-[#17181C] hover:bg-black text-white rounded-xl text-[10px] font-black text-center shadow-2xs active:scale-95 transition-all"
+                          >
+                            Factory Site 🌐
+                          </Link>
+                        ) : (
+                          <Link
+                            href={`/explore?q=${encodeURIComponent(biz.name)}`}
+                            className="py-1.5 px-2 bg-[#F4F6FB] hover:bg-neutral-200 text-neutral-700 rounded-xl text-[10px] font-bold text-center border border-[#E3E8EF] active:scale-95 transition-all"
+                          >
+                            Profile ↗
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </main>
     </div>

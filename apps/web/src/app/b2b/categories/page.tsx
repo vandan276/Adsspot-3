@@ -371,7 +371,7 @@ function B2BCategoriesContent() {
                           key={idx}
                           className="flex items-center justify-between p-1.5 rounded-lg bg-white border border-[#E3E8EF] text-[10px] font-bold text-[#17181C] hover:border-[#4787F2] transition-colors group"
                         >
-                          <Link href={`/b2b?q=${encodeURIComponent(sub)}`} className="truncate flex-1 hover:text-[#4787F2]">
+                          <Link href={`/b2b?category=${encodeURIComponent(cat.id)}&q=${encodeURIComponent(sub)}`} className="truncate flex-1 hover:text-[#4787F2]">
                             {sub}
                           </Link>
                           <a
