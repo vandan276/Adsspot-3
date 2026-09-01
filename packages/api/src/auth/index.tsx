@@ -112,9 +112,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshAuth = useCallback(async () => {
     try {
       // Check current session from /api/user/me
-      const res = await fetch('/api/user/me', {
-        headers: { 'Cache-Control': 'no-cache' },
-      });
+      const storedToken = typeof window !== 'undefined' ? localStorage.getItem('adsspot_session_token') : null;
+      const headers: Record<string, string> = { 'Cache-Control': 'no-cache' };
+      if (storedToken) {
+        headers['x-session-token'] = storedToken;
+        headers['authorization'] = `Bearer ${storedToken}`;
+      }
+
+      const res = await fetch('/api/user/me', { headers });
 
       if (res.ok) {
         const data = await res.json();
@@ -219,8 +224,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const authUser: AuthUser = data.user;
       setUser(authUser);
       setPermissions(authUser.permissions || []);
-      const destination = data.destination || getDestination(authUser.role, authUser.dashboard_type);
+      
+      if (data.sessionToken && typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('adsspot_session_token', data.sessionToken);
+          localStorage.setItem('adsspot_auth_user', JSON.stringify(authUser));
+          document.cookie = `adsspot_session=${encodeURIComponent(data.sessionToken)}; Path=/; Max-Age=2592000; SameSite=Lax`;
+        } catch {}
+      }
 
+      const destination = data.destination || getDestination(authUser.role, authUser.dashboard_type);
       return { success: true, user: authUser, destination };
     } catch (e: any) {
       return { success: false, error: e?.message || 'Login failed.' };
@@ -401,6 +414,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     setPermissions([]);
     if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('adsspot_session_token');
+        localStorage.removeItem('adsspot_auth_user');
+        document.cookie = 'adsspot_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      } catch {}
       window.location.href = '/login';
     }
   };
