@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@adsspot/api';
 import { AdsspotLogoMark } from '@adsspot/ui';
-import { Newspaper, Handshake, Bookmark, User, Store, Crown, Shield, MapPin } from 'lucide-react';
+import { Newspaper, Handshake, Bookmark, User, Store, Crown, Shield, MapPin, Users } from 'lucide-react';
 
 const FloatingMobileNavContent: React.FC = () => {
   const pathname = usePathname();
@@ -142,15 +142,22 @@ const FloatingMobileNavContent: React.FC = () => {
           </span>
         </Link>
 
-        {/* 4. Saved */}
+        {/* 4. Leads (for Merchants) / Saved (for Consumers) */}
         <Link
-          href="/saved"
-          className={`flex flex-col items-center justify-center py-1 transition-all group ${isSaved ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
-            }`}
+          href={user?.role === 'merchant' ? '/merchant?tab=crm' : '/saved'}
+          className={`flex flex-col items-center justify-center py-1 transition-all group ${
+            (user?.role === 'merchant' && (pathname === '/merchant' || pathname === '/merchant/leads')) || isSaved
+              ? 'text-[#4787F2]'
+              : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
+          }`}
         >
-          <Bookmark className={`w-5 h-5 transition-transform group-hover:scale-110 ${isSaved ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-          <span className={`text-[11px] font-bold mt-1 tracking-tight ${isSaved ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
-            Saved
+          {user?.role === 'merchant' ? (
+            <Users className={`w-5 h-5 transition-transform group-hover:scale-110 text-[#35AB4E] ${pathname.includes('merchant') ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          ) : (
+            <Bookmark className={`w-5 h-5 transition-transform group-hover:scale-110 ${isSaved ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+          )}
+          <span className={`text-[11px] font-bold mt-1 tracking-tight ${(user?.role === 'merchant' && pathname.includes('merchant')) || isSaved ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>
+            {user?.role === 'merchant' ? 'Leads' : 'Saved'}
           </span>
         </Link>
 
