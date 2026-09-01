@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useAuth, SEED_BUSINESSES, SEED_POSTS, SEED_REVIEWS, SEED_CATEGORIES } from '@adsspot/api';
 import { Card, Avatar, Button, TierBadge, TrustedBadge } from '@adsspot/ui';
 import {
@@ -33,7 +34,15 @@ export default function MerchantStudioPage() {
 
   const currentBiz = localBiz || user?.business_profile || (user?.role === 'super_admin' ? SEED_BUSINESSES[0]! : null);
 
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'overview' | 'crm' | 'posts' | 'banners' | 'reviews' | 'billing'>('overview');
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'crm' || tabParam === 'overview' || tabParam === 'posts' || tabParam === 'banners' || tabParam === 'reviews' || tabParam === 'billing') {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
   const [replies, setReplies] = useState<Record<string, string>>({});
   const [replyInput, setReplyInput] = useState<Record<string, string>>({});
   const [selectedTemplate, setSelectedTemplate] = useState<string>('diwali');
