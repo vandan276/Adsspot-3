@@ -26,9 +26,6 @@ import {
   Send,
   Gift,
   QrCode,
-  ShieldCheck,
-  UserPlus,
-  UserCheck,
   Copy,
   Check,
   Clock,
@@ -768,8 +765,6 @@ export default function MobileFeedPage() {
             </div>
           </div>
         </div>
-          </div>
-        </div>
       )}
 
       {/* 🚀 RESPONSIVE MULTI-COLUMN CONTAINER (Mobile App on Phone, Expansive 3-Column on Desktop) */}
@@ -1222,7 +1217,7 @@ export default function MobileFeedPage() {
                           />
                         </button>
 
-                        <button onClick={() => showToast('Post link copied!')} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]">
+                        <button onClick={() => handleSharePost(post, biz)} className="hover:text-[#4787F2] dark:hover:text-[#4787F2]" title="Share Post">
                           <Share2 className="w-5 h-5" />
                         </button>
                       </div>

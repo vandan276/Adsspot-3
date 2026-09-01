@@ -63,6 +63,22 @@ export default function DigitalCardPage() {
     loadRealBiz();
   }, [slug]);
 
+  const trackLead = async (actionType: string) => {
+    if (!biz.id && !biz.slug) return;
+    try {
+      await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: biz.id,
+          businessSlug: biz.slug,
+          requirement: `Consumer clicked ${actionType} on Digital Visiting Card (/card/${biz.slug})`,
+          source: 'Digital Visiting Card (/card)',
+        }),
+      });
+    } catch {}
+  };
+
   // Generate & Download Authentic .VCF Virtual Contact File
   const handleSaveContact = () => {
     const vCardContent = `BEGIN:VCARD
@@ -161,6 +177,7 @@ END:VCARD`;
             <div className="grid grid-cols-2 gap-2.5">
               <a
                 href={`tel:${biz.phone}`}
+                onClick={() => trackLead('Call Now')}
                 className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#4787F2] text-white text-xs font-black shadow-xs hover:bg-[#3373E0] active:scale-95 transition-all"
               >
                 <Phone className="w-4 h-4" /> Call Now
@@ -169,6 +186,7 @@ END:VCARD`;
                 href={`https://wa.me/${biz.whatsapp.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20am%20viewing%20your%20digital%20card%20on%20Adsspot.`}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => trackLead('WhatsApp Direct')}
                 className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#25D366] text-white text-xs font-black shadow-xs hover:bg-[#1EBE5D] active:scale-95 transition-all"
               >
                 <MessageCircle className="w-4 h-4" /> WhatsApp
