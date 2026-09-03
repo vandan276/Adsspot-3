@@ -33,12 +33,17 @@ export function ApkDownloadPromptModal({
 
   useEffect(() => {
     // 1. Check if user is ALREADY running inside the standalone PWA / APK installed app
-    const isStandalone =
-      typeof window !== 'undefined' &&
-      (window.matchMedia('(display-mode: standalone)').matches ||
-        // @ts-expect-error navigator.standalone is iOS Safari specific
-        window.navigator.standalone === true ||
-        document.referrer.includes('android-app://'));
+    let isStandalone = false;
+    try {
+      isStandalone =
+        typeof window !== 'undefined' &&
+        Boolean(
+          window.matchMedia('(display-mode: standalone)').matches ||
+            // @ts-expect-error navigator.standalone is iOS Safari specific
+            window.navigator?.standalone === true ||
+            (typeof document !== 'undefined' && document.referrer && document.referrer.includes('android-app://'))
+        );
+    } catch {}
 
     if (isStandalone) {
       // Never show install prompt when already in the installed App / APK variant!

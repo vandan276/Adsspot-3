@@ -1,27 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@adsspot/api';
 import { AdsspotLogoMark } from '@adsspot/ui';
 import { Newspaper, Handshake, Bookmark, User, Store, Crown, Shield, MapPin, Users } from 'lucide-react';
 
-const FloatingMobileNavContent: React.FC = () => {
+export const FloatingMobileNav: React.FC = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const { user } = useAuth();
-  const [isStoryOpen, setIsStoryOpen] = React.useState(false);
+  const [isStoryOpen, setIsStoryOpen] = useState(false);
+  const [currentTab, setCurrentTab] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      setCurrentTab(params.get('tab'));
+    }
+
     const handleStoryChange = (e: CustomEvent<{ active: boolean }>) => {
       setIsStoryOpen(Boolean(e.detail?.active));
     };
     window.addEventListener('adsspot_story_active' as any, handleStoryChange);
     return () => window.removeEventListener('adsspot_story_active' as any, handleStoryChange);
-  }, []);
+  }, [pathname]);
 
-  const currentTab = searchParams.get('tab');
   const isFeed = pathname === '/feed' || pathname === '/';
   const isPartner = pathname === '/partner' || pathname === '/wallet';
   const isBusiness = pathname === '/explore' || pathname === '/categories';
@@ -182,13 +186,5 @@ const FloatingMobileNavContent: React.FC = () => {
         </Link>
       </nav>
     </div>
-  );
-};
-
-export const FloatingMobileNav: React.FC = () => {
-  return (
-    <React.Suspense fallback={null}>
-      <FloatingMobileNavContent />
-    </React.Suspense>
   );
 };

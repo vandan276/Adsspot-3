@@ -19,7 +19,13 @@ export const LocationPromptModal: React.FC = () => {
   useEffect(() => {
     // Check if user has already granted or configured location
     let timer: NodeJS.Timeout | null = null;
-    const storedLoc = localStorage.getItem('adsspot_user_location');
+    let storedLoc: string | null = null;
+    try {
+      if (typeof window !== 'undefined') {
+        storedLoc = localStorage.getItem('adsspot_user_location');
+      }
+    } catch {}
+
     if (!storedLoc) {
       // Auto prompt on first entry to discover Vadodara / nearby shops
       timer = setTimeout(() => {

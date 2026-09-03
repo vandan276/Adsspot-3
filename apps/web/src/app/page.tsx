@@ -54,15 +54,20 @@ export default function HomePage() {
     }
   }, [router]);
 
-  const filteredBusinesses = SEED_BUSINESSES.filter((b) => {
+  const filteredBusinesses = (SEED_BUSINESSES || []).filter((b) => {
+    if (!b) return false;
+    const name = (b.name || '').toLowerCase();
+    const desc = (b.description || '').toLowerCase();
+    const addr = (b.address || '').toLowerCase();
+    const q = searchQuery.trim().toLowerCase();
     const matchesCat = selectedCategory === 'all' || b.category_id === selectedCategory;
     const matchesSearch =
-      searchQuery.trim() === '' ||
-      b.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.address.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRating = !onlyHighRated || (b.stats?.avg_rating && b.stats.avg_rating >= 4.5);
-    const matchesVerified = !onlyVerified || b.trusted;
+      q === '' ||
+      name.includes(q) ||
+      desc.includes(q) ||
+      addr.includes(q);
+    const matchesRating = !onlyHighRated || ((b.stats?.avg_rating || 0) >= 4.5);
+    const matchesVerified = !onlyVerified || Boolean(b.trusted);
     const matchesOpen = !onlyOpenNow || b.status === 'active';
     return matchesCat && matchesSearch && matchesRating && matchesVerified && matchesOpen;
   });
@@ -138,7 +143,7 @@ export default function HomePage() {
                   <Phone className="w-4 h-4" /> Call
                 </a>
                 <a
-                  href={`https://wa.me/${selectedBusinessDetail.whatsapp?.replace(/[^0-9]/g, '') || selectedBusinessDetail.phone?.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(selectedBusinessDetail.name)},%20I%20saw%20your%20store%20on%20Adsspot.`}
+                  href={`https://wa.me/${(selectedBusinessDetail.whatsapp || selectedBusinessDetail.phone || '').replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(selectedBusinessDetail.name || 'Store')},%20I%20saw%20your%20store%20on%20Adsspot.`}
                   target="_blank"
                   rel="noreferrer"
                   className="py-2.5 px-2 rounded-2xl bg-[#EBF9EE] dark:bg-[#13301D] text-[#35AB4E] dark:text-[#4ade80] flex flex-col items-center justify-center gap-1 text-[11px] font-bold hover:bg-[#d9f5de] transition-all"
@@ -474,7 +479,7 @@ export default function HomePage() {
                     <span className="hidden sm:inline">Call</span>
                   </a>
                   <a
-                    href={`https://wa.me/${biz.whatsapp?.replace(/[^0-9]/g, '') || biz.phone?.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20saw%20your%20store%20on%20Adsspot.`}
+                    href={`https://wa.me/${(biz.whatsapp || biz.phone || '').replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name || 'Store')},%20I%20saw%20your%20store%20on%20Adsspot.`}
                     target="_blank"
                     rel="noreferrer"
                     className="flex items-center justify-center gap-1 py-2 px-1 rounded-xl border border-[#35AB4E] bg-[#EBF9EE] dark:bg-[#13301D] text-xs font-bold text-[#1B6A2D] dark:text-[#4ade80] hover:bg-[#d9f5de] transition-colors text-center"
