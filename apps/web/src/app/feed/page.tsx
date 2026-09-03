@@ -86,7 +86,20 @@ export default function MobileFeedPage() {
       .then((res) => res.json())
       .then((data) => {
         if (data && data.stories && Array.isArray(data.stories)) {
-          setLiveStories(data.stories);
+          const normalized = data.stories.map((s: any) => ({
+            id: s.id,
+            name: s.business_name || s.name || 'Store Story',
+            logo: s.business_logo || s.logo || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150',
+            image: s.media_url || s.image || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+            caption: s.caption || s.tag || 'Special Offer',
+            coupon: s.coupon_code || s.coupon || null,
+            time: 'Active Now',
+            location: s.location || 'Vadodara',
+            phone: s.phone || '+919876543210',
+            business_id: s.business_id,
+            tier: s.business_tier || 'elite',
+          }));
+          setLiveStories(normalized);
         }
       })
       .catch(() => { });
@@ -589,7 +602,7 @@ export default function MobileFeedPage() {
                   <Gift className="w-4 h-4" /> Claim {currentActiveStory.coupon}
                 </button>
                 <a
-                  href={`https://wa.me/${currentActiveStory.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(currentActiveStory.name)},%20I%20saw%20your%20story%20on%20Adsspot!`}
+                  href={`https://wa.me/${(currentActiveStory.phone || '').replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(currentActiveStory.name || 'Store')},%20I%20saw%20your%20story%20on%20Adsspot!`}
                   target="_blank"
                   rel="noreferrer"
                   className="px-4 py-3 rounded-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold text-xs flex items-center justify-center shadow-lg gap-1.5 transition-transform active:scale-95"
@@ -940,7 +953,7 @@ export default function MobileFeedPage() {
                     <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
                   </div>
                   <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
-                    {story.name.split(' ')[0]}
+                    {String(story.name || story.business_name || 'Store').trim().split(/\s+/)[0]}
                   </span>
                 </div>
               ))}
@@ -1284,8 +1297,8 @@ export default function MobileFeedPage() {
               {liveEliteMerchants.length === 0 ? (
                 <div className="p-4 rounded-xl bg-[#F4F6FB] dark:bg-white/5 text-center text-xs text-[#687182] dark:text-neutral-400 space-y-2">
                   <p>No Elite merchants yet in this territory.</p>
-                  <Link href="/pricing" className="text-[11px] font-bold text-[#4787F2] block hover:underline">
-                    Upgrade to Elite Tier →
+                  <Link href="/#pricing" className="text-[11px] font-bold text-[#4787F2] block hover:underline">
+                    View Verified Membership Tiers &amp; Pricing ➔
                   </Link>
                 </div>
               ) : (

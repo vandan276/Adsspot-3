@@ -192,7 +192,7 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
             border-radius: 9999px;
             white-space: nowrap;
             box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-          ">${biz.name.split(' ')[0]}</div>
+          ">${String(biz?.name || 'Shop').trim().split(/\s+/)[0]}</div>
         </div>
       `;
 

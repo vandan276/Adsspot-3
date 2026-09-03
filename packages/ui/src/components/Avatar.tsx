@@ -32,12 +32,8 @@ export const Avatar: React.FC<AvatarProps> = ({
   onClick,
 }) => {
   const currentSize = sizeMap[size];
-  const initials = (name || alt || '?')
-    .split(' ')
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
+  const str = String(name || alt || '?').trim();
+  const initials = (str.split(/\s+/).filter(Boolean).map((part) => part[0]).slice(0, 2).join('') || '?').toUpperCase();
 
   const baseContent = (
     <div

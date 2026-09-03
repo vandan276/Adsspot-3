@@ -376,7 +376,7 @@ function MerchantStudioContent() {
                 Sign In as Merchant
               </Button>
             </Link>
-            <Link href="/pricing">
+            <Link href="/#pricing">
               <Button variant="outline" size="md" className="w-full">
                 View Merchant Plans &amp; Pricing
               </Button>
