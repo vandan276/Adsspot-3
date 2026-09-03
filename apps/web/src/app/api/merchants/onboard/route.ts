@@ -41,6 +41,32 @@ export async function GET(req: Request) {
       }
     }
 
+    if (business?.id) {
+      const siteRes = await queryPostgres(
+        `SELECT gallery_urls FROM microsites WHERE business_id = $1 LIMIT 1`,
+        [business.id]
+      );
+      let gallery: string[] = [];
+      if (siteRes?.rows?.[0]?.gallery_urls) {
+        const raw = siteRes.rows[0].gallery_urls;
+        if (Array.isArray(raw)) {
+          gallery = raw;
+        } else if (typeof raw === 'string') {
+          try {
+            gallery = JSON.parse(raw);
+          } catch {
+            gallery = [raw];
+          }
+        }
+      }
+      if (!Array.isArray(gallery) || gallery.length === 0) {
+        if (business.cover_url) {
+          gallery = [business.cover_url];
+        }
+      }
+      business.photos = gallery;
+    }
+
     return NextResponse.json({
       success: true,
       draft: business,
@@ -271,6 +297,41 @@ export async function POST(req: Request) {
        SET theme_config = EXCLUDED.theme_config, updated_at = NOW()`,
       [`card-${Date.now()}`, business?.id || targetBusinessId, JSON.stringify(themeConfig)]
     );
+
+    // Upsert Microsite record to persist gallery_urls array
+    const galleryJson = JSON.stringify(combinedPhotos);
+    await queryPostgres(
+      `INSERT INTO microsites (id, business_id, hero_title, about_text, gallery_urls, hours, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW())
+       ON CONFLICT (business_id) DO UPDATE
+       SET gallery_urls = EXCLUDED.gallery_urls, updated_at = NOW()`,
+      [
+        `site-${Date.now()}`,
+        business?.id || targetBusinessId,
+        bizName || 'My Store',
+        description || 'Verified business on Adsspot offering premium local products & services.',
+        galleryJson,
+        JSON.stringify({ all_days: typeof timings === 'string' ? timings : (openingHours || '09:00 AM - 09:30 PM') }),
+      ]
+    );
+
+    // Extract mediaIds if provided
+    const mediaIds: string[] = Array.isArray(body.mediaIds) ? body.mediaIds : [];
+
+    // Associate ONLY the exact uploaded media records owned by this user with this business ID
+    if (combinedPhotos.length > 0) {
+      if (mediaIds.length > 0) {
+        await queryPostgres(
+          `UPDATE media SET merchant_id = $1, updated_at = NOW() WHERE owner_id = $2 AND id = ANY($3::text[])`,
+          [business?.id || targetBusinessId, effectiveUserId, mediaIds]
+        );
+      } else {
+        await queryPostgres(
+          `UPDATE media SET merchant_id = $1, updated_at = NOW() WHERE owner_id = $2 AND file_url = ANY($3::text[])`,
+          [business?.id || targetBusinessId, effectiveUserId, combinedPhotos]
+        );
+      }
+    }
 
     // Fetch updated user from PostgreSQL
     const updatedUserRes = await queryPostgres(

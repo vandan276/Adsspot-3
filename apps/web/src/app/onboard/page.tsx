@@ -86,6 +86,7 @@ export default function BusinessRegistrationWizard() {
 
   // STEP 5 — Add Photos
   const [uploadedPhotos, setUploadedPhotos] = useState<string[]>([]);
+  const [uploadedMediaIds, setUploadedMediaIds] = useState<string[]>([]);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   // STEP 6 — Plan Selection
@@ -304,6 +305,7 @@ export default function BusinessRegistrationWizard() {
         categoryId: selectedCategories[0]?.id || 'cat-1',
         categoryIds: selectedCategories.map((c) => c.id),
         photos: uploadedPhotos,
+        mediaIds: uploadedMediaIds,
         tier: selectedPlanTier === 'free' ? 'basic' : selectedPlanTier,
       }),
     });
@@ -346,6 +348,7 @@ export default function BusinessRegistrationWizard() {
           categoryId: selectedCategories[0]?.id || 'cat-1',
           categoryIds: selectedCategories.map((c) => c.id),
           photos: uploadedPhotos,
+          mediaIds: uploadedMediaIds,
           coverUrl: uploadedPhotos[0] || undefined,
           tier: effectiveTier,
         }),
@@ -392,6 +395,9 @@ export default function BusinessRegistrationWizard() {
         const data = await res.json();
         if (data.success && data.file_url) {
           setUploadedPhotos((prev) => [...prev, data.file_url]);
+          if (data.media?.id) {
+            setUploadedMediaIds((prev) => [...prev, data.media.id]);
+          }
         }
       }
       showToast('✓ Photo uploaded successfully!');
@@ -1208,23 +1214,45 @@ export default function BusinessRegistrationWizard() {
               {/* Uploaded Photos Grid */}
               {uploadedPhotos.length > 0 && (
                 <div>
-                  <label className="block font-extrabold text-[#17181C] dark:text-neutral-200 mb-2">
-                    Uploaded Gallery ({uploadedPhotos.length} Photos)
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="font-extrabold text-[#17181C] dark:text-neutral-200">
+                      Uploaded Gallery ({uploadedPhotos.length} Photos)
+                    </label>
+                    <span className="text-[10px] text-[#4787F2] font-bold">First image is used as Store Cover</span>
+                  </div>
+
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                     {uploadedPhotos.map((url, idx) => (
-                      <div key={idx} className="relative rounded-xl overflow-hidden group aspect-square bg-neutral-100 border border-[#E3E8EF]">
+                      <div key={idx} className={`relative rounded-xl overflow-hidden group aspect-square bg-neutral-100 border-2 transition-all ${idx === 0 ? 'border-[#4787F2] ring-2 ring-[#4787F2]/20' : 'border-[#E3E8EF] dark:border-neutral-700'}`}>
                         <img src={url} alt={`Store photo ${idx + 1}`} className="w-full h-full object-cover" />
+                        {idx === 0 && (
+                          <span className="absolute top-1 left-1 bg-[#4787F2] text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md shadow-xs">
+                            Cover
+                          </span>
+                        )}
                         <button
                           type="button"
                           onClick={() => setUploadedPhotos(uploadedPhotos.filter((_, i) => i !== idx))}
-                          className="absolute top-1 right-1 bg-black/70 hover:bg-red-600 text-white p-1 rounded-full transition-colors"
+                          className="absolute top-1 right-1 bg-black/70 hover:bg-red-600 text-white p-1 rounded-full transition-colors z-10"
                           title="Remove Photo"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}
+
+                    {/* Add More Tile */}
+                    <label className="border-2 border-dashed border-[#4787F2]/50 hover:border-[#4787F2] bg-[#EDF4FF]/30 dark:bg-white/5 rounded-xl aspect-square flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-[1.02]">
+                      <input
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                      <Plus className="w-6 h-6 text-[#4787F2] mb-1" />
+                      <span className="text-[10px] font-bold text-[#4787F2]">Add Photo</span>
+                    </label>
                   </div>
                 </div>
               )}

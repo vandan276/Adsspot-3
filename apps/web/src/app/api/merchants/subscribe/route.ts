@@ -236,13 +236,29 @@ export async function POST(req: NextRequest) {
       [cardId, business?.id || businessId, JSON.stringify(themeConfig)]
     );
 
-    // 6. Create / Update Microsite entry
+    // 6. Fetch or prepare real gallery photos for Microsite
+    const inputPhotos = Array.isArray(body.photos) && body.photos.length > 0 ? body.photos : (coverUrl ? [coverUrl] : []);
+    let finalGallery: string[] = inputPhotos;
+
+    if (finalGallery.length === 0) {
+      const existingSite = await queryPostgres('SELECT gallery_urls FROM microsites WHERE business_id = $1 LIMIT 1', [business?.id || businessId]);
+      if (existingSite?.rows?.[0]?.gallery_urls) {
+        const raw = existingSite.rows[0].gallery_urls;
+        finalGallery = Array.isArray(raw) ? raw : (typeof raw === 'string' ? JSON.parse(raw) : []);
+      }
+    }
+
+    if (finalGallery.length === 0 && (business?.cover_url || coverUrl)) {
+      finalGallery = [business?.cover_url || coverUrl];
+    }
+
     await queryPostgres(
       `INSERT INTO microsites (id, business_id, hero_title, about_text, gallery_urls, hours, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW())
        ON CONFLICT (business_id) DO UPDATE
        SET hero_title = EXCLUDED.hero_title,
            about_text = EXCLUDED.about_text,
+           gallery_urls = CASE WHEN jsonb_array_length(EXCLUDED.gallery_urls::jsonb) > 0 THEN EXCLUDED.gallery_urls ELSE microsites.gallery_urls END,
            hours = EXCLUDED.hours,
            updated_at = NOW()`,
       [
@@ -250,10 +266,7 @@ export async function POST(req: NextRequest) {
         business?.id || businessId,
         cleanBizName,
         description || 'Welcome to our official business microsite on Adsspot.',
-        JSON.stringify([
-          coverUrl || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&auto=format&fit=crop&q=80',
-          'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&auto=format&fit=crop&q=80',
-        ]),
+        JSON.stringify(finalGallery),
         JSON.stringify({ "all_days": openingHours || "09:00 AM - 10:00 PM" })
       ]
     );

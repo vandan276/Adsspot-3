@@ -887,6 +887,39 @@ function MerchantStudioContent() {
                 </div>
               </Card>
             </div>
+
+            {/* Store Photos & Media Assets */}
+            {currentBiz && (
+              <Card padding="md" className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-black text-[#17181C] flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-[#4787F2]" /> Storefront Photos &amp; Media Assets
+                  </h3>
+                  {currentBiz.slug && (
+                    <Link href={`/b/${currentBiz.slug}`} target="_blank" className="text-xs font-extrabold text-[#4787F2] hover:underline flex items-center gap-1">
+                      View Gallery on Microsite &rarr;
+                    </Link>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                  {/* Cover Photo */}
+                  <div className="relative rounded-2xl overflow-hidden aspect-video bg-neutral-100 border border-[#E3E8EF]">
+                    <img src={currentBiz.cover_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'} alt="Store Cover" className="w-full h-full object-cover" />
+                    <span className="absolute bottom-1.5 left-1.5 bg-[#4787F2] text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full shadow-xs">
+                      Cover Photo
+                    </span>
+                  </div>
+
+                  {/* Gallery Photos */}
+                  {Array.isArray(currentBiz.photos) && currentBiz.photos.slice(1, 4).map((url: string, idx: number) => (
+                    <div key={idx} className="relative rounded-2xl overflow-hidden aspect-video bg-neutral-100 border border-[#E3E8EF]">
+                      <img src={url} alt={`Gallery photo ${idx + 2}`} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
           </div>
         )}
 

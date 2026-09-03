@@ -18,20 +18,44 @@ import {
 
 export default function EliteMicrositePage() {
   const params = useParams();
-  const slug = params?.slug as string;
+  const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params?.slug[0] : '';
 
-  const biz = SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!;
+  const [biz, setBiz] = React.useState<any>(SEED_BUSINESSES.find((b) => b.slug === slug) || SEED_BUSINESSES[0]!);
+
+  React.useEffect(() => {
+    async function loadRealBusiness() {
+      if (!slug) return;
+      try {
+        const res = await fetch(`/api/business/get-by-slug?slug=${encodeURIComponent(slug)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.business) {
+            setBiz(data.business);
+          }
+        }
+      } catch (err) {
+        console.warn('[MicrositePage] DB fetch warning:', err);
+      }
+    }
+    loadRealBusiness();
+  }, [slug]);
+
   const bizPosts = SEED_POSTS.filter((p) => p.business_id === biz.id);
   const bizReviews = SEED_REVIEWS.filter((r) => r.business_id === biz.id);
+  const galleryPhotos: string[] = Array.isArray(biz.photos) && biz.photos.length > 0
+    ? biz.photos
+    : Array.isArray(biz.microsite?.gallery_urls) && biz.microsite.gallery_urls.length > 0
+    ? biz.microsite.gallery_urls
+    : biz.cover_url ? [biz.cover_url] : [];
 
   return (
     <div className="min-h-screen bg-[#F4F6FB] pb-16">
       {/* 1. HERO COVER BANNER */}
       <div className="relative h-64 sm:h-80 bg-neutral-900 overflow-hidden">
         <img
-          src={biz.cover_url || 'https://images.unsplash.com/photo-1513094735237-8f2714d57c13?w=1200'}
+          src={biz.cover_url || (galleryPhotos[0] || 'https://images.unsplash.com/photo-1513094735237-8f2714d57c13?w=1200')}
           alt={biz.name}
-          className="w-full h-full object-cover opacity-60"
+          className="w-full h-full object-cover opacity-75"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#17181C] via-transparent to-black/40" />
 
@@ -129,7 +153,33 @@ export default function EliteMicrositePage() {
           </Card>
         </div>
 
-        {/* Showcase Gallery / Posts */}
+        {/* Store Photo Gallery */}
+        {galleryPhotos.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold text-[#17181C]">Storefront &amp; Interior Gallery</h2>
+              <span className="text-xs font-bold text-[#4787F2]">{galleryPhotos.length} Verified Photos</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {galleryPhotos.map((photoUrl, idx) => (
+                <Card key={idx} padding="none" className="overflow-hidden group aspect-square relative shadow-xs border border-[#E3E8EF]">
+                  <img
+                    src={photoUrl}
+                    alt={`${biz.name} gallery ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {idx === 0 && (
+                    <span className="absolute top-2 left-2 bg-[#4787F2] text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full shadow-md">
+                      Cover Photo
+                    </span>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Showcase Catalog / Posts */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-[#17181C]">Featured Catalog &amp; Collections</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

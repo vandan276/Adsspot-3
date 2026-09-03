@@ -19,9 +19,48 @@ export async function GET(req: Request) {
     );
 
     if (res?.rows && res.rows.length > 0) {
+      const business = res.rows[0];
+      // Query microsite for gallery photos
+      const siteRes = await queryPostgres(
+        'SELECT * FROM microsites WHERE business_id = $1 LIMIT 1',
+        [business.id]
+      );
+
+      let gallery: string[] = [];
+      let microsite: any = null;
+
+      if (siteRes?.rows && siteRes.rows.length > 0) {
+        microsite = siteRes.rows[0];
+        const raw = microsite.gallery_urls;
+        if (Array.isArray(raw)) {
+          gallery = raw;
+        } else if (typeof raw === 'string') {
+          try {
+            gallery = JSON.parse(raw);
+          } catch {
+            gallery = [raw];
+          }
+        }
+      }
+
+      if (!Array.isArray(gallery) || gallery.length === 0) {
+        if (business.cover_url) {
+          gallery = [business.cover_url];
+        }
+      }
+
       return NextResponse.json({
         success: true,
-        business: res.rows[0],
+        business: {
+          ...business,
+          photos: gallery,
+          microsite: microsite ? {
+            ...microsite,
+            gallery_urls: gallery,
+          } : {
+            gallery_urls: gallery,
+          },
+        },
       });
     }
 
