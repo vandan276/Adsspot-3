@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { SEED_BUSINESSES } from '@adsspot/api';
@@ -41,11 +41,11 @@ export default function DigitalCardPage() {
   const params = useParams();
   const slug = typeof params?.slug === 'string' ? params.slug : Array.isArray(params?.slug) ? params?.slug[0] : '';
   
-  const [biz, setBiz] = useState(SEED_BUSINESSES.find((b) => b.slug === slug) || DEFAULT_BIZ);
+  const [biz, setBiz] = useState<any>(SEED_BUSINESSES.find((b) => b.slug === slug) || DEFAULT_BIZ);
   const [copied, setCopied] = useState(false);
   const [showUpiModal, setShowUpiModal] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function loadRealBiz() {
       if (!slug) return;
       try {
@@ -89,14 +89,14 @@ TEL;TYPE=WORK,VOICE:${biz.phone}
 TEL;TYPE=CELL,VOICE:${biz.whatsapp}
 ADR;TYPE=WORK:;;${biz.address};Vadodara;Gujarat;${biz.pincode};India
 URL:https://adsspot.in/card/${biz.slug}
-NOTE:Verified Merchant on Adsspot (${biz.tier.toUpperCase()} Tier)
+NOTE:Verified Merchant on Adsspot (${(biz.tier || 'basic').toUpperCase()} Tier)
 END:VCARD`;
 
     const blob = new Blob([vCardContent], { type: 'text/vcard;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `${biz.slug}-contact.vcf`);
+    link.setAttribute('download', `${biz.slug || 'business'}-contact.vcf`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -105,21 +105,31 @@ END:VCARD`;
   };
 
   const handleShareCard = () => {
-    if (navigator.share) {
+    if (typeof window !== 'undefined' && navigator.share) {
       navigator.share({
         title: biz.name,
         text: `View digital visiting card of ${biz.name} on Adsspot`,
         url: window.location.href,
       }).catch(() => {});
-    } else {
+    } else if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(window.location.href);
       alert('Card link copied to clipboard!');
     }
   };
 
+  // Cover image fallback chain (Uses merchant's uploaded photos directly)
+  const coverImage = biz.cover_url ||
+    (Array.isArray(biz.photos) && biz.photos[0]) ||
+    (Array.isArray(biz.microsite?.gallery_urls) && biz.microsite.gallery_urls[0]) ||
+    biz.logo_url ||
+    'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800';
+
+  const avatarImage = biz.logo_url || coverImage;
+
   return (
-    <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] py-10 px-4 flex items-center justify-center">
+    <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] py-8 sm:py-12 px-4 flex items-center justify-center">
       <div className="max-w-md w-full space-y-4">
+        {/* Navigation back */}
         <Link
           href="/"
           className="inline-flex items-center gap-1 text-xs font-semibold text-[#687182] hover:text-[#4787F2] transition-colors"
@@ -128,107 +138,123 @@ END:VCARD`;
         </Link>
 
         {/* Digital Visiting Card */}
-        <Card padding="none" className="overflow-hidden shadow-2xl border border-[#E3E8EF] bg-white rounded-3xl">
+        <Card padding="none" className="overflow-hidden shadow-2xl border border-[#E3E8EF] bg-white rounded-3xl transition-all">
           {/* Cover Header */}
-          <div className="relative h-44 bg-neutral-200">
+          <div className="relative h-48 sm:h-52 bg-neutral-900">
             <img
-              src={biz.cover_url || 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800'}
+              src={coverImage}
               alt={biz.name}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover opacity-90"
             />
-            <div className="absolute top-3 right-3 flex items-center gap-1.5">
-              <TierBadge tier={biz.tier} size="sm" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+            <div className="absolute top-3 right-3 flex items-center gap-1.5 z-10">
+              <TierBadge tier={biz.tier || 'basic'} size="sm" />
               {biz.trusted && <TrustedBadge size="sm" />}
             </div>
           </div>
 
           {/* Business Profile Content */}
-          <div className="p-6 text-center -mt-14 relative z-10 space-y-4">
-            <div className="inline-block p-1 bg-white rounded-2xl shadow-lg">
+          <div className="p-6 text-center -mt-16 relative z-10 space-y-4">
+            {/* Overlapping Profile Avatar */}
+            <div className="inline-block p-1 bg-white rounded-2xl shadow-xl ring-4 ring-white/60">
               <Avatar
-                src={biz.logo_url}
+                src={avatarImage}
                 name={biz.name}
                 size="xl"
                 isElite={biz.tier === 'elite'}
               />
             </div>
 
-            <div>
-              <h1 className="text-xl font-extrabold text-[#17181C] tracking-tight">{biz.name}</h1>
-              <p className="text-xs text-[#687182] flex items-center justify-center gap-1 mt-1 font-medium">
-                <MapPin className="w-3.5 h-3.5 text-[#4787F2]" /> {biz.address}
+            {/* Business Identity */}
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl font-black text-[#17181C] tracking-tight">{biz.name}</h1>
+              <p className="text-xs text-[#687182] flex items-center justify-center gap-1 font-semibold">
+                <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
+                <span className="truncate">{biz.address || 'Local Business, India'}</span>
               </p>
             </div>
 
+            {/* Status & Rating Chips */}
             <div className="flex items-center justify-center gap-2">
-              <span className="text-xs font-bold text-[#17181C] bg-[#F4F6FB] px-3 py-1 rounded-full border border-[#E3E8EF]">
-                ⭐ {(biz as any).stats?.avg_rating || '5.0'} ({(biz as any).stats?.reviews_count || 0} reviews)
-              </span>
-              <span className="text-xs font-bold text-[#1B6A2D] bg-[#EBF9EE] px-3 py-1 rounded-full border border-[#35AB4E]/30">
-                Open Now
-              </span>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200/80 text-[#B45309] font-extrabold text-xs shadow-2xs">
+                <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" />
+                <span>{(biz.stats?.avg_rating || 5.0).toFixed(1)}</span>
+                <span className="text-[#92400E] font-medium">({biz.stats?.reviews_count || 0} reviews)</span>
+              </div>
+
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-[#1B6A2D] font-extrabold text-xs shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-[#35AB4E] animate-pulse" />
+                <span>Open Now</span>
+              </div>
             </div>
 
-            <p className="text-xs text-[#4A5260] leading-relaxed">
-              {biz.description}
+            {/* Short Description */}
+            <p className="text-xs text-[#4A5260] leading-relaxed max-w-sm mx-auto font-medium">
+              {biz.description || 'Verified business on Adsspot offering premium local products & services.'}
             </p>
 
-            {/* Quick Action Grid */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <a
-                href={`tel:${biz.phone}`}
-                onClick={() => trackLead('Call Now')}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#4787F2] text-white text-xs font-black shadow-xs hover:bg-[#3373E0] active:scale-95 transition-all"
-              >
-                <Phone className="w-4 h-4" /> Call Now
-              </a>
-              <a
-                href={`https://wa.me/${biz.whatsapp.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20am%20viewing%20your%20digital%20card%20on%20Adsspot.`}
-                target="_blank"
-                rel="noreferrer"
-                onClick={() => trackLead('WhatsApp Direct')}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#25D366] text-white text-xs font-black shadow-xs hover:bg-[#1EBE5D] active:scale-95 transition-all"
-              >
-                <MessageCircle className="w-4 h-4" /> WhatsApp
-              </a>
-            </div>
+            {/* ACTION BUTTON HIERARCHY */}
+            <div className="space-y-2.5 pt-2">
+              {/* Row 1: Primary Conversion Actions */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <a
+                  href={`tel:${biz.phone || ''}`}
+                  onClick={() => trackLead('Call Now')}
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#4787F2] text-white text-xs font-black shadow-md hover:bg-[#3373E0] active:scale-95 transition-all"
+                >
+                  <Phone className="w-4 h-4" /> Call Now
+                </a>
+                <a
+                  href={`https://wa.me/${(biz.whatsapp || biz.phone || '').replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20am%20viewing%20your%20digital%20card%20on%20Adsspot.`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => trackLead('WhatsApp Direct')}
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#25D366] text-white text-xs font-black shadow-md hover:bg-[#1EBE5D] active:scale-95 transition-all"
+                >
+                  <MessageCircle className="w-4 h-4" /> WhatsApp
+                </a>
+              </div>
 
-            {/* Save Contact (.vcf) & UPI Pay Trigger (Feature F) */}
-            <div className="grid grid-cols-2 gap-2.5">
-              <button
-                onClick={handleSaveContact}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#17181C] text-white text-xs font-black shadow-xs hover:bg-neutral-800 active:scale-95 transition-all"
-              >
-                <Download className="w-4 h-4 text-[#F2B604]" />
-                <span>{copied ? 'Saved! ✓' : 'Save Contact'}</span>
-              </button>
+              {/* Row 2: Secondary Store Actions */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleSaveContact}
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#17181C] text-white text-xs font-black shadow-sm hover:bg-neutral-800 active:scale-95 transition-all"
+                >
+                  <Download className="w-4 h-4 text-[#F2B604]" />
+                  <span>{copied ? 'Saved! ✓' : 'Save Contact'}</span>
+                </button>
 
-              <button
-                onClick={() => setShowUpiModal(true)}
-                className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#FFF8E7] text-[#925F00] border border-[#F2B604]/40 text-xs font-black shadow-2xs hover:bg-[#FFF1CC] active:scale-95 transition-all"
-              >
-                <QrCode className="w-4 h-4 text-[#925F00]" />
-                <span>UPI Pay QR</span>
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => setShowUpiModal(true)}
+                  className="flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#FFF8E7] text-[#925F00] border border-[#F2B604]/40 text-xs font-black shadow-2xs hover:bg-[#FFF1CC] active:scale-95 transition-all"
+                >
+                  <QrCode className="w-4 h-4 text-[#925F00]" />
+                  <span>UPI Pay QR</span>
+                </button>
+              </div>
 
-            {/* Google Review Booster & Directions */}
-            <div className="grid grid-cols-2 gap-2.5 pt-1">
-              <a
-                href={`https://search.google.com/local/writereview?placeid=${biz.slug}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-xs font-bold text-[#B45309] hover:bg-[#FEF3C7] active:scale-95 transition-all"
-              >
-                <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" /> Rate on Google
-              </a>
+              {/* Row 3: Utility & Social Actions */}
+              <div className="grid grid-cols-2 gap-2.5">
+                <a
+                  href={`https://search.google.com/local/writereview?placeid=${biz.slug || ''}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-xs font-bold text-[#B45309] hover:bg-[#FEF3C7] active:scale-95 transition-all"
+                >
+                  <Star className="w-3.5 h-3.5 fill-[#F59E0B] text-[#F59E0B]" /> Rate on Google
+                </a>
 
-              <button
-                onClick={handleShareCard}
-                className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#E3E8EF] text-xs font-bold text-[#17181C] hover:bg-[#F4F6FB] active:scale-95 transition-all"
-              >
-                <Share2 className="w-3.5 h-3.5 text-[#687182]" /> Share Card
-              </button>
+                <button
+                  type="button"
+                  onClick={handleShareCard}
+                  className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-[#E3E8EF] bg-white text-xs font-bold text-[#17181C] hover:bg-[#F4F6FB] active:scale-95 transition-all"
+                >
+                  <Share2 className="w-3.5 h-3.5 text-[#687182]" /> Share Card
+                </button>
+              </div>
             </div>
           </div>
         </Card>
@@ -246,7 +272,7 @@ END:VCARD`;
                 <p className="text-xs text-[#687182] mt-1">Scan via GPay, PhonePe, Paytm, or BHIM</p>
               </div>
 
-              {/* Sample QR Container */}
+              {/* QR Container */}
               <div className="p-4 bg-white border-2 border-neutral-200 rounded-2xl inline-block shadow-inner">
                 <img
                   src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=upi://pay?pa=merchant@adsspot&pn=${encodeURIComponent(biz.name)}&cu=INR`}
@@ -256,6 +282,7 @@ END:VCARD`;
               </div>
 
               <button
+                type="button"
                 onClick={() => setShowUpiModal(false)}
                 className="w-full py-2.5 bg-neutral-100 text-neutral-700 rounded-xl text-xs font-bold hover:bg-neutral-200"
               >
