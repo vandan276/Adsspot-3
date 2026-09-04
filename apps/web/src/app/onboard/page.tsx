@@ -20,6 +20,19 @@ import {
   Check,
   User as UserIcon,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const LocationPinAdjuster = dynamic(
+  () => import('../../components/LocationPinAdjuster').then((m) => m.LocationPinAdjuster),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-64 rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse flex items-center justify-center text-xs text-neutral-400 font-bold">
+        Loading Map Adjuster...
+      </div>
+    ),
+  }
+);
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -48,6 +61,8 @@ export default function BusinessRegistrationWizard() {
   const [area, setArea] = useState('Alkapuri');
   const [city, setCity] = useState('Vadodara');
   const [state, setState] = useState('Gujarat');
+  const [lat, setLat] = useState<number>(22.3106);
+  const [lng, setLng] = useState<number>(73.1678);
 
   // STEP 2 — Contact Details
   const [title, setTitle] = useState<'Mr' | 'Mrs' | 'Ms' | 'Dr'>('Mr');
@@ -113,6 +128,8 @@ export default function BusinessRegistrationWizard() {
             if (d.area) setArea(d.area);
             if (d.city) setCity(d.city);
             if (d.state) setState(d.state);
+            if (d.lat) setLat(Number(d.lat));
+            if (d.lng) setLng(Number(d.lng));
 
             if (d.title) setTitle(d.title);
             if (d.phone) setPhone(d.phone);
@@ -290,6 +307,8 @@ export default function BusinessRegistrationWizard() {
         area,
         city,
         state,
+        lat,
+        lng,
         title,
         ownerName,
         phone,
@@ -332,6 +351,8 @@ export default function BusinessRegistrationWizard() {
           area,
           city,
           state,
+          lat,
+          lng,
           title,
           ownerName: ownerName || user?.full_name || 'Business Owner',
           phone,
@@ -646,6 +667,19 @@ export default function BusinessRegistrationWizard() {
                     className="w-full px-3 py-2 rounded-xl border border-[#E3E8EF] dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[#17181C] dark:text-white font-semibold focus:outline-none focus:border-[#4787F2]"
                   />
                 </div>
+              </div>
+
+              {/* 🗺️ Interactive Location Pin Adjuster */}
+              <div className="pt-2">
+                <LocationPinAdjuster
+                  initialLat={lat}
+                  initialLng={lng}
+                  onLocationChange={(newLat, newLng) => {
+                    setLat(newLat);
+                    setLng(newLng);
+                  }}
+                  height="260px"
+                />
               </div>
             </div>
 

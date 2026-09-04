@@ -271,7 +271,6 @@ export default function ExplorePage() {
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-y-4 gap-x-2">
           {visibleCategoryItems.map((cat) => {
             const Icon = cat.icon;
-            const isSelected = selectedCat === cat.id;
 
             if (cat.id === 'cat-b2b') {
               return (
