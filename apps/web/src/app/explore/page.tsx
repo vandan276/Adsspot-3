@@ -301,13 +301,31 @@ export default function ExplorePage() {
               );
             }
 
+            if (cat.id === 'cat-biz') {
+              return (
+                <Link
+                  key={cat.id}
+                  href="/merchant"
+                  className="flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 hover:bg-neutral-50"
+                >
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs"
+                    style={{ backgroundColor: cat.bg }}
+                  >
+                    <Icon className="w-6 h-6" style={{ color: cat.color }} />
+                  </div>
+                  <span className="text-[11px] text-center leading-tight tracking-tight max-w-[70px] font-bold text-[#17181C] group-hover:text-[#2B70C9]">
+                    {cat.name}
+                  </span>
+                </Link>
+              );
+            }
+
             return (
-              <button
+              <Link
                 key={cat.id}
-                onClick={() => setSelectedCat(isSelected ? 'all' : cat.id)}
-                className={`flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 ${
-                  isSelected ? 'bg-[#EDF4FF]' : 'hover:bg-neutral-50'
-                }`}
+                href={`/categories/${cat.id}`}
+                className="flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 hover:bg-neutral-50"
               >
                 {/* Top Badge (e.g. 1Cr+, Beta) */}
                 {cat.badge && (
@@ -324,25 +342,17 @@ export default function ExplorePage() {
 
                 {/* Icon Container */}
                 <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs ${
-                    isSelected ? 'ring-2 ring-[#4787F2]' : ''
-                  }`}
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-2xs"
                   style={{ backgroundColor: cat.bg }}
                 >
                   <Icon className="w-6 h-6" style={{ color: cat.color }} />
                 </div>
 
                 {/* Label */}
-                <span
-                  className={`text-[11px] text-center leading-tight tracking-tight max-w-[70px] ${
-                    isSelected
-                      ? 'font-black text-[#4787F2]'
-                      : 'font-bold text-[#17181C] group-hover:text-[#4787F2]'
-                  }`}
-                >
+                <span className="text-[11px] text-center leading-tight tracking-tight max-w-[70px] font-bold text-[#17181C] group-hover:text-[#4787F2]">
                   {cat.name}
                 </span>
-              </button>
+              </Link>
             );
           })}
 
