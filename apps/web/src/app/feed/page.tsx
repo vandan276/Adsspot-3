@@ -132,7 +132,52 @@ export default function MobileFeedPage() {
     city: 'Vadodara',
     pincode: '390007',
     area: 'Alkapuri & Old Padra Road',
+    isLocating: false,
   });
+
+  const detectLiveLocation = () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) return;
+
+    setLocationState((prev) => ({ ...prev, isLocating: true }));
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`/api/location/reverse?lat=${latitude}&lng=${longitude}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.location) {
+              const newLoc = {
+                city: data.location.city,
+                pincode: data.location.pincode,
+                area: data.location.area,
+                lat: latitude,
+                lng: longitude,
+              };
+              localStorage.setItem('adsspot_user_location', JSON.stringify(newLoc));
+              setLocationState({
+                city: newLoc.city,
+                pincode: newLoc.pincode,
+                area: newLoc.area,
+                isLocating: false,
+              });
+              window.dispatchEvent(new Event('adsspot_location_changed'));
+              showToast(`📍 Location updated: ${newLoc.area}, ${newLoc.city}`);
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Geolocation reverse error:', err);
+        }
+        setLocationState((prev) => ({ ...prev, isLocating: false }));
+      },
+      (err) => {
+        console.warn('Geolocation permission/error:', err);
+        setLocationState((prev) => ({ ...prev, isLocating: false }));
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     const updateLoc = () => {
@@ -145,11 +190,16 @@ export default function MobileFeedPage() {
               city: parsed.city,
               pincode: parsed.pincode || '390007',
               area: parsed.area || 'Alkapuri',
+              isLocating: false,
             });
+            return;
           }
         }
       } catch { }
+      // Auto-trigger live location detection on initial visit if not stored
+      detectLiveLocation();
     };
+
     updateLoc();
     window.addEventListener('adsspot_location_changed', updateLoc);
     return () => window.removeEventListener('adsspot_location_changed', updateLoc);
@@ -861,13 +911,25 @@ export default function MobileFeedPage() {
           {/* 1. TOP LOCATION & SEARCH BAR — Glassmorphic Universal Search */}
           <div className="sticky top-0 z-30 ios-glass-card rounded-2xl p-3 shadow-sm space-y-2 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs text-[#17181C] dark:text-white font-bold min-w-0 flex-1 truncate">
-                <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
-                <span className="truncate">
-                  {locationState.area}, {locationState.city}{' '}
-                  <span className="text-neutral-400 font-normal">({locationState.pincode})</span>
+              <button
+                onClick={detectLiveLocation}
+                disabled={locationState.isLocating}
+                title="Tap to fetch live GPS location"
+                className="flex items-center gap-1.5 text-xs text-[#17181C] dark:text-white font-bold min-w-0 flex-1 truncate text-left hover:opacity-80 active:scale-98 transition-all"
+              >
+                <span className="relative flex h-3.5 w-3.5 items-center justify-center shrink-0">
+                  {locationState.isLocating ? (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4787F2] opacity-75" />
+                  ) : null}
+                  <MapPin className={`w-3.5 h-3.5 ${locationState.isLocating ? 'text-amber-500 animate-spin' : 'text-[#4787F2]'} shrink-0`} />
                 </span>
-              </div>
+                <span className="truncate">
+                  {locationState.isLocating ? 'Detecting GPS Location...' : `${locationState.area}, ${locationState.city}`}{' '}
+                  {!locationState.isLocating && (
+                    <span className="text-neutral-400 font-normal text-[10px]">({locationState.pincode}) • 📍 Tap to refresh</span>
+                  )}
+                </span>
+              </button>
               <span className="shrink-0 text-[10px] font-black text-[#E14D2A] bg-[#FFF1EE] dark:bg-[#2A1016] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
                 🔥 3 Live Drops
               </span>
