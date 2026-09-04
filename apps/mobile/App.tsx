@@ -112,7 +112,7 @@ function MobileAppInner() {
   const [followingBiz, setFollowingBiz] = useState<Record<string, boolean>>({});
   const [savedPosts, setSavedPosts] = useState<Record<string, boolean>>({});
   const [activeStory, setActiveStory] = useState<{ name: string; logo: string; image: string; tier: string } | null>(null);
-  const [walletBalance, setWalletBalance] = useState<number>(1540.0);
+  const [walletBalance, setWalletBalance] = useState<number>(0.0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const isMerchant = role === 'merchant';

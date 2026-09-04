@@ -160,7 +160,7 @@ export default function ConsumerProfilePage() {
           <Link href="/wallet" className="w-full sm:w-auto">
             <div className="p-2.5 rounded-xl bg-[#EDF4FF] dark:bg-[#4787F2]/15 border border-[#4787F2]/20 flex sm:flex-col justify-between sm:text-right hover:bg-[#D9E8FF] transition-colors cursor-pointer">
               <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold uppercase">Adsspot Cash</span>
-              <span className="text-sm font-black text-[#4787F2]">₹{user?.wallet?.balance ? user.wallet.balance.toFixed(2) : '1,540.00'}</span>
+              <span className="text-sm font-black text-[#4787F2]">₹{user?.wallet?.balance !== undefined ? Number(user.wallet.balance).toFixed(2) : '0.00'}</span>
             </div>
           </Link>
         </div>
@@ -172,11 +172,11 @@ export default function ConsumerProfilePage() {
             <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold">Following</span>
           </div>
           <div className="p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5">
-            <span className="text-sm font-black text-[#17181C] dark:text-white block">{Object.keys(userInteractions.likes).length || 2}</span>
+            <span className="text-sm font-black text-[#17181C] dark:text-white block">{Object.keys(userInteractions.likes || {}).length}</span>
             <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold">Liked Posts</span>
           </div>
           <div className="p-2 rounded-xl bg-[#F4F6FB] dark:bg-white/5">
-            <span className="text-sm font-black text-[#17181C] dark:text-white block">{userInteractions.reviews.length || 1}</span>
+            <span className="text-sm font-black text-[#17181C] dark:text-white block">{userInteractions.reviews?.length || 0}</span>
             <span className="text-[10px] text-[#687182] dark:text-neutral-400 font-bold">Reviews</span>
           </div>
         </div>

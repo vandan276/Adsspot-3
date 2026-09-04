@@ -39,7 +39,7 @@ export default function WalletPage() {
     if (storedBalance !== null) {
       setBalance(parseFloat(storedBalance));
     } else {
-      const defaultBal = user.id === 'usr-consumer-1' ? 1540.0 : 0.0;
+      const defaultBal = Number(user.wallet?.balance || 0.0);
       setBalance(defaultBal);
       localStorage.setItem(`adsspot_wallet_${user.id}`, defaultBal.toString());
     }
