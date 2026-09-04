@@ -76,16 +76,26 @@ export default function ConsumerProfilePage() {
           </p>
         </div>
 
-        <div className="w-full space-y-2.5 pt-2">
+        <div className="w-full space-y-3 pt-2">
           <Link href="/login" className="block w-full">
-            <Button variant="primary" size="md" className="w-full font-black py-3 bg-[#4787F2] hover:bg-[#3972D4] shadow-md flex items-center justify-center gap-2">
-              <LogIn className="w-4 h-4" /> Sign In / Create Account &rarr;
+            <Button
+              variant="primary"
+              size="md"
+              leftIcon={<LogIn className="w-4 h-4" />}
+              className="w-full font-black py-3.5 shadow-md flex items-center justify-center text-xs"
+            >
+              Sign In / Create Account &rarr;
             </Button>
           </Link>
 
           <Link href="/onboard" className="block w-full">
-            <Button variant="secondary" size="md" className="w-full font-bold py-3 bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10 text-[#17181C] dark:text-white hover:bg-neutral-50 shadow-xs flex items-center justify-center gap-2">
-              <Store className="w-4 h-4 text-[#F2B604]" /> Register Your Business
+            <Button
+              variant="secondary"
+              size="md"
+              leftIcon={<Store className="w-4 h-4 text-[#F2B604]" />}
+              className="w-full font-bold py-3.5 bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10 text-[#17181C] dark:text-white hover:bg-neutral-50 shadow-xs flex items-center justify-center text-xs"
+            >
+              Register Your Business
             </Button>
           </Link>
         </div>
