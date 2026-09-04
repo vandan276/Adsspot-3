@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { SEED_BUSINESSES, SEED_POSTS, SEED_REVIEWS } from '@adsspot/api';
 import { Card, Button, TrustedBadge, TierBadge } from '@adsspot/ui';
 import {
   MapPin,
@@ -24,27 +23,17 @@ export default function EliteMicrositePage() {
   const rawSlug = (params?.slug as string) || '';
   const slug = decodeURIComponent(rawSlug).trim();
 
-  // Find initial business in SEED_BUSINESSES if available
-  const initialSeedBiz =
-    SEED_BUSINESSES.find(
-      (b) =>
-        b.slug.toLowerCase() === slug.toLowerCase() ||
-        b.id.toLowerCase() === slug.toLowerCase() ||
-        b.name.toLowerCase() === slug.toLowerCase()
-    ) || null;
-
-  const [biz, setBiz] = useState<any>(initialSeedBiz);
-  const [loading, setLoading] = useState(!initialSeedBiz);
-  const [bizPosts, setBizPosts] = useState<any[]>(
-    initialSeedBiz ? SEED_POSTS.filter((p) => p.business_id === initialSeedBiz.id) : []
-  );
-  const [bizReviews, setBizReviews] = useState<any[]>(
-    initialSeedBiz ? SEED_REVIEWS.filter((r) => r.business_id === initialSeedBiz.id) : []
-  );
+  const [biz, setBiz] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [bizPosts, setBizPosts] = useState<any[]>([]);
+  const [bizReviews, setBizReviews] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadBusinessData() {
-      if (!slug) return;
+      if (!slug) {
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const res = await fetch(`/api/business/get-by-slug?slug=${encodeURIComponent(slug)}`);
@@ -60,11 +49,18 @@ export default function EliteMicrositePage() {
                 const postsData = await postsRes.json();
                 if (postsData.success && Array.isArray(postsData.posts)) {
                   const matching = postsData.posts.filter((p: any) => p.business_id === data.business.id);
-                  if (matching.length > 0) {
-                    setBizPosts(matching);
-                  } else {
-                    setBizPosts(SEED_POSTS.filter((p) => p.business_id === data.business.id));
-                  }
+                  setBizPosts(matching);
+                }
+              }
+            } catch {}
+
+            // Load reviews for this business
+            try {
+              const reviewsRes = await fetch(`/api/reviews?business_id=${encodeURIComponent(data.business.id)}`);
+              if (reviewsRes.ok) {
+                const reviewsData = await reviewsRes.json();
+                if (reviewsData.success && Array.isArray(reviewsData.reviews)) {
+                  setBizReviews(reviewsData.reviews);
                 }
               }
             } catch {}
@@ -77,18 +73,7 @@ export default function EliteMicrositePage() {
         console.warn('[MicrositePage] API fetch error:', err);
       }
 
-      // If not in DB, fallback to seed or first matching
-      if (!initialSeedBiz) {
-        const fallback =
-          SEED_BUSINESSES.find(
-            (b) =>
-              b.slug.toLowerCase().includes(slug.toLowerCase()) ||
-              b.name.toLowerCase().includes(slug.toLowerCase())
-          ) || SEED_BUSINESSES[0]!;
-        setBiz(fallback);
-        setBizPosts(SEED_POSTS.filter((p) => p.business_id === fallback.id));
-        setBizReviews(SEED_REVIEWS.filter((r) => r.business_id === fallback.id));
-      }
+      setBiz(null);
       setLoading(false);
     }
 

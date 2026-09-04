@@ -415,28 +415,30 @@ export default function BusinessRegistrationWizard() {
         };
         reader.readAsDataURL(file);
 
-        // Upload to /api/media/upload
-        try {
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('user_id', user?.id || 'usr-onboard-guest');
-          formData.append('module', 'business_photos');
+        // Upload to /api/media/upload if authenticated
+        if (user?.id) {
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('user_id', user.id);
+            formData.append('module', 'business_photos');
 
-          const res = await fetch('/api/media/upload', {
-            method: 'POST',
-            body: formData,
-          });
-
-          const data = await res.json();
-          if (data.success && data.file_url) {
-            setUploadedPhotos((prev) => {
-              // Replace preview or append real server/S3 URL
-              const filtered = prev.filter((p) => !p.startsWith('data:'));
-              return [...filtered, data.file_url];
+            const res = await fetch('/api/media/upload', {
+              method: 'POST',
+              body: formData,
             });
+
+            const data = await res.json();
+            if (data.success && data.file_url) {
+              setUploadedPhotos((prev) => {
+                // Replace preview or append real server/S3 URL
+                const filtered = prev.filter((p) => !p.startsWith('data:'));
+                return [...filtered, data.file_url];
+              });
+            }
+          } catch (uploadErr) {
+            console.warn('Network upload notice:', uploadErr);
           }
-        } catch (uploadErr) {
-          console.warn('Network upload notice:', uploadErr);
         }
       }
       showToast('✓ Photo uploaded successfully!');

@@ -3,18 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth, DEMO_PERSONAS, SEED_CATEGORIES } from '@adsspot/api';
-import { Button, Card, Logo, Avatar, TierBadge } from '@adsspot/ui';
+import { useAuth, SEED_CATEGORIES } from '@adsspot/api';
+import { Button, Card, Logo, TierBadge } from '@adsspot/ui';
 import {
   ArrowRight,
   CheckCircle2,
   ChevronLeft,
   ShieldCheck,
-  Building2,
-  Briefcase,
   Store,
+  Building2,
   User,
-  Crown,
   Mail,
   Lock,
   Phone,
@@ -35,10 +33,10 @@ export default function LoginPage() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'phone_otp'>('signin');
 
   // Form States
-  const [email, setEmail] = useState('admin@adsspot.in');
-  const [password, setPassword] = useState('adsspot123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('+919876543217');
+  const [phone, setPhone] = useState('');
   const [signupRole, setSignupRole] = useState<'consumer' | 'merchant'>('consumer');
 
   // Phone OTP States
@@ -63,24 +61,6 @@ export default function LoginPage() {
         return '/merchant';
       default:
         return '/feed';
-    }
-  };
-
-  const handleQuickLogin = async (persona: any) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await loginWithEmail(persona.email || `${persona.role}@adsspot.in`, 'adsspot123');
-      if (res.success && res.user) {
-        const dest = res.destination || getRoleDestination(res.user.role);
-        router.push(dest);
-      } else {
-        setError(res.error || 'Quick login failed');
-      }
-    } catch (err: any) {
-      setError(err?.message || 'Quick login failed');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -269,24 +249,6 @@ export default function LoginPage() {
     }
   };
 
-  const roleIcons: Record<string, any> = {
-    super_admin: <Crown className="w-4 h-4 text-[#E11D48]" />,
-    zo: <Building2 className="w-4 h-4 text-[#8B5CF6]" />,
-    ro: <Building2 className="w-4 h-4 text-[#3B82F6]" />,
-    sm: <Briefcase className="w-4 h-4 text-[#10B981]" />,
-    merchant: <Store className="w-4 h-4 text-[#F59E0B]" />,
-    consumer: <User className="w-4 h-4 text-[#4787F2]" />,
-  };
-
-  const roleBadges: Record<string, string> = {
-    super_admin: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800',
-    zo: 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800',
-    ro: 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800',
-    sm: 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800',
-    merchant: 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800',
-    consumer: 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800',
-  };
-
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-8 bg-[#F4F6FB] dark:bg-[#0B0E14] min-h-[calc(100vh-100px)] transition-colors">
       <div className="max-w-4xl w-full space-y-6">
@@ -300,102 +262,6 @@ export default function LoginPage() {
           </Link>
           <div className="flex items-center gap-1.5 text-xs font-bold text-[#35AB4E]">
             <ShieldCheck className="w-4 h-4" /> Aurora PostgreSQL + Email Auth Active
-          </div>
-        </div>
-
-        {/* 1. 1-CLICK SUPER ADMIN QUICK LOGIN */}
-        <div className="bg-white dark:bg-[#121620] rounded-3xl p-5 sm:p-6 border border-[#E3E8EF] dark:border-white/10 shadow-sm space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 dark:border-white/10 pb-4">
-            <div>
-              <div className="inline-flex items-center gap-1 text-xs font-extrabold text-[#4787F2] uppercase tracking-wider mb-1">
-                <Crown className="w-3.5 h-3.5 text-[#E11D48]" /> Super Admin Access
-              </div>
-              <h2 className="text-lg font-black text-[#17181C] dark:text-white">Adsspot Master Admin Portal</h2>
-              <p className="text-xs text-[#687182] dark:text-neutral-400 mt-0.5">
-                Global platform administration, merchants, moderation, pricing tiers &amp; audit trails.
-              </p>
-            </div>
-            <span className="text-[11px] font-mono font-bold bg-[#F4F6FB] dark:bg-white/5 text-neutral-600 dark:text-neutral-300 px-3 py-1.5 rounded-xl border border-[#E3E8EF] dark:border-white/10">
-              Pass: adsspot123
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {DEMO_PERSONAS.map((persona) => {
-              const dest = getRoleDestination(persona.role);
-              const demoPassword = 'adsspot123';
-              return (
-                <div
-                  key={persona.id}
-                  onClick={() => {
-                    setEmail(persona.email || '');
-                    setPassword(demoPassword);
-                    handleQuickLogin(persona);
-                  }}
-                  className="p-4 rounded-2xl border border-[#E3E8EF] dark:border-white/10 hover:border-[#4787F2] dark:hover:border-[#4787F2] bg-white dark:bg-[#171E2C] hover:bg-[#F8FAFF] dark:hover:bg-[#1C2638] transition-all cursor-pointer group shadow-xs hover:shadow-md flex flex-col justify-between"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border flex items-center gap-1 ${roleBadges[persona.role] || 'bg-neutral-100 text-neutral-800'}`}>
-                        {roleIcons[persona.role]}
-                        <span>SUPER ADMIN</span>
-                      </span>
-                      <span className="text-[10px] font-mono text-neutral-400 group-hover:text-[#4787F2] font-bold">
-                        {dest} &rarr;
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <Avatar src={persona.avatar_url} name={persona.name} size="md" />
-                      <div className="overflow-hidden">
-                        <h4 className="text-sm font-black text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2] transition-colors">
-                          Adsspot Admin
-                        </h4>
-                        <span className="text-xs text-[#4787F2] font-medium truncate block">
-                          admin@adsspot.in
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Explicit ID & Password credentials box */}
-                    <div className="p-2.5 bg-[#F4F6FB] dark:bg-white/5 rounded-xl border border-neutral-200 dark:border-white/10 space-y-1 font-mono text-xs">
-                      <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 font-sans font-bold">Email ID:</span>
-                        <span className="text-[#4787F2] font-bold">admin@adsspot.in</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 font-sans font-bold">Password:</span>
-                        <span className="text-[#35AB4E] font-bold">{demoPassword}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 mt-3 border-t border-neutral-100 dark:border-white/10 flex items-center justify-between">
-                    <span className="text-xs font-bold text-[#4787F2]">1-Tap Super Admin Access</span>
-                    <Button variant="primary" size="sm" className="text-xs py-1.5 px-4 font-bold bg-[#4787F2] group-hover:bg-[#3373E0]">
-                      Open Admin Panel &rarr;
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-
-            <div className="p-4 rounded-2xl border border-dashed border-[#E3E8EF] dark:border-white/10 bg-[#F4F6FB]/50 dark:bg-white/[0.02] flex flex-col justify-between">
-              <div>
-                <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-wider block mb-1">
-                  Custom Accounts &amp; Merchants
-                </span>
-                <h4 className="text-sm font-black text-[#17181C] dark:text-white mb-1">
-                  Create or Sign In to Any Account
-                </h4>
-                <p className="text-xs text-[#687182] dark:text-neutral-400 leading-relaxed">
-                  Use the form below to register new merchants or shoppers with your own email and password. All data is saved directly in PostgreSQL.
-                </p>
-              </div>
-              <div className="pt-2 text-xs font-semibold text-[#4787F2]">
-                100% Live Database
-              </div>
-            </div>
           </div>
         </div>
 

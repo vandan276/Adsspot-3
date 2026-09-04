@@ -10,10 +10,14 @@ export async function POST(req: NextRequest) {
 
     const cleanEmail = (email || '').trim().toLowerCase();
     const cleanPhone = (phone || '').trim().replace(/\s+/g, '');
-    const cleanPassword = password || 'adsspot123';
+    const cleanPassword = (password || '').trim();
 
     if (!cleanEmail) {
       return NextResponse.json({ success: false, error: 'Email is required' }, { status: 400 });
+    }
+
+    if (!cleanPassword) {
+      return NextResponse.json({ success: false, error: 'Password is required' }, { status: 400 });
     }
 
     if (action === 'signup') {
@@ -28,43 +32,44 @@ export async function POST(req: NextRequest) {
         [cleanEmail, cleanPhone || 'NONE']
       );
 
-      let effectiveUserId: string;
-
       if (existing?.rows?.length && existing.rows.length > 0) {
-        effectiveUserId = existing.rows[0].id;
-      } else {
-        effectiveUserId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-        const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`;
-        const targetRoleId = `role-${role === 'consumer' ? 'consumer' : role}`;
-
-        // Verify role exists or fallback to role-consumer
-        const roleCheck = await queryPostgres('SELECT id, slug FROM roles WHERE id = $1 OR slug = $2', [targetRoleId, role]);
-        const finalRoleId = roleCheck?.rows[0]?.id || 'role-consumer';
-        const finalRoleSlug = roleCheck?.rows[0]?.slug || 'consumer';
-
-        await queryPostgres(
-          `INSERT INTO users (id, email, password_hash, full_name, phone, avatar_url, role, role_id, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
-          [
-            effectiveUserId,
-            cleanEmail,
-            cleanPassword,
-            name.trim(),
-            cleanPhone || `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
-            avatarUrl,
-            finalRoleSlug,
-            finalRoleId,
-          ]
-        );
-
-        // Create initial wallet
-        await queryPostgres(
-          `INSERT INTO wallets (id, user_id, balance, currency, updated_at)
-           VALUES ($1, $2, 0.0, 'INR', NOW())
-           ON CONFLICT (id) DO NOTHING`,
-          [`wallet-${effectiveUserId}`, effectiveUserId]
+        return NextResponse.json(
+          { success: false, error: 'An account with this email or phone number already exists. Please log in.' },
+          { status: 409 }
         );
       }
+
+      const effectiveUserId = `usr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(cleanEmail)}`;
+      const targetRoleId = `role-${role === 'consumer' ? 'consumer' : role}`;
+
+      // Verify role exists or fallback to role-consumer
+      const roleCheck = await queryPostgres('SELECT id, slug FROM roles WHERE id = $1 OR slug = $2', [targetRoleId, role]);
+      const finalRoleId = roleCheck?.rows[0]?.id || 'role-consumer';
+      const finalRoleSlug = roleCheck?.rows[0]?.slug || 'consumer';
+
+      await queryPostgres(
+        `INSERT INTO users (id, email, password_hash, full_name, phone, avatar_url, role, role_id, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())`,
+        [
+          effectiveUserId,
+          cleanEmail,
+          cleanPassword,
+          name.trim(),
+          cleanPhone || `+91${Math.floor(1000000000 + Math.random() * 9000000000)}`,
+          avatarUrl,
+          finalRoleSlug,
+          finalRoleId,
+        ]
+      );
+
+      // Create initial wallet
+      await queryPostgres(
+        `INSERT INTO wallets (id, user_id, balance, currency, updated_at)
+         VALUES ($1, $2, 0.0, 'INR', NOW())
+         ON CONFLICT (id) DO NOTHING`,
+        [`wallet-${effectiveUserId}`, effectiveUserId]
+      );
 
       // Create authenticated session
       const { token, cookieHeader } = await createSession(effectiveUserId);
@@ -134,8 +139,8 @@ export async function POST(req: NextRequest) {
 
     const user = dbUserRes.rows[0];
 
-    // Optional password verification (passwords in demo/seed default to adsspot123 if unset)
-    if (user.password_hash && password && user.password_hash !== password && password !== 'adsspot123') {
+    // Password verification against stored password hash
+    if (!user.password_hash || !password || user.password_hash !== cleanPassword) {
       return NextResponse.json(
         { success: false, error: 'Incorrect password. Please verify your credentials.' },
         { status: 401 }

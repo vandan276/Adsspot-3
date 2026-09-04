@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { queryPostgres } from '@adsspot/api/server';
-import { SEED_BUSINESSES } from '@adsspot/api';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,28 +63,16 @@ export async function GET() {
       },
     }));
 
-    // Merge: Put DB businesses first, then append seed businesses if not already included
-    const existingIds = new Set(dbBusinesses.map((b: any) => b.id));
-    const existingSlugs = new Set(dbBusinesses.map((b: any) => b.slug));
-
-    const combined = [
-      ...dbBusinesses,
-      ...SEED_BUSINESSES.filter((b) => !existingIds.has(b.id) && !existingSlugs.has(b.slug)),
-    ];
-
     return NextResponse.json({
       success: true,
-      merchants: combined,
-      count: combined.length,
+      merchants: dbBusinesses,
+      count: dbBusinesses.length,
     });
   } catch (error: any) {
     console.error('Error fetching merchants list:', error);
-    // Fallback to SEED_BUSINESSES if DB error
-    return NextResponse.json({
-      success: true,
-      merchants: SEED_BUSINESSES,
-      count: SEED_BUSINESSES.length,
-      fallback: true,
-    });
+    return NextResponse.json(
+      { success: false, error: 'Database query failed', merchants: [] },
+      { status: 500 }
+    );
   }
 }

@@ -27,13 +27,20 @@ export async function POST(req: Request) {
     const visibility = (formData.get('visibility') as string) || 'public';
 
     // 2. Authenticate user from server session or verified database user
-    let authenticatedUserId: string = 'usr-onboard-guest';
+    let authenticatedUserId: string | null = null;
     const auth = await requireAuth(req);
 
     if (!auth.errorResponse && auth.context) {
       authenticatedUserId = auth.context.user.id;
-    } else if (formUserId) {
+    } else if (formUserId && formUserId.startsWith('usr-')) {
       authenticatedUserId = formUserId;
+    }
+
+    if (!authenticatedUserId) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized. Please sign in to upload media files.' },
+        { status: 401 }
+      );
     }
 
     if (!file) {

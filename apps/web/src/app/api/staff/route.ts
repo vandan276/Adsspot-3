@@ -60,7 +60,7 @@ export async function POST(req: Request) {
 
     const cleanEmail = email.trim().toLowerCase();
     const cleanPhone = (phone || '').trim().replace(/\s+/g, '');
-    const cleanPassword = password || 'adsspot123';
+    const cleanPassword = (password || '').trim() || `Adsspot@${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     
     // 1. Check if user exists by email or phone
     const checkRes = await queryPostgres(
