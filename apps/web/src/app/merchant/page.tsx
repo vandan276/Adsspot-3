@@ -1338,7 +1338,17 @@ function MerchantStudioContent() {
                   className="flex-1 font-bold shadow-sm"
                   leftIcon={<Download className="w-4 h-4 text-[#4787F2]" />}
                   onClick={() => {
-                    showToast('🎉 High-Res 1080p Festival Banner generated and saved!');
+                    const params = new URLSearchParams({
+                      template: selectedTemplate,
+                      bizName: currentBiz?.name || 'My Store',
+                      phone: currentBiz?.phone || '+91 98765 43210',
+                      address: currentBiz?.address || 'Main Road',
+                      category: currentBiz?.category_id || 'Retail',
+                      tier: currentBiz?.tier || 'premium',
+                    });
+                    const url = `/api/banners/stamp?${params.toString()}`;
+                    window.open(url, '_blank');
+                    showToast('🎉 High-Res 1080p Stamped Banner downloaded!');
                   }}
                 >
                   Download HD Banner (1080p)
@@ -1445,7 +1455,31 @@ function MerchantStudioContent() {
                     <div key={rev.id} className="p-4 rounded-2xl bg-[#F4F6FB] dark:bg-white/5 space-y-2 border border-[#E3E8EF] dark:border-white/10">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#17181C] dark:text-white">{rev.full_name || rev.author || 'Verified Buyer'}</span>
-                        <span className="text-xs font-bold text-[#F2B604]">{'★'.repeat(Math.round(Number(rev.rating) || 5))}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-[#F2B604]">{'★'.repeat(Math.round(Number(rev.rating) || 5))}</span>
+                          <button
+                            onClick={async () => {
+                              const reason = prompt('Please specify why this review violates policies (e.g. spam, fake customer, abusive language):');
+                              if (!reason?.trim()) return;
+                              try {
+                                const res = await fetch('/api/reviews/dispute', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ reviewId: rev.id, reason: reason.trim(), reportedBy: currentBiz?.id || user?.id }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  showToast('🛡️ Review dispute ticket logged. Trust & Safety team notified.');
+                                }
+                              } catch {
+                                showToast('Failed to log dispute ticket.');
+                              }
+                            }}
+                            className="text-[10px] text-red-500 hover:text-red-700 font-semibold underline ml-2"
+                          >
+                            Report / Dispute
+                          </button>
+                        </div>
                       </div>
                       <p className="text-xs text-[#4A5260] dark:text-neutral-300">{rev.comment}</p>
 
@@ -1468,7 +1502,23 @@ function MerchantStudioContent() {
                             variant="primary"
                             size="sm"
                             className="text-xs"
-                            onClick={() => handleSendReply(rev.id)}
+                            onClick={async () => {
+                              const text = replyInput[rev.id];
+                              if (!text?.trim()) return;
+                              setReplies({ ...replies, [rev.id]: text.trim() });
+                              setReplyInput({ ...replyInput, [rev.id]: '' });
+                              showToast('Store response posted successfully!');
+
+                              try {
+                                await fetch('/api/reviews/reply', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ reviewId: rev.id, replyText: text.trim(), merchantId: currentBiz?.id }),
+                                });
+                              } catch (e) {
+                                console.warn('Reply sync error:', e);
+                              }
+                            }}
                           >
                             Reply
                           </Button>

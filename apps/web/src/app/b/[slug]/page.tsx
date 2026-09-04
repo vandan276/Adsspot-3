@@ -284,6 +284,47 @@ export default function EliteMicrositePage() {
           )}
         </div>
 
+        {/* Customer Photos & Store Proof */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-[#17181C] dark:text-white">Customer Photos &amp; Store Check-ins</h2>
+            <button
+              onClick={async () => {
+                const url = prompt('Paste your customer check-in photo URL (e.g. from Unsplash or image host):');
+                if (!url?.trim()) return;
+                try {
+                  const res = await fetch('/api/photos/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      businessId: biz.id,
+                      imageUrl: url.trim(),
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    alert('🎉 Photo submitted successfully! It will appear after merchant verification.');
+                  }
+                } catch {
+                  alert('Failed to submit photo.');
+                }
+              }}
+              className="text-xs font-bold bg-[#4787F2] text-white px-3 py-1.5 rounded-full shadow-sm hover:bg-[#3972D4] transition-all"
+            >
+              + Upload Store Photo
+            </button>
+          </div>
+          <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-[#E3E8EF] dark:border-white/10 text-xs text-neutral-500 flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-[#4787F2]/10 text-[#4787F2] flex items-center justify-center font-bold text-lg">
+              📸
+            </div>
+            <div>
+              <p className="font-semibold text-[#17181C] dark:text-white">Visited {biz.name} recently?</p>
+              <p className="text-[11px] text-[#687182] dark:text-neutral-400">Share your shopping receipt or store visit photo to earn bonus Spot Wallet cashback points!</p>
+            </div>
+          </div>
+        </div>
+
         {/* Customer Reviews */}
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-[#17181C] dark:text-white">Verified Neighborhood Reviews</h2>
