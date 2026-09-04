@@ -133,6 +133,10 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
     markersLayerRef.current.clearLayers();
 
     businesses.forEach((biz) => {
+      const lat = Number(biz.lat);
+      const lng = Number(biz.lng);
+      if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) return;
+
       const ringGradient =
         biz.tier === 'elite'
           ? 'conic-gradient(from 0deg, #4787F2, #35AB4E, #F2B604, #981837, #4787F2)'
@@ -154,7 +158,7 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
             align-items: center;
             justify-content: center;
           ">
-            <img src="${biz.logo_url || ''}" style="
+            <img src="${biz.logo_url || 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=150'}" style="
               width: 100%;
               height: 100%;
               border-radius: 10px;
@@ -203,12 +207,12 @@ export const RealtimeExploreMap: React.FC<RealtimeExploreMapProps> = ({
         iconAnchor: [21, 28],
       });
 
-      const marker = L.marker([biz.lat, biz.lng], { icon: customIcon });
+      const marker = L.marker([lat, lng], { icon: customIcon });
 
       marker.on('click', () => {
         setActiveBiz(biz);
         if (onSelectBusiness) onSelectBusiness(biz);
-        mapRef.current?.flyTo([biz.lat, biz.lng], 16, { animate: true, duration: 1 });
+        mapRef.current?.flyTo([lat, lng], 16, { animate: true, duration: 1 });
       });
 
       marker.addTo(markersLayerRef.current!);
