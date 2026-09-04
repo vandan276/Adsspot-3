@@ -14,7 +14,6 @@ import {
   toggleFollowBusiness,
 } from '@adsspot/api';
 import { Avatar, StorySpotRing, TrustedBadge } from '@adsspot/ui';
-import { ZomatoMobileHeader } from '../../components/ZomatoMobileHeader';
 import {
   Heart,
   MessageCircle,
@@ -50,6 +49,7 @@ export default function MobileFeedPage() {
   const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [claimedDrops, setClaimedDrops] = useState<Record<string, boolean>>({});
   const [activeClaimModal, setActiveClaimModal] = useState<any | null>(null);
 
@@ -346,7 +346,7 @@ export default function MobileFeedPage() {
             [targetPostId]: parsed[targetPostId],
           }));
         }
-      } catch {}
+      } catch { }
     }
 
     // 2. Fetch Cloud Comments from Supabase and merge
@@ -384,7 +384,7 @@ export default function MobileFeedPage() {
         if (parsed && typeof parsed === 'object') {
           setPostComments(parsed);
         }
-      } catch {}
+      } catch { }
     }
   }, []);
 
@@ -396,7 +396,7 @@ export default function MobileFeedPage() {
       try {
         const parsed: Record<string, boolean> = JSON.parse(stored);
         setLikedPosts(parsed);
-        
+
         // Recalculate exact total counts considering persisted user likes
         setLikesCounts((prev) => {
           const nextCounts = { ...prev };
@@ -410,7 +410,7 @@ export default function MobileFeedPage() {
           });
           return nextCounts;
         });
-      } catch {}
+      } catch { }
     }
   }, [user]);
 
@@ -759,11 +759,10 @@ export default function MobileFeedPage() {
                     showToast('Link copied to clipboard!');
                     setTimeout(() => setCopiedLink(false), 2000);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
-                    copiedLink
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${copiedLink
                       ? 'bg-[#35AB4E] text-white'
                       : 'bg-[#4787F2] hover:bg-[#3972D4] text-white active:scale-95'
-                  }`}
+                    }`}
                 >
                   {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
@@ -874,8 +873,8 @@ export default function MobileFeedPage() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors text-left ${selectedCategory === cat.id
-                      ? 'bg-[#4787F2] text-white font-bold'
-                      : 'hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-[#17181C] dark:text-neutral-200'
+                    ? 'bg-[#4787F2] text-white font-bold'
+                    : 'hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-[#17181C] dark:text-neutral-200'
                     }`}
                 >
                   <span>{cat.name}</span>
@@ -908,11 +907,84 @@ export default function MobileFeedPage() {
             CENTER COLUMN (Main Interactive Feed Stream - Mobile & Desktop)
             ========================================================================= */}
         <div className="w-full max-w-md sm:max-w-xl shrink-0 space-y-3.5">
-          {/* 1. Zomato-Style Sticky Header & Location Selector */}
-          <ZomatoMobileHeader
-            searchValue={searchQuery}
-            onSearchChange={(val) => setSearchQuery(val)}
-          />
+          {/* 1. TOP LOCATION & SEARCH BAR — Glassmorphic Universal Search */}
+          <div className="sticky top-0 z-30 ios-glass-card rounded-2xl p-3 shadow-sm space-y-2 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                onClick={detectLiveLocation}
+                disabled={locationState.isLocating}
+                title="Tap to fetch live GPS location"
+                className="flex items-center gap-1.5 text-xs text-[#17181C] dark:text-white font-bold min-w-0 flex-1 truncate text-left hover:opacity-80 active:scale-98 transition-all"
+              >
+                <span className="relative flex h-3.5 w-3.5 items-center justify-center shrink-0">
+                  {locationState.isLocating ? (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4787F2] opacity-75" />
+                  ) : null}
+                  <MapPin className={`w-3.5 h-3.5 ${locationState.isLocating ? 'text-amber-500 animate-spin' : 'text-[#4787F2]'} shrink-0`} />
+                </span>
+                <span className="truncate">
+                  {locationState.isLocating ? 'Detecting GPS Location...' : `${locationState.area}, ${locationState.city}`}{' '}
+                  {!locationState.isLocating && (
+                    <span className="text-neutral-400 font-normal text-[10px]">({locationState.pincode}) • 📍 Tap to refresh</span>
+                  )}
+                </span>
+              </button>
+              <span className="shrink-0 text-[10px] font-black text-[#E14D2A] bg-[#FFF1EE] dark:bg-[#2A1016] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
+                🔥 3 Live Drops
+              </span>
+            </div>
+
+            {/* Universal Search Bar */}
+            <div className="relative">
+              <div className="flex items-center bg-[#F4F6FB] dark:bg-[#171C28] border border-[#E3E8EF] dark:border-white/15 rounded-2xl px-3 py-2 shadow-2xs focus-within:border-[#4787F2] focus-within:ring-2 focus-within:ring-[#4787F2]/15 transition-all">
+                <span className="text-neutral-400 mr-2">🔍</span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                  placeholder="Search shops, thalis, doctors, B2B factories..."
+                  className="w-full bg-transparent text-xs font-semibold text-[#17181C] dark:text-white placeholder:text-neutral-400 outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-neutral-400 text-xs font-bold hover:text-neutral-600 dark:hover:text-white">
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Grouped Universal Search Dropdown */}
+              {isSearchFocused && searchQuery.trim() !== '' && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#141824] border border-[#E3E8EF] dark:border-white/15 rounded-2xl shadow-xl overflow-hidden z-40 p-2 space-y-2 animate-fade-in max-h-80 overflow-y-auto">
+                  <div>
+                    <span className="text-[9px] font-black uppercase text-[#687182] dark:text-neutral-400 px-2 block">Verified Spots</span>
+                    {liveEliteMerchants.filter((b) => b.name.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 3).map((biz) => (
+                      <Link
+                        key={biz.id}
+                        href={`/card/${biz.slug}`}
+                        className="flex items-center justify-between p-2 rounded-xl hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-xs font-bold text-[#17181C] dark:text-white transition-colors"
+                      >
+                        <span>{biz.name}</span>
+                        <span className="text-[10px] text-[#4787F2] font-semibold">{biz.address}</span>
+                      </Link>
+                    ))}
+                  </div>
+
+                  <div className="border-t border-neutral-100 dark:border-white/10 pt-1">
+                    <span className="text-[9px] font-black uppercase text-[#E14D2A] px-2 block">B2B Suppliers</span>
+                    <Link
+                      href={`/b2b?q=${encodeURIComponent(searchQuery)}`}
+                      className="flex items-center justify-between p-2 rounded-xl bg-[#FFF1EE] dark:bg-[#2A1016] hover:bg-[#FFE4DE] text-xs font-bold text-[#E14D2A] transition-colors"
+                    >
+                      <span>Search &quot;{searchQuery}&quot; in B2B Factory Portal</span>
+                      <span className="text-[10px] font-black">1Cr+ →</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* 2. STORIES RAIL */}
           <div className="ios-glass-card rounded-2xl py-3 border border-[#E3E8EF] dark:border-white/10 shadow-xs">
@@ -1000,8 +1072,8 @@ export default function MobileFeedPage() {
                           setActiveClaimModal(drop);
                         }}
                         className={`w-full py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs ${isClaimed
-                            ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
-                            : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
+                          ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
+                          : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
                           }`}
                       >
                         {isClaimed ? (
@@ -1065,8 +1137,8 @@ export default function MobileFeedPage() {
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${selectedCategory === 'all'
-                  ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
-                  : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
+                ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
                 }`}
             >
               All
@@ -1090,8 +1162,8 @@ export default function MobileFeedPage() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${selectedCategory === cat.id
-                      ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
-                      : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
+                    ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                    : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
                     }`}
                 >
                   {cat.name}
@@ -1167,8 +1239,8 @@ export default function MobileFeedPage() {
                       <button
                         onClick={() => handleToggleFollow(biz.id, biz.name)}
                         className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${isFollowing
-                            ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
-                            : 'bg-[#4787F2] text-white hover:bg-[#3373E0]'
+                          ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
+                          : 'bg-[#4787F2] text-white hover:bg-[#3373E0]'
                           }`}
                       >
                         {isFollowing ? 'Following' : 'Follow'}
