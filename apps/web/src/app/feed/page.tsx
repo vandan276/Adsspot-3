@@ -9,8 +9,6 @@ import {
   SEED_CATEGORIES,
   toggleLikePost,
   addCommentToPost,
-  fetchPostComments,
-  toggleSavePost,
   toggleFollowBusiness,
 } from '@adsspot/api';
 import { Avatar, StorySpotRing, TrustedBadge } from '@adsspot/ui';
@@ -262,12 +260,7 @@ export default function MobileFeedPage() {
     const newLikedState = !isCurrentlyLiked;
 
     // Optimistic UI update
-    setLikedPosts((prev) => {
-      const nextMap = { ...prev, [postId]: newLikedState };
-      const key = user ? `adsspot_likes_${user.id}` : 'adsspot_likes_guest';
-      localStorage.setItem(key, JSON.stringify(nextMap));
-      return nextMap;
-    });
+    setLikedPosts((prev) => ({ ...prev, [postId]: newLikedState }));
 
     setLikesCounts((c) => ({
       ...c,
@@ -335,106 +328,55 @@ export default function MobileFeedPage() {
     if (!openCommentsPostId) return;
     const targetPostId: string = openCommentsPostId;
 
-    // 1. First load local cached comments for this post
-    const stored = localStorage.getItem('adsspot_comments_data');
-    if (stored) {
+    // Fetch comments for opened post from PostgreSQL
+    async function loadPostComments() {
       try {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed[targetPostId]) {
-          setPostComments((prev) => ({
-            ...prev,
-            [targetPostId]: parsed[targetPostId],
-          }));
+        const res = await fetch(`/api/interactions?postId=${encodeURIComponent(targetPostId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comments && Array.isArray(data.comments)) {
+            const formatted = data.comments.map((c: any) => ({
+              id: c.id,
+              author: c.full_name || 'Verified User',
+              text: c.content,
+              time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              timestamp: new Date(c.created_at).getTime(),
+            }));
+            setPostComments((prev) => ({
+              ...prev,
+              [targetPostId]: formatted,
+            }));
+          }
         }
-      } catch { }
-    }
-
-    // 2. Fetch Cloud Comments from Supabase and merge
-    async function loadCloudComments() {
-      const cloudComments = await fetchPostComments(targetPostId);
-      if (cloudComments && cloudComments.length > 0) {
-        const formatted = cloudComments.map((c) => ({
-          id: c.id,
-          author: c.user?.full_name || 'Verified User',
-          text: c.content,
-          time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          timestamp: new Date(c.created_at).getTime(),
-        }));
-        setPostComments((prev) => {
-          const existing = prev[targetPostId] || [];
-          const merged = [...existing];
-          formatted.forEach((fc) => {
-            if (!merged.some((m) => m.id === fc.id)) {
-              merged.push(fc);
-            }
-          });
-          return { ...prev, [targetPostId]: merged };
-        });
+      } catch (err) {
+        console.warn('[FeedPage] Comments fetch error:', err);
       }
     }
-    loadCloudComments();
+    loadPostComments();
   }, [openCommentsPostId]);
 
-  // Load all stored local comments on initial page load so comment count badges are instantly accurate
-  useEffect(() => {
-    const stored = localStorage.getItem('adsspot_comments_data');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          setPostComments(parsed);
-        }
-      } catch { }
-    }
-  }, []);
-
-  // Load user liked posts from localStorage and calculate exact like count
-  useEffect(() => {
-    const key = user ? `adsspot_likes_${user.id}` : 'adsspot_likes_guest';
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      try {
-        const parsed: Record<string, boolean> = JSON.parse(stored);
-        setLikedPosts(parsed);
-
-        // Recalculate exact total counts considering persisted user likes
-        setLikesCounts((prev) => {
-          const nextCounts = { ...prev };
-          SEED_POSTS.forEach((p) => {
-            const initialSeedCount = p.likes_count;
-            if (parsed[p.id]) {
-              nextCounts[p.id] = initialSeedCount + 1;
-            } else {
-              nextCounts[p.id] = initialSeedCount;
-            }
-          });
-          return nextCounts;
-        });
-      } catch { }
-    }
-  }, [user]);
-
-  // Load user saved posts from localStorage
+  // Load user interactions (likes, saved bookmarks) directly from PostgreSQL
   useEffect(() => {
     if (!user) {
+      setLikedPosts({});
       setSavedPosts({});
       return;
     }
-    const storageKey = `adsspot_saved_${user.id}`;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
+
+    async function loadUserInteractions() {
       try {
-        const arr: string[] = JSON.parse(stored);
-        const map: Record<string, boolean> = {};
-        arr.forEach((id) => {
-          map[id] = true;
-        });
-        setSavedPosts(map);
-      } catch { }
-    } else if (user.id === 'usr-consumer-1') {
-      setSavedPosts({ 'post-1': true, 'post-2': true });
-      localStorage.setItem(storageKey, JSON.stringify(['post-1', 'post-2']));
+        const res = await fetch(`/api/interactions?userId=${encodeURIComponent(user!.id)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.likes) setLikedPosts(data.likes);
+          if (data.saved) setSavedPosts(data.saved);
+        }
+      } catch (err) {
+        console.warn('[FeedPage] Failed to load user interactions:', err);
+      }
     }
+
+    loadUserInteractions();
   }, [user]);
 
   const handleToggleSave = async (postId: string) => {
@@ -445,16 +387,22 @@ export default function MobileFeedPage() {
     const isCurrentlySaved = !!savedPosts[postId];
     const newSavedState = !isCurrentlySaved;
 
-    setSavedPosts((prev) => {
-      const nextMap = { ...prev, [postId]: newSavedState };
-      const activeIds = Object.keys(nextMap).filter((k) => nextMap[k]);
-      localStorage.setItem(`adsspot_saved_${user.id}`, JSON.stringify(activeIds));
-      return nextMap;
-    });
-
+    setSavedPosts((prev) => ({ ...prev, [postId]: newSavedState }));
     showToast(newSavedState ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
 
-    await toggleSavePost(user.id, postId, isCurrentlySaved);
+    try {
+      await fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          userId: user.id,
+          postId,
+        }),
+      });
+    } catch (err) {
+      console.warn('[FeedPage] Save interaction error:', err);
+    }
   };
 
   const handleAddComment = async (postId: string) => {

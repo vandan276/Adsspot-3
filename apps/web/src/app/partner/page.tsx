@@ -40,43 +40,28 @@ export default function PartnerPage() {
   const referralCode = user?.id ? `ADSSPOT-${user.phone?.slice(-4) || 'VIP88'}` : 'ADSSPOT-PARTNER';
   const referralLink = `https://adsspot.in/r/${referralCode}`;
 
-  useEffect(() => {
+  const fetchWallet = async () => {
     if (!user) {
       setBalance(0);
       setTransactions([]);
       return;
     }
-
-    const storedBalance = localStorage.getItem(`adsspot_wallet_${user.id}`);
-    if (storedBalance !== null) {
-      setBalance(parseFloat(storedBalance));
-    } else {
-      const defaultBal = Number(user.wallet?.balance || 0.0);
-      setBalance(defaultBal);
-      localStorage.setItem(`adsspot_wallet_${user.id}`, defaultBal.toString());
-    }
-
-    const storedTx = localStorage.getItem(`adsspot_tx_${user.id}`);
-    if (storedTx) {
-      try {
-        setTransactions(JSON.parse(storedTx));
-      } catch {
-        setTransactions([]);
+    try {
+      const res = await fetch('/api/wallet');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setBalance(data.wallet?.balance || 0);
+          setTransactions(data.transactions || []);
+        }
       }
-    } else {
-      if (user.id === 'usr-consumer-1') {
-        const demoTx: Transaction[] = [
-          { id: 'tx-ref-1', type: 'credit', title: 'Merchant Referral Reward (Mandap)', time: 'Today, 11:20 AM', amount: 500.0 },
-          { id: 'tx-1', type: 'credit', title: 'UPI Top-up (GPay)', time: 'Yesterday, 2:40 PM', amount: 500.0 },
-          { id: 'tx-2', type: 'debit', title: 'Royal Heritage Coupon Claim', time: '22 Aug 2026', amount: 250.0 },
-          { id: 'tx-ref-2', type: 'credit', title: 'Friend Joining Bonus (Rahul K.)', time: '20 Aug 2026', amount: 150.0 },
-        ];
-        setTransactions(demoTx);
-        localStorage.setItem(`adsspot_tx_${user.id}`, JSON.stringify(demoTx));
-      } else {
-        setTransactions([]);
-      }
+    } catch (err) {
+      console.warn('[PartnerPage] Fetch error:', err);
     }
+  };
+
+  useEffect(() => {
+    fetchWallet();
   }, [user]);
 
   const showToast = (msg: string) => {
@@ -98,27 +83,35 @@ export default function PartnerPage() {
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
-  const handleTopUp = (amt: number) => {
+  const handleTopUp = async (amt: number) => {
     if (!user) {
       showToast('Please sign in to add funds.');
       return;
     }
-    const newBal = balance + amt;
-    setBalance(newBal);
-    localStorage.setItem(`adsspot_wallet_${user.id}`, newBal.toString());
+    try {
+      const res = await fetch('/api/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'topup',
+          amount: amt,
+          title: `UPI Top-up (Instant)`,
+        }),
+      });
 
-    const newTx: Transaction = {
-      id: `tx-${Date.now()}`,
-      type: 'credit',
-      title: 'UPI Top-up (Instant)',
-      time: 'Just now',
-      amount: amt,
-    };
-    const updatedTx = [newTx, ...transactions];
-    setTransactions(updatedTx);
-    localStorage.setItem(`adsspot_tx_${user.id}`, JSON.stringify(updatedTx));
-
-    showToast(`Added ₹${amt.toLocaleString()} via UPI to Adsspot Cash!`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBalance(data.balance);
+        if (data.transaction) {
+          setTransactions((prev) => [data.transaction, ...prev]);
+        }
+        showToast(`Added ₹${amt.toLocaleString()} via UPI to Adsspot Cash!`);
+      } else {
+        showToast(data.error || 'Failed to process top-up.');
+      }
+    } catch (err: any) {
+      showToast('Payment processing failed. Please try again.');
+    }
   };
 
   if (!user) {

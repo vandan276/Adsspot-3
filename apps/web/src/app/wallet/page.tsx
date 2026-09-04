@@ -28,42 +28,34 @@ export default function WalletPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  useEffect(() => {
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchWallet = async () => {
     if (!user) {
       setBalance(0);
       setTransactions([]);
+      setLoading(false);
       return;
     }
-
-    const storedBalance = localStorage.getItem(`adsspot_wallet_${user.id}`);
-    if (storedBalance !== null) {
-      setBalance(parseFloat(storedBalance));
-    } else {
-      const defaultBal = Number(user.wallet?.balance || 0.0);
-      setBalance(defaultBal);
-      localStorage.setItem(`adsspot_wallet_${user.id}`, defaultBal.toString());
-    }
-
-    const storedTx = localStorage.getItem(`adsspot_tx_${user.id}`);
-    if (storedTx) {
-      try {
-        setTransactions(JSON.parse(storedTx));
-      } catch {
-        setTransactions([]);
+    try {
+      setLoading(true);
+      const res = await fetch('/api/wallet');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setBalance(data.wallet?.balance || 0);
+          setTransactions(data.transactions || []);
+        }
       }
-    } else {
-      if (user.id === 'usr-consumer-1') {
-        const demoTx: Transaction[] = [
-          { id: 'tx-1', type: 'credit', title: 'UPI Top-up (GPay)', time: 'Today, 2:40 PM', amount: 500.0 },
-          { id: 'tx-2', type: 'debit', title: 'Royal Heritage Coupon Claim', time: 'Yesterday, 5:15 PM', amount: 250.0 },
-          { id: 'tx-3', type: 'credit', title: 'Festival Promo Cashback', time: '22 Aug 2026', amount: 150.0 },
-        ];
-        setTransactions(demoTx);
-        localStorage.setItem(`adsspot_tx_${user.id}`, JSON.stringify(demoTx));
-      } else {
-        setTransactions([]);
-      }
+    } catch (err) {
+      console.warn('[WalletPage] Fetch error:', err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchWallet();
   }, [user]);
 
   const showToast = (msg: string) => {
@@ -71,27 +63,35 @@ export default function WalletPage() {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const handleTopUp = (amt: number) => {
+  const handleTopUp = async (amt: number) => {
     if (!user) {
       showToast('Please sign in to add funds to your wallet.');
       return;
     }
-    const newBal = balance + amt;
-    setBalance(newBal);
-    localStorage.setItem(`adsspot_wallet_${user.id}`, newBal.toString());
+    try {
+      const res = await fetch('/api/wallet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'topup',
+          amount: amt,
+          title: `UPI Top-up (Instant)`,
+        }),
+      });
 
-    const newTx: Transaction = {
-      id: `tx-${Date.now()}`,
-      type: 'credit',
-      title: 'UPI Top-up (Instant)',
-      time: 'Just now',
-      amount: amt,
-    };
-    const updatedTx = [newTx, ...transactions];
-    setTransactions(updatedTx);
-    localStorage.setItem(`adsspot_tx_${user.id}`, JSON.stringify(updatedTx));
-
-    showToast(`Added ₹${amt.toLocaleString()} via UPI to Adsspot Cash!`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setBalance(data.balance);
+        if (data.transaction) {
+          setTransactions((prev) => [data.transaction, ...prev]);
+        }
+        showToast(`Added ₹${amt.toLocaleString()} via UPI to Adsspot Cash!`);
+      } else {
+        showToast(data.error || 'Failed to process top-up.');
+      }
+    } catch (err: any) {
+      showToast('Payment processing failed. Please try again.');
+    }
   };
 
   if (!user) {
@@ -141,7 +141,11 @@ export default function WalletPage() {
         </div>
 
         <div>
-          <div className="text-4xl font-black text-white">₹{balance.toFixed(2)}</div>
+          {loading ? (
+            <div className="h-10 w-32 bg-white/10 rounded-xl animate-pulse" />
+          ) : (
+            <div className="text-4xl font-black text-white">₹{balance.toFixed(2)}</div>
+          )}
           <p className="text-xs text-neutral-400 mt-1">Ready for 1-tap local store offers &amp; banner promos</p>
         </div>
 
