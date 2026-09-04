@@ -93,29 +93,7 @@ export async function POST(req: Request) {
     }
 
     // 5. Insert Media Record into PostgreSQL Aurora Database (safely)
-    try {
-      await queryPostgres(
-        `INSERT INTO media (
-          id, owner_id, merchant_id, file_name, storage_key, file_url, 
-          mime_type, file_size, visibility, status, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW(), NOW())`,
-        [
-          mediaId,
-          authenticatedUserId,
-          merchantId || null,
-          file.name,
-          storageKey,
-          fileUrl,
-          mimeType,
-          file.size,
-          visibility,
-        ]
-      );
-    } catch (dbErr) {
-      console.warn('[API /media/upload] DB media log warning:', dbErr);
-    }
-
-    const mediaRecord = insertRes?.rows[0] || {
+    let mediaRecord: any = {
       id: mediaId,
       owner_id: authenticatedUserId,
       merchant_id: merchantId || null,
@@ -129,6 +107,32 @@ export async function POST(req: Request) {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+
+    try {
+      const insertRes = await queryPostgres(
+        `INSERT INTO media (
+          id, owner_id, merchant_id, file_name, storage_key, file_url, 
+          mime_type, file_size, visibility, status, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'active', NOW(), NOW())
+        RETURNING *`,
+        [
+          mediaId,
+          authenticatedUserId,
+          merchantId || null,
+          file.name,
+          storageKey,
+          fileUrl,
+          mimeType,
+          file.size,
+          visibility,
+        ]
+      );
+      if (insertRes?.rows?.[0]) {
+        mediaRecord = insertRes.rows[0];
+      }
+    } catch (dbErr) {
+      console.warn('[API /media/upload] DB media log warning:', dbErr);
+    }
 
     return NextResponse.json({
       success: true,
