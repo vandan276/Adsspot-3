@@ -529,3 +529,55 @@ html.dark .dropdown-menu {
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   color: #F9FAFB !important;
 }
+
+/* =========================================================================
+   NATIVE MOBILE APP SHELL & TOUCH ERGONOMICS (iOS & Android)
+   ========================================================================= */
+
+/* Eliminate annoying tap delay and gray highlight boxes on mobile touch */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+
+/* Prevent unwanted pull-to-refresh on desktop/unintended container boundaries */
+html,
+body {
+  overscroll-behavior-y: none;
+  -webkit-touch-callout: none;
+}
+
+/* Safe area padding utilities for iPhone dynamic island and home indicator bar */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 16px);
+}
+
+/* Smooth Horizontal Carousel Snap for Stories & Categories */
+.mobile-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-snap-x > * {
+  scroll-snap-align: start;
+}
+
+/* Custom smooth scrollbar hide for clean horizontal stories */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

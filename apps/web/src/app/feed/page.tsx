@@ -927,13 +927,13 @@ export default function MobileFeedPage() {
 
           {/* 2. STORIES RAIL */}
           <div className="ios-glass-card rounded-2xl py-3 border border-[#E3E8EF] dark:border-white/10 shadow-xs">
-            <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center mobile-snap-x">
               {/* Add story / User avatar */}
               <div
                 onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
-                className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+                className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group active:scale-95 transition-transform"
               >
-                <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 dark:bg-[#4787F2]/10 group-hover:border-[#3972D4] transition-all group-active:scale-95">
+                <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 dark:bg-[#4787F2]/10 group-hover:border-[#3972D4] transition-all">
                   <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white dark:border-neutral-900 shadow-sm">
                     <Plus className="w-3 h-3 stroke-[3]" />
@@ -947,9 +947,9 @@ export default function MobileFeedPage() {
                 <div
                   key={story.id}
                   onClick={() => setActiveStoryIndex(idx)}
-                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group active:scale-95 transition-transform"
                 >
-                  <div className="transform group-hover:scale-105 group-active:scale-95 transition-transform drop-shadow-sm">
+                  <div className="transform group-hover:scale-105 transition-transform drop-shadow-sm">
                     <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
                   </div>
                   <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
