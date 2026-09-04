@@ -14,6 +14,9 @@ import {
   ChevronRight,
   Star,
   Sparkles,
+  User as UserIcon,
+  LogIn,
+  Store,
 } from 'lucide-react';
 
 export default function ConsumerProfilePage() {
@@ -52,6 +55,58 @@ export default function ConsumerProfilePage() {
         .catch(() => { });
     }
   }, [user?.id]);
+
+  // If user is not logged in, render a clean Guest Profile state
+  if (!user) {
+    return (
+      <div className="flex-1 bg-[#F4F6FB] dark:bg-[#0B0E14] pb-28 max-w-lg mx-auto w-full min-h-screen p-4 flex flex-col items-center justify-center text-center space-y-5 transition-colors">
+        <div className="relative">
+          <div className="w-20 h-20 rounded-3xl bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10 flex items-center justify-center text-[#4787F2] shadow-md">
+            <UserIcon className="w-10 h-10 stroke-[2]" />
+          </div>
+          <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-[#F2B604] text-[#17181C] shadow-xs">
+            Guest
+          </span>
+        </div>
+
+        <div className="space-y-1.5 max-w-xs">
+          <h1 className="text-xl font-black text-[#17181C] dark:text-white">Welcome to Adsspot</h1>
+          <p className="text-xs text-[#687182] dark:text-neutral-400 leading-relaxed">
+            Sign in with your phone number to access your Spot Wallet, save local deals, claim exclusive coupons, and manage your store.
+          </p>
+        </div>
+
+        <div className="w-full space-y-2.5 pt-2">
+          <Link href="/login" className="block w-full">
+            <Button variant="primary" size="md" className="w-full font-black py-3 bg-[#4787F2] hover:bg-[#3972D4] shadow-md flex items-center justify-center gap-2">
+              <LogIn className="w-4 h-4" /> Sign In / Create Account &rarr;
+            </Button>
+          </Link>
+
+          <Link href="/onboard" className="block w-full">
+            <Button variant="secondary" size="md" className="w-full font-bold py-3 bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10 text-[#17181C] dark:text-white hover:bg-neutral-50 shadow-xs flex items-center justify-center gap-2">
+              <Store className="w-4 h-4 text-[#F2B604]" /> Register Your Business
+            </Button>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 w-full pt-4 border-t border-[#E3E8EF] dark:border-white/10 text-center">
+          <div className="p-2.5 rounded-2xl bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10">
+            <span className="text-base block">💰</span>
+            <span className="text-[10px] font-bold text-[#17181C] dark:text-white mt-1 block">Unified Wallet</span>
+          </div>
+          <div className="p-2.5 rounded-2xl bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10">
+            <span className="text-base block">🎁</span>
+            <span className="text-[10px] font-bold text-[#17181C] dark:text-white mt-1 block">Spot Coupons</span>
+          </div>
+          <div className="p-2.5 rounded-2xl bg-white dark:bg-[#121620] border border-[#E3E8EF] dark:border-white/10">
+            <span className="text-base block">📍</span>
+            <span className="text-[10px] font-bold text-[#17181C] dark:text-white mt-1 block">Live 3D Map</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const isMerchant = user?.role === 'merchant' || Boolean(user?.business_profile);
   const userBiz = user?.business_profile;
