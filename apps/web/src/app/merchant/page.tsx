@@ -212,14 +212,6 @@ function MerchantStudioContent() {
     setTimeout(() => setToastMessage(null), 2500);
   };
 
-  const handleSendReply = (reviewId: string) => {
-    const text = replyInput[reviewId];
-    if (!text || text.trim() === '') return;
-    setReplies((prev) => ({ ...prev, [reviewId]: text }));
-    setReplyInput((prev) => ({ ...prev, [reviewId]: '' }));
-    showToast('Merchant reply posted successfully!');
-  };
-
   // Published posts state
   const [merchantPosts, setMerchantPosts] = useState<any[]>(SEED_POSTS);
 
