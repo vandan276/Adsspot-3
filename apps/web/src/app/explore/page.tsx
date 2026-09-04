@@ -272,7 +272,6 @@ export default function ExplorePage() {
         <div className="grid grid-cols-4 sm:grid-cols-4 md:grid-cols-6 gap-y-4 gap-x-2">
           {visibleCategoryItems.map((cat) => {
             const Icon = cat.icon;
-            const isSelected = selectedCat === cat.id;
 
             if (cat.id === 'cat-b2b') {
               return (
@@ -320,12 +319,10 @@ export default function ExplorePage() {
             }
 
             return (
-              <button
+              <Link
                 key={cat.id}
-                onClick={() => setSelectedCat(isSelected ? 'all' : cat.id)}
-                className={`flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 cursor-pointer ${
-                  isSelected ? 'ring-2 ring-[#4787F2] bg-[#EDF4FF]/50 dark:bg-[#4787F2]/10' : 'hover:bg-neutral-50 dark:hover:bg-white/5'
-                }`}
+                href={`/categories/${cat.id}`}
+                className="flex flex-col items-center gap-1.5 p-1 rounded-2xl transition-all group relative active:scale-95 cursor-pointer hover:bg-neutral-50 dark:hover:bg-white/5"
               >
                 {cat.badge && (
                   <span
@@ -349,7 +346,7 @@ export default function ExplorePage() {
                 <span className="text-[11px] text-center leading-tight tracking-tight max-w-[70px] font-bold text-[#17181C] dark:text-neutral-200 group-hover:text-[#4787F2]">
                   {cat.name}
                 </span>
-              </button>
+              </Link>
             );
           })}
 
