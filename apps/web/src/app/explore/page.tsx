@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { getAllBusinesses } from '@adsspot/api';
 import { Business } from '@adsspot/types';
-import { Card, Button, TrustedBadge } from '@adsspot/ui';
 import { ApkDownloadPromptModal } from '../../components/ApkDownloadPromptModal';
 import {
   MapPin,
@@ -370,69 +369,127 @@ export default function ExplorePage() {
         </div>
       </div>
 
-      {/* 5. 🏢 VERIFIED BUSINESS DIRECTORY CARDS (Shown in Split Mode) */}
+      {/* 5. 🏢 ZOMATO-STYLE VERIFIED BUSINESS CARDS (Shown in Split Mode) */}
       {viewMode === 'split' && (
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-black text-[#17181C] uppercase tracking-wider">
-              Verified Spots Nearby ({filtered.length})
+            <h3 className="text-xs font-black text-[#17181C] dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+              <span>Verified Stores Near You</span>
+              <span className="bg-[#EDF4FF] dark:bg-[#4787F2]/20 text-[#4787F2] text-[10px] px-2 py-0.5 rounded-full font-bold">
+                {filtered.length}
+              </span>
             </h3>
-            <span className="text-[11px] text-[#687182]">Tap card for live directions &amp; offers</span>
+            <span className="text-[11px] text-[#687182] dark:text-neutral-400 font-medium">Tap to open visiting card</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {filtered.map((biz) => (
-              <Card key={biz.id} padding="md" className="flex gap-3.5 items-center shadow-xs hover:shadow-md transition-shadow">
-                <img
-                  src={biz.logo_url || ''}
-                  alt={biz.name}
-                  className="w-16 h-16 rounded-2xl object-cover bg-neutral-100 shrink-0 border border-neutral-100"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <h4 className="font-bold text-xs text-[#17181C] truncate">{biz.name}</h4>
-                    {biz.trusted && <TrustedBadge size="sm" />}
-                  </div>
-                  <p className="text-[11px] text-[#687182] truncate mt-0.5">{biz.description}</p>
-                  <span className="text-[10px] text-[#4787F2] font-semibold flex items-center gap-1 mt-1">
-                    <MapPin className="w-3 h-3" /> {biz.address}
-                  </span>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filtered.map((biz) => {
+              const slug = biz.slug || biz.id;
+              const isElite = biz.tier === 'elite';
+              const isPremium = biz.tier === 'premium';
+              const destination = isElite ? `/b/${slug}` : `/card/${slug}`;
 
-                <div className="flex flex-col gap-1 shrink-0">
-                  <div className="flex items-center gap-1">
+              return (
+                <div
+                  key={biz.id}
+                  className="bg-white dark:bg-[#161B26] rounded-3xl overflow-hidden border border-[#E3E8EF] dark:border-white/10 hover:border-[#4787F2] shadow-sm hover:shadow-xl transition-all flex flex-col justify-between group cursor-pointer"
+                  onClick={() => window.location.href = destination}
+                >
+                  {/* Hero Image Section with Zomato Overlays */}
+                  <div className="relative h-44 bg-neutral-100 dark:bg-neutral-800 overflow-hidden">
+                    <img
+                      src={biz.cover_url || biz.logo_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80'}
+                      alt={biz.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+                    {/* Top Tier & Verification Badges */}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                      {isElite && (
+                        <span className="bg-[#8338EC] text-white text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                          👑 ELITE
+                        </span>
+                      )}
+                      {isPremium && (
+                        <span className="bg-[#F2B604] text-[#17181C] text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-md">
+                          ★ PREMIUM
+                        </span>
+                      )}
+                      {biz.trusted && (
+                        <span className="bg-[#35AB4E] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md flex items-center gap-1">
+                          ✓ Trusted
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Zomato-Style Rating Tag (Top Right) */}
+                    <div className="absolute top-3 right-3 bg-[#24963F] text-white text-xs font-black px-2.5 py-1 rounded-xl shadow-lg flex items-center gap-1">
+                      <span>4.8</span>
+                      <span className="text-[10px]">★</span>
+                    </div>
+
+                    {/* Bottom Info Strip Over Image */}
+                    <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-white text-[11px] font-bold drop-shadow-md">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-[#F2B604]" />
+                        <span className="truncate max-w-[200px]">{biz.pincode ? `Pincode ${biz.pincode}` : 'Hyperlocal'}</span>
+                      </span>
+                      <span className="bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-neutral-200">
+                        15-20 min
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Body Content */}
+                  <div className="p-3.5 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="font-extrabold text-sm text-[#17181C] dark:text-white truncate group-hover:text-[#4787F2] transition-colors leading-tight">
+                          {biz.name}
+                        </h4>
+                        <p className="text-[11px] text-[#687182] dark:text-neutral-400 truncate mt-0.5">
+                          {biz.address || 'Vadodara, Gujarat'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Zomato-Style Offer Ribbon */}
+                    <div className="py-1 px-2.5 rounded-xl bg-[#EDF4FF] dark:bg-[#4787F2]/15 border border-[#4787F2]/20 text-[#4787F2] text-[10px] font-bold flex items-center gap-1.5 truncate">
+                      <Sparkles className="w-3 h-3 text-[#F2B604] shrink-0" />
+                      <span className="truncate">Flat ₹50 Instant Cashback with Adsspot UPI</span>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons Tray */}
+                  <div className="p-3 pt-0 border-t border-[#E3E8EF]/60 dark:border-white/10 mt-1 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     <a
-                      href={`https://wa.me/${biz.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20found%20you%20on%20Adsspot.`}
+                      href={`https://wa.me/${(biz.phone || '').replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20found%20you%20on%20Adsspot.`}
                       target="_blank"
                       rel="noreferrer"
-                      className="w-7 h-7 rounded-full bg-[#25D366] hover:bg-[#1EBE5D] text-white flex items-center justify-center transition-all active:scale-95 shadow-2xs"
-                      title="Chat on WhatsApp"
+                      className="flex-1 py-1.5 px-2 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-transform active:scale-95 shadow-2xs"
                     >
-                      <span className="text-[10px] font-black">WA</span>
+                      <span>WhatsApp</span>
                     </a>
+
                     <a
                       href={`tel:${biz.phone}`}
-                      className="w-7 h-7 rounded-full bg-[#F4F6FB] hover:bg-neutral-200 text-[#17181C] border border-[#E3E8EF] flex items-center justify-center transition-all active:scale-95 shadow-2xs text-[10px] font-black"
+                      className="py-1.5 px-3 rounded-xl bg-[#F4F6FB] dark:bg-neutral-800 hover:bg-neutral-200 text-[#17181C] dark:text-white text-xs font-bold flex items-center justify-center gap-1 transition-colors"
                       title="Call Store"
                     >
                       📞
                     </a>
-                  </div>
-                  <Link href={`/card/${biz.slug}`}>
-                    <Button variant="primary" size="sm" className="w-full text-[10px] py-1">
-                      Card
-                    </Button>
-                  </Link>
-                  {biz.tier === 'elite' && (
-                    <Link href={`/b/${biz.slug}`}>
-                      <Button variant="outline" size="sm" className="w-full text-[10px] py-1">
-                        Site
-                      </Button>
+
+                    <Link
+                      href={destination}
+                      className="py-1.5 px-3 rounded-xl bg-[#4787F2] hover:bg-[#3373E0] text-white text-xs font-bold text-center transition-transform active:scale-95 shadow-2xs"
+                    >
+                      View
                     </Link>
-                  )}
+                  </div>
                 </div>
-              </Card>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
