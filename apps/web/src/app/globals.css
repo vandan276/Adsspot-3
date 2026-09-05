@@ -67,14 +67,33 @@ h6 {
   background-size: 56px 56px;
 }
 
-/* Spot Ring Conic Gradient Animation */
+/* Spot Ring Conic Gradient Animation & Glow */
 @keyframes spot-spin {
   from {
     transform: rotate(0deg);
   }
-
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes spot-pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px rgba(71, 135, 242, 0.45));
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 14px rgba(53, 171, 78, 0.65)) drop-shadow(0 0 20px rgba(242, 182, 4, 0.4));
+    transform: scale(1.03);
+  }
+}
+
+@keyframes mesh-ambient-drift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
 }
 
@@ -87,7 +106,23 @@ h6 {
 }
 
 .spot-ring-glow {
-  box-shadow: 0 0 20px rgba(71, 135, 242, 0.25);
+  box-shadow: 0 0 24px rgba(71, 135, 242, 0.35), 0 0 45px rgba(242, 182, 4, 0.2);
+}
+
+.spot-ring-pulse-active {
+  animation: spot-pulse-glow 3s infinite ease-in-out;
+}
+
+.glass-nav-blur {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+html.dark .glass-nav-blur {
+  background: rgba(11, 14, 20, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 @keyframes float-up {

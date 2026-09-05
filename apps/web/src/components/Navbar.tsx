@@ -115,12 +115,12 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
-      className={`bg-white border-b border-[#E3E8EF] sticky top-0 z-40 shadow-xs backdrop-blur-md bg-white/95 w-full transition-transform duration-300 ${isStoryOpen ? '-translate-y-full pointer-events-none' : 'translate-y-0'
+      className={`glass-nav-blur border-b border-[#E3E8EF] dark:border-white/10 sticky top-0 z-40 shadow-xs w-full transition-transform duration-300 ${isStoryOpen ? '-translate-y-full pointer-events-none' : 'translate-y-0'
         }`}
     >
       {/* Language Toast */}
       {toastMessage && (
-        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-2xl flex items-center gap-1.5 border border-neutral-700 animate-fade-in whitespace-nowrap">
+        <div className="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C]/90 backdrop-blur-md text-white text-xs font-bold px-4 py-2 rounded-full shadow-2xl flex items-center gap-1.5 border border-neutral-700/80 animate-fade-in whitespace-nowrap">
           <Globe className="w-3.5 h-3.5 text-[#4787F2]" />
           {toastMessage}
         </div>
@@ -128,26 +128,26 @@ export const Navbar: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo */}
-        <Link href="/" className="flex items-center gap-2 shrink-0">
+        <Link href="/" className="flex items-center gap-2 shrink-0 hover:scale-102 transition-transform">
           <Logo size={44} withText={true} />
         </Link>
 
         {/* Public Navigation (Desktop) */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-[#4A5260]">
-          <Link href="/feed" className="hover:text-[#4787F2] transition-colors flex items-center gap-1">
+        <nav className="hidden md:flex items-center gap-6 text-sm font-bold text-[#4A5260] dark:text-neutral-300">
+          <Link href="/feed" className="hover:text-[#4787F2] dark:hover:text-[#4787F2] transition-colors flex items-center gap-1.5 px-2.5 py-1 rounded-full hover:bg-[#4787F2]/10">
             <span className="w-2 h-2 rounded-full bg-[#35AB4E] animate-ping" />
             Live Feed
           </Link>
-          <Link href="/explore" className="hover:text-[#4787F2] transition-colors">
+          <Link href="/explore" className="hover:text-[#4787F2] dark:hover:text-[#4787F2] transition-colors px-2.5 py-1 rounded-full hover:bg-[#4787F2]/10">
             Explore Stores
           </Link>
-          <Link href="/wallet" className="hover:text-[#4787F2] transition-colors">
+          <Link href="/wallet" className="hover:text-[#4787F2] dark:hover:text-[#4787F2] transition-colors px-2.5 py-1 rounded-full hover:bg-[#4787F2]/10">
             UPI Wallet
           </Link>
-          <Link href="/#pricing" className="hover:text-[#4787F2] transition-colors">
+          <Link href="/#pricing" className="hover:text-[#4787F2] dark:hover:text-[#4787F2] transition-colors px-2.5 py-1 rounded-full hover:bg-[#4787F2]/10">
             Pricing &amp; Tiers
           </Link>
-          <Link href="/#roles" className="hover:text-[#4787F2] transition-colors">
+          <Link href="/#roles" className="hover:text-[#4787F2] dark:hover:text-[#4787F2] transition-colors px-2.5 py-1 rounded-full hover:bg-[#4787F2]/10">
             Roles &amp; Portals
           </Link>
         </nav>
@@ -158,7 +158,7 @@ export const Navbar: React.FC = () => {
           <button
             onClick={toggleTheme}
             title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-            className="w-9 h-9 rounded-full border border-[#E3E8EF] dark:border-neutral-700 bg-[#F4F6FB] dark:bg-neutral-800/80 hover:bg-white dark:hover:bg-neutral-700 text-[#17181C] dark:text-neutral-100 flex items-center justify-center transition-all shadow-2xs active:scale-95 shrink-0"
+            className="w-9 h-9 rounded-full border border-[#E3E8EF] dark:border-white/15 bg-white/70 dark:bg-neutral-800/80 hover:bg-white dark:hover:bg-neutral-700 text-[#17181C] dark:text-neutral-100 flex items-center justify-center transition-all shadow-xs hover:shadow-sm active:scale-95 shrink-0"
           >
             {isDark ? (
               <Sun className="w-4 h-4 text-[#F2B604] animate-spin-slow" />

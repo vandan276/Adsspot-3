@@ -956,12 +956,12 @@ export default function MobileFeedPage() {
                 <div
                   key={story.id}
                   onClick={() => setActiveStoryIndex(idx)}
-                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group active:scale-95 transition-transform"
+                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group active:scale-95 transition-all"
                 >
-                  <div className="transform group-hover:scale-105 transition-transform drop-shadow-sm">
-                    <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
+                  <div className="transform group-hover:scale-108 transition-all duration-200">
+                    <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} animate={true} />
                   </div>
-                  <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
+                  <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[64px] text-center leading-tight tracking-tight group-hover:text-[#4787F2] transition-colors">
                     {String(story.name || story.business_name || 'Store').trim().split(/\s+/)[0]}
                   </span>
                 </div>
