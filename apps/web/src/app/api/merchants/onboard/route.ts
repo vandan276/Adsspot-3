@@ -105,7 +105,7 @@ export async function POST(req: Request) {
       upiId,
       openingHours,
       timings,
-      tier = 'basic',
+      tier: bodyTier = 'basic',
       isDraft = false,
       onboardStep = 1,
       // Address & Contact Fields
@@ -190,14 +190,21 @@ export async function POST(req: Request) {
 
     const cleanSlug = (bizName || 'shop').toLowerCase().replace(/[^a-z0-9]/g, '-') || `shop-${Date.now()}`;
 
-    // Item 3 & 4: Duplicate Protection — Check if a business record already exists for this owner_id
+    // Item 3 & 4: Duplicate Protection & Server-side Tier Immutability for Existing Merchants
     const existingBizRes = await queryPostgres(
-      `SELECT id, slug FROM businesses WHERE owner_id = $1 LIMIT 1`,
+      `SELECT id, slug, tier FROM businesses WHERE owner_id = $1 LIMIT 1`,
       [effectiveUserId]
     );
 
+    const isExistingBusiness = Boolean(existingBizRes?.rows?.[0]);
     const targetBusinessId = existingBizRes?.rows?.[0]?.id || `biz-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const targetSlug = existingBizRes?.rows?.[0]?.slug || cleanSlug;
+
+    // SERVER SECURITY RULE: If editing an EXISTING business, server MUST preserve the existing database tier!
+    // Ignore any client-submitted tier change during edit mode.
+    const effectiveTier = isExistingBusiness
+      ? (existingBizRes?.rows?.[0]?.tier || 'basic')
+      : (bodyTier || 'basic');
 
     // Combine photos list
     const combinedPhotos = Array.isArray(photos) && photos.length > 0 ? photos : (coverUrl ? [coverUrl] : []);
@@ -258,20 +265,20 @@ export async function POST(req: Request) {
         instagram || null,
         upiId || null,
         typeof timings === 'string' ? timings : (openingHours || '09:00 AM - 09:30 PM (All Days)'),
-        tier === 'premium' || tier === 'elite',
+        effectiveTier === 'premium' || effectiveTier === 'elite',
         isDraft ? 'pending' : 'active',
-        tier,
+        effectiveTier,
       ]
     );
 
     const business = insertBizRes?.rows[0];
 
-    // Create or update subscription record
+    // Create or update subscription record (only if no existing subscription)
     await queryPostgres(
       `INSERT INTO subscriptions (id, business_id, plan_id, status, current_period_start, current_period_end)
        VALUES ($1, $2, $3, 'active', NOW(), NOW() + INTERVAL '1 year')
        ON CONFLICT (id) DO NOTHING`,
-      [`sub-${Date.now()}`, business?.id || targetBusinessId, `plan-${tier}`]
+      [`sub-${Date.now()}`, business?.id || targetBusinessId, `plan-${effectiveTier}`]
     );
 
     // Create or update Digital Card record

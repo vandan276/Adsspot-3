@@ -50,6 +50,7 @@ export default function BusinessRegistrationWizard() {
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isExistingMerchant, setIsExistingMerchant] = useState(false);
 
   // STEP 1 — Business Details
   const [bizName, setBizName] = useState('');
@@ -147,8 +148,12 @@ export default function BusinessRegistrationWizard() {
               setUploadedPhotos([d.cover_url]);
             }
 
-            if (d.onboard_step && d.onboard_step >= 1 && d.onboard_step <= 6) {
-              setStep(d.onboard_step as any);
+            if (d.tier) {
+              setSelectedPlanTier(d.tier === 'basic' ? 'free' : d.tier as any);
+            }
+
+            if (d.status === 'active' || (user?.role === 'merchant' && d.id)) {
+              setIsExistingMerchant(true);
             }
           }
         })
@@ -278,12 +283,55 @@ export default function BusinessRegistrationWizard() {
   const handleSaveStep5 = async () => {
     setIsSubmitting(true);
     try {
-      await saveDraftToBackend(5);
-      setStep(6);
-      showToast('✓ Step 5 Photos saved to draft!');
+      if (isExistingMerchant) {
+        // Edit mode finish: Save business profile updates directly without requiring re-selection of tier
+        const formattedTimings = `${selectedDays.join(', ')} | ${timeSlots.map((s) => `${s.opensAt} - ${s.closesAt}`).join(', ')}`;
+        await fetch('/api/merchants/onboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user?.id,
+            isDraft: false,
+            onboardStep: 5,
+            bizName: bizName || 'My Local Business',
+            pincode,
+            plotNo,
+            buildingName,
+            streetRoad,
+            landmark,
+            area,
+            city,
+            state,
+            lat,
+            lng,
+            title,
+            ownerName: ownerName || user?.full_name || 'Business Owner',
+            phone,
+            secondaryPhone: secondaryPhones[0] || null,
+            whatsapp: sameWhatsapp ? phone : whatsapp,
+            secondaryWhatsapp: secondaryWhatsapps[0] || null,
+            landline,
+            email,
+            secondaryEmail: secondaryEmails[0] || null,
+            openingHours: formattedTimings,
+            timings: { days: selectedDays, slots: timeSlots },
+            categoryId: selectedCategories[0]?.id || 'cat-1',
+            categoryIds: selectedCategories.map((c) => c.id),
+            photos: uploadedPhotos,
+            mediaIds: uploadedMediaIds,
+          }),
+        });
+        await refreshAuth();
+        showToast('✓ Business profile updated successfully!');
+        router.push('/merchant?tab=overview');
+      } else {
+        await saveDraftToBackend(5);
+        setStep(6);
+        showToast('✓ Step 5 Photos saved to draft!');
+      }
     } catch (err: any) {
       console.warn('Draft save notice:', err);
-      setStep(6);
+      if (!isExistingMerchant) setStep(6);
     } finally {
       setIsSubmitting(false);
     }
@@ -1327,7 +1375,7 @@ export default function BusinessRegistrationWizard() {
               isLoading={isSubmitting}
               onClick={handleSaveStep5}
             >
-              Save and Continue &rarr;
+              {isExistingMerchant ? '✓ Save Business Changes & Return to Studio' : 'Save and Continue \u2192'}
             </Button>
           </Card>
         )}

@@ -28,6 +28,7 @@ import {
   X,
   MapPin,
   Check,
+  Edit,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -608,7 +609,7 @@ function MerchantStudioContent() {
   }
 
   return (
-    <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex flex-col lg:flex-row relative pb-24 lg:pb-8">
+    <div className="flex-1 bg-[#F4F6FB] min-h-[calc(100vh-100px)] flex flex-col lg:flex-row relative pb-36 md:pb-32 lg:pb-12">
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 bg-[#17181C] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 border border-neutral-700 animate-fade-in">
@@ -714,7 +715,12 @@ function MerchantStudioContent() {
             </div>
 
             {/* Top Quick Actions */}
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+              <Link href="/onboard" className="flex-1 sm:flex-initial">
+                <Button variant="outline" size="sm" className="w-full text-[#4787F2] border-[#4787F2]/30" leftIcon={<Edit className="w-3.5 h-3.5" />}>
+                  Edit Business
+                </Button>
+              </Link>
               <Link href={`/card/${currentBiz?.slug}`} className="flex-1 sm:flex-initial">
                 <Button variant="secondary" size="sm" className="w-full" leftIcon={<QrCode className="w-3.5 h-3.5" />}>
                   Card
