@@ -182,7 +182,7 @@ export default function PartnerPage() {
                   <Sparkles className="w-3 h-3" /> Adsspot Partner Club
                 </span>
                 <h2 className="text-xl font-black mt-2 leading-tight">
-                  Earn Up to <span className="text-[#F2B604]">₹500</span> Per Lead
+                  Earn Up to <span className="text-[#F2B604]">10% to 40%</span> Per Lead
                 </h2>
                 <p className="text-xs text-neutral-300 mt-1 max-w-[240px]">
                   Refer local shops, salons &amp; restaurants to Adsspot and earn instant direct payouts.
@@ -254,7 +254,7 @@ export default function PartnerPage() {
                     <p className="text-[10px] text-[#687182]">When a local shop registers via your link</p>
                   </div>
                 </div>
-                <span className="text-sm font-black text-[#35AB4E]">₹500 / biz</span>
+                <span className="text-sm font-black text-[#35AB4E]">10% to 40% / biz</span>
               </div>
 
               <div className="flex items-center justify-between p-3 rounded-2xl bg-[#F4F6FB] border border-[#E3E8EF]">
