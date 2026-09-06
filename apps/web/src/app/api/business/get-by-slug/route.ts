@@ -12,9 +12,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Slug is required' }, { status: 400 });
     }
 
-    // Query business by slug from Aurora DB
+    // Query business by slug, id, or case-insensitive slug/name from DB
     const res = await queryPostgres(
-      'SELECT * FROM businesses WHERE slug = $1 LIMIT 1',
+      `SELECT * FROM businesses 
+       WHERE slug = $1 
+          OR id = $1 
+          OR LOWER(slug) = LOWER($1) 
+          OR LOWER(name) = LOWER($1) 
+       LIMIT 1`,
       [slug]
     );
 

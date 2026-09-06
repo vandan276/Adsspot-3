@@ -536,7 +536,7 @@ export default function AdminDashboardPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="Default: adsspot123"
+                      placeholder="Enter password (or auto-generated)"
                       value={staffForm.password}
                       onChange={(e) => setStaffForm({ ...staffForm, password: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-white dark:bg-[#1A2130] border border-[#E3E8EF] dark:border-white/15 text-xs font-semibold text-[#17181C] dark:text-white outline-none focus:border-[#4787F2]"

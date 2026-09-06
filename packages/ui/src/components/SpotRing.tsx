@@ -17,6 +17,8 @@ export const StorySpotRing: React.FC<SpotRingProps> = ({
   size = 'md',
   className = '',
   imageSrc,
+  animate = false,
+  active = true,
   onClick,
 }) => {
   const clipId = React.useId().replace(/:/g, '_');
@@ -37,7 +39,7 @@ export const StorySpotRing: React.FC<SpotRingProps> = ({
   return (
     <div
       onClick={onClick}
-      className={`relative inline-flex items-center justify-center shrink-0 select-none ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`relative inline-flex items-center justify-center shrink-0 select-none transition-transform hover:scale-105 active:scale-95 ${active ? 'opacity-100' : 'opacity-60'} ${animate && active ? 'spot-ring-pulse-active' : ''} ${onClick ? 'cursor-pointer' : ''} ${className}`}
       style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
     >
       <svg
@@ -53,13 +55,17 @@ export const StorySpotRing: React.FC<SpotRingProps> = ({
           <clipPath id={`storyPhotoClip_${clipId}`}>
             <rect x="9" y="9" width="62" height="62" rx="14" />
           </clipPath>
+          <filter id={`spotGlow_${clipId}`} x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="glow" />
+            <feComposite in="SourceGraphic" in2="glow" operator="over" />
+          </filter>
         </defs>
 
         {/* 4-Color Quarter Squircle Segments (Spot Blue, Trust Green, Festival Yellow, Deep Crimson) */}
-        <use href={`#spotRing_${clipId}`} stroke="#4787F2" strokeWidth="5" strokeDasharray="26 74" strokeDashoffset="0" />
-        <use href={`#spotRing_${clipId}`} stroke="#35AB4E" strokeWidth="5" strokeDasharray="26 74" strokeDashoffset="-25" />
-        <use href={`#spotRing_${clipId}`} stroke="#F2B604" strokeWidth="5" strokeDasharray="26 74" strokeDashoffset="-50" />
-        <use href={`#spotRing_${clipId}`} stroke="#981837" strokeWidth="5" strokeDasharray="26 74" strokeDashoffset="-75" />
+        <use href={`#spotRing_${clipId}`} stroke="#4787F2" strokeWidth="5.5" strokeDasharray="26 74" strokeDashoffset="0" />
+        <use href={`#spotRing_${clipId}`} stroke="#35AB4E" strokeWidth="5.5" strokeDasharray="26 74" strokeDashoffset="-25" />
+        <use href={`#spotRing_${clipId}`} stroke="#F2B604" strokeWidth="5.5" strokeDasharray="26 74" strokeDashoffset="-50" />
+        <use href={`#spotRing_${clipId}`} stroke="#981837" strokeWidth="5.5" strokeDasharray="26 74" strokeDashoffset="-75" />
 
         {/* Photo Slot */}
         {imageSrc ? (

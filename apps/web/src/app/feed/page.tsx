@@ -9,8 +9,6 @@ import {
   SEED_CATEGORIES,
   toggleLikePost,
   addCommentToPost,
-  fetchPostComments,
-  toggleSavePost,
   toggleFollowBusiness,
 } from '@adsspot/api';
 import { Avatar, StorySpotRing, TrustedBadge } from '@adsspot/ui';
@@ -132,7 +130,52 @@ export default function MobileFeedPage() {
     city: 'Vadodara',
     pincode: '390007',
     area: 'Alkapuri & Old Padra Road',
+    isLocating: false,
   });
+
+  const detectLiveLocation = () => {
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) return;
+
+    setLocationState((prev) => ({ ...prev, isLocating: true }));
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`/api/location/reverse?lat=${latitude}&lng=${longitude}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.location) {
+              const newLoc = {
+                city: data.location.city,
+                pincode: data.location.pincode,
+                area: data.location.area,
+                lat: latitude,
+                lng: longitude,
+              };
+              localStorage.setItem('adsspot_user_location', JSON.stringify(newLoc));
+              setLocationState({
+                city: newLoc.city,
+                pincode: newLoc.pincode,
+                area: newLoc.area,
+                isLocating: false,
+              });
+              window.dispatchEvent(new Event('adsspot_location_changed'));
+              showToast(`📍 Location updated: ${newLoc.area}, ${newLoc.city}`);
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Geolocation reverse error:', err);
+        }
+        setLocationState((prev) => ({ ...prev, isLocating: false }));
+      },
+      (err) => {
+        console.warn('Geolocation permission/error:', err);
+        setLocationState((prev) => ({ ...prev, isLocating: false }));
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     const updateLoc = () => {
@@ -145,11 +188,16 @@ export default function MobileFeedPage() {
               city: parsed.city,
               pincode: parsed.pincode || '390007',
               area: parsed.area || 'Alkapuri',
+              isLocating: false,
             });
+            return;
           }
         }
       } catch { }
+      // Auto-trigger live location detection on initial visit if not stored
+      detectLiveLocation();
     };
+
     updateLoc();
     window.addEventListener('adsspot_location_changed', updateLoc);
     return () => window.removeEventListener('adsspot_location_changed', updateLoc);
@@ -212,12 +260,7 @@ export default function MobileFeedPage() {
     const newLikedState = !isCurrentlyLiked;
 
     // Optimistic UI update
-    setLikedPosts((prev) => {
-      const nextMap = { ...prev, [postId]: newLikedState };
-      const key = user ? `adsspot_likes_${user.id}` : 'adsspot_likes_guest';
-      localStorage.setItem(key, JSON.stringify(nextMap));
-      return nextMap;
-    });
+    setLikedPosts((prev) => ({ ...prev, [postId]: newLikedState }));
 
     setLikesCounts((c) => ({
       ...c,
@@ -285,106 +328,55 @@ export default function MobileFeedPage() {
     if (!openCommentsPostId) return;
     const targetPostId: string = openCommentsPostId;
 
-    // 1. First load local cached comments for this post
-    const stored = localStorage.getItem('adsspot_comments_data');
-    if (stored) {
+    // Fetch comments for opened post from PostgreSQL
+    async function loadPostComments() {
       try {
-        const parsed = JSON.parse(stored);
-        if (parsed && parsed[targetPostId]) {
-          setPostComments((prev) => ({
-            ...prev,
-            [targetPostId]: parsed[targetPostId],
-          }));
+        const res = await fetch(`/api/interactions?postId=${encodeURIComponent(targetPostId)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.comments && Array.isArray(data.comments)) {
+            const formatted = data.comments.map((c: any) => ({
+              id: c.id,
+              author: c.full_name || 'Verified User',
+              text: c.content,
+              time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              timestamp: new Date(c.created_at).getTime(),
+            }));
+            setPostComments((prev) => ({
+              ...prev,
+              [targetPostId]: formatted,
+            }));
+          }
         }
-      } catch {}
-    }
-
-    // 2. Fetch Cloud Comments from Supabase and merge
-    async function loadCloudComments() {
-      const cloudComments = await fetchPostComments(targetPostId);
-      if (cloudComments && cloudComments.length > 0) {
-        const formatted = cloudComments.map((c) => ({
-          id: c.id,
-          author: c.user?.full_name || 'Verified User',
-          text: c.content,
-          time: new Date(c.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          timestamp: new Date(c.created_at).getTime(),
-        }));
-        setPostComments((prev) => {
-          const existing = prev[targetPostId] || [];
-          const merged = [...existing];
-          formatted.forEach((fc) => {
-            if (!merged.some((m) => m.id === fc.id)) {
-              merged.push(fc);
-            }
-          });
-          return { ...prev, [targetPostId]: merged };
-        });
+      } catch (err) {
+        console.warn('[FeedPage] Comments fetch error:', err);
       }
     }
-    loadCloudComments();
+    loadPostComments();
   }, [openCommentsPostId]);
 
-  // Load all stored local comments on initial page load so comment count badges are instantly accurate
-  useEffect(() => {
-    const stored = localStorage.getItem('adsspot_comments_data');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') {
-          setPostComments(parsed);
-        }
-      } catch {}
-    }
-  }, []);
-
-  // Load user liked posts from localStorage and calculate exact like count
-  useEffect(() => {
-    const key = user ? `adsspot_likes_${user.id}` : 'adsspot_likes_guest';
-    const stored = localStorage.getItem(key);
-    if (stored) {
-      try {
-        const parsed: Record<string, boolean> = JSON.parse(stored);
-        setLikedPosts(parsed);
-        
-        // Recalculate exact total counts considering persisted user likes
-        setLikesCounts((prev) => {
-          const nextCounts = { ...prev };
-          SEED_POSTS.forEach((p) => {
-            const initialSeedCount = p.likes_count;
-            if (parsed[p.id]) {
-              nextCounts[p.id] = initialSeedCount + 1;
-            } else {
-              nextCounts[p.id] = initialSeedCount;
-            }
-          });
-          return nextCounts;
-        });
-      } catch {}
-    }
-  }, [user]);
-
-  // Load user saved posts from localStorage
+  // Load user interactions (likes, saved bookmarks) directly from PostgreSQL
   useEffect(() => {
     if (!user) {
+      setLikedPosts({});
       setSavedPosts({});
       return;
     }
-    const storageKey = `adsspot_saved_${user.id}`;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
+
+    async function loadUserInteractions() {
       try {
-        const arr: string[] = JSON.parse(stored);
-        const map: Record<string, boolean> = {};
-        arr.forEach((id) => {
-          map[id] = true;
-        });
-        setSavedPosts(map);
-      } catch { }
-    } else if (user.id === 'usr-consumer-1') {
-      setSavedPosts({ 'post-1': true, 'post-2': true });
-      localStorage.setItem(storageKey, JSON.stringify(['post-1', 'post-2']));
+        const res = await fetch(`/api/interactions?userId=${encodeURIComponent(user!.id)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.likes) setLikedPosts(data.likes);
+          if (data.saved) setSavedPosts(data.saved);
+        }
+      } catch (err) {
+        console.warn('[FeedPage] Failed to load user interactions:', err);
+      }
     }
+
+    loadUserInteractions();
   }, [user]);
 
   const handleToggleSave = async (postId: string) => {
@@ -395,16 +387,22 @@ export default function MobileFeedPage() {
     const isCurrentlySaved = !!savedPosts[postId];
     const newSavedState = !isCurrentlySaved;
 
-    setSavedPosts((prev) => {
-      const nextMap = { ...prev, [postId]: newSavedState };
-      const activeIds = Object.keys(nextMap).filter((k) => nextMap[k]);
-      localStorage.setItem(`adsspot_saved_${user.id}`, JSON.stringify(activeIds));
-      return nextMap;
-    });
-
+    setSavedPosts((prev) => ({ ...prev, [postId]: newSavedState }));
     showToast(newSavedState ? 'Saved to Bookmarks' : 'Removed from Bookmarks');
 
-    await toggleSavePost(user.id, postId, isCurrentlySaved);
+    try {
+      await fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          userId: user.id,
+          postId,
+        }),
+      });
+    } catch (err) {
+      console.warn('[FeedPage] Save interaction error:', err);
+    }
   };
 
   const handleAddComment = async (postId: string) => {
@@ -709,11 +707,10 @@ export default function MobileFeedPage() {
                     showToast('Link copied to clipboard!');
                     setTimeout(() => setCopiedLink(false), 2000);
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${
-                    copiedLink
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1 transition-all ${copiedLink
                       ? 'bg-[#35AB4E] text-white'
                       : 'bg-[#4787F2] hover:bg-[#3972D4] text-white active:scale-95'
-                  }`}
+                    }`}
                 >
                   {copiedLink ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copiedLink ? 'Copied!' : 'Copy'}</span>
@@ -824,8 +821,8 @@ export default function MobileFeedPage() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`w-full flex items-center justify-between p-2 rounded-xl text-xs font-semibold transition-colors text-left ${selectedCategory === cat.id
-                      ? 'bg-[#4787F2] text-white font-bold'
-                      : 'hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-[#17181C] dark:text-neutral-200'
+                    ? 'bg-[#4787F2] text-white font-bold'
+                    : 'hover:bg-[#F4F6FB] dark:hover:bg-white/5 text-[#17181C] dark:text-neutral-200'
                     }`}
                 >
                   <span>{cat.name}</span>
@@ -861,13 +858,25 @@ export default function MobileFeedPage() {
           {/* 1. TOP LOCATION & SEARCH BAR — Glassmorphic Universal Search */}
           <div className="sticky top-0 z-30 ios-glass-card rounded-2xl p-3 shadow-sm space-y-2 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs text-[#17181C] dark:text-white font-bold min-w-0 flex-1 truncate">
-                <MapPin className="w-3.5 h-3.5 text-[#4787F2] shrink-0" />
-                <span className="truncate">
-                  {locationState.area}, {locationState.city}{' '}
-                  <span className="text-neutral-400 font-normal">({locationState.pincode})</span>
+              <button
+                onClick={detectLiveLocation}
+                disabled={locationState.isLocating}
+                title="Tap to fetch live GPS location"
+                className="flex items-center gap-1.5 text-xs text-[#17181C] dark:text-white font-bold min-w-0 flex-1 truncate text-left hover:opacity-80 active:scale-98 transition-all"
+              >
+                <span className="relative flex h-3.5 w-3.5 items-center justify-center shrink-0">
+                  {locationState.isLocating ? (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4787F2] opacity-75" />
+                  ) : null}
+                  <MapPin className={`w-3.5 h-3.5 ${locationState.isLocating ? 'text-amber-500 animate-spin' : 'text-[#4787F2]'} shrink-0`} />
                 </span>
-              </div>
+                <span className="truncate">
+                  {locationState.isLocating ? 'Detecting GPS Location...' : `${locationState.area}, ${locationState.city}`}{' '}
+                  {!locationState.isLocating && (
+                    <span className="text-neutral-400 font-normal text-[10px]">({locationState.pincode}) • 📍 Tap to refresh</span>
+                  )}
+                </span>
+              </button>
               <span className="shrink-0 text-[10px] font-black text-[#E14D2A] bg-[#FFF1EE] dark:bg-[#2A1016] px-2.5 py-0.5 rounded-full border border-[#E14D2A]/30">
                 🔥 3 Live Drops
               </span>
@@ -927,13 +936,13 @@ export default function MobileFeedPage() {
 
           {/* 2. STORIES RAIL */}
           <div className="ios-glass-card rounded-2xl py-3 border border-[#E3E8EF] dark:border-white/10 shadow-xs">
-            <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar px-4 items-center mobile-snap-x">
               {/* Add story / User avatar */}
               <div
                 onClick={() => showToast('Stories are exclusive to Elite Merchants (Max 1/day)')}
-                className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+                className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group active:scale-95 transition-transform"
               >
-                <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 dark:bg-[#4787F2]/10 group-hover:border-[#3972D4] transition-all group-active:scale-95">
+                <div className="relative w-[58px] h-[58px] rounded-[16px] border-2 border-dashed border-[#4787F2] p-0.5 flex items-center justify-center shrink-0 bg-[#EDF4FF]/60 dark:bg-[#4787F2]/10 group-hover:border-[#3972D4] transition-all">
                   <Avatar src={user?.avatar_url || undefined} name={user?.full_name} size="md" />
                   <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#4787F2] text-white flex items-center justify-center border-2 border-white dark:border-neutral-900 shadow-sm">
                     <Plus className="w-3 h-3 stroke-[3]" />
@@ -947,12 +956,12 @@ export default function MobileFeedPage() {
                 <div
                   key={story.id}
                   onClick={() => setActiveStoryIndex(idx)}
-                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group"
+                  className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group active:scale-95 transition-all"
                 >
-                  <div className="transform group-hover:scale-105 group-active:scale-95 transition-transform drop-shadow-sm">
-                    <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} />
+                  <div className="transform group-hover:scale-108 transition-all duration-200">
+                    <StorySpotRing size={58} imageSrc={story.logo} alt={story.name} animate={true} />
                   </div>
-                  <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[62px] text-center leading-tight tracking-tight">
+                  <span className="text-[11px] text-[#17181C] dark:text-neutral-100 font-bold truncate max-w-[64px] text-center leading-tight tracking-tight group-hover:text-[#4787F2] transition-colors">
                     {String(story.name || story.business_name || 'Store').trim().split(/\s+/)[0]}
                   </span>
                 </div>
@@ -1011,8 +1020,8 @@ export default function MobileFeedPage() {
                           setActiveClaimModal(drop);
                         }}
                         className={`w-full py-1.5 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 shadow-2xs ${isClaimed
-                            ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
-                            : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
+                          ? 'bg-[#EBF9EE] text-[#35AB4E] border border-[#35AB4E]/30'
+                          : 'bg-[#E11D48] hover:bg-[#BE123C] text-white shadow-xs'
                           }`}
                       >
                         {isClaimed ? (
@@ -1076,8 +1085,8 @@ export default function MobileFeedPage() {
             <button
               onClick={() => setSelectedCategory('all')}
               className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${selectedCategory === 'all'
-                  ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
-                  : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
+                ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
                 }`}
             >
               All
@@ -1101,8 +1110,8 @@ export default function MobileFeedPage() {
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`px-3 sm:px-3.5 py-1 rounded-full text-xs font-bold shrink-0 transition-all ${selectedCategory === cat.id
-                      ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
-                      : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
+                    ? 'bg-[#17181C] dark:bg-[#4787F2] text-white shadow-xs'
+                    : 'ios-glass-card text-neutral-700 dark:text-neutral-200 hover:text-black dark:hover:text-white'
                     }`}
                 >
                   {cat.name}
@@ -1178,8 +1187,8 @@ export default function MobileFeedPage() {
                       <button
                         onClick={() => handleToggleFollow(biz.id, biz.name)}
                         className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${isFollowing
-                            ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
-                            : 'bg-[#4787F2] text-white hover:bg-[#3373E0]'
+                          ? 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300'
+                          : 'bg-[#4787F2] text-white hover:bg-[#3373E0]'
                           }`}
                       >
                         {isFollowing ? 'Following' : 'Follow'}

@@ -24,7 +24,7 @@ export const LocationPromptModal: React.FC = () => {
       if (typeof window !== 'undefined') {
         storedLoc = localStorage.getItem('adsspot_user_location');
       }
-    } catch {}
+    } catch { }
 
     if (!storedLoc) {
       // Auto prompt on first entry to discover Vadodara / nearby shops

@@ -98,15 +98,17 @@ export const FloatingMobileNav: React.FC = () => {
 
   return (
     <div
-      className={`fixed bottom-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none md:hidden transition-all duration-300 ${isStoryOpen ? 'opacity-0 translate-y-16 pointer-events-none' : 'opacity-100 translate-y-0'
-        }`}
+      className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center px-4 pb-[max(env(safe-area-inset-bottom),14px)] pt-2 pointer-events-none md:hidden transition-all duration-300 ${
+        isStoryOpen ? 'opacity-0 translate-y-20 pointer-events-none' : 'opacity-100 translate-y-0'
+      }`}
     >
-      <nav className="pointer-events-auto bg-white/95 dark:bg-[#121620]/95 backdrop-blur-xl border border-[#E3E8EF] dark:border-white/10 shadow-[0_12px_36px_rgba(23,24,28,0.14)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.6)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center">
+      <nav className="pointer-events-auto bg-white/95 dark:bg-[#121620]/95 backdrop-blur-2xl border border-[#E3E8EF]/80 dark:border-white/10 shadow-[0_16px_40px_rgba(23,24,28,0.16)] dark:shadow-[0_16px_40px_rgba(0,0,0,0.7)] rounded-full px-3 py-2 w-full max-w-[390px] grid grid-cols-5 items-center select-none">
         {/* 1. Feed (formerly Home) */}
         <Link
           href="/feed"
-          className={`flex flex-col items-center justify-center py-1 transition-all group ${isFeed ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
-            }`}
+          className={`flex flex-col items-center justify-center py-1 transition-all active:scale-90 group ${
+            isFeed ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400 hover:text-[#17181C] dark:hover:text-white'
+          }`}
         >
           <Newspaper className={`w-5 h-5 transition-transform group-hover:scale-110 ${isFeed ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
           <span className={`text-[11px] font-bold mt-1 tracking-tight ${isFeed ? 'text-[#4787F2]' : 'text-[#687182] dark:text-neutral-400'}`}>

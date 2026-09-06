@@ -2,49 +2,65 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useAuth, SEED_POSTS, SEED_BUSINESSES } from '@adsspot/api';
+import { useAuth } from '@adsspot/api';
 import { Card, Button } from '@adsspot/ui';
 import { Bookmark, Sparkles, LogIn } from 'lucide-react';
 
 export default function SavedPage() {
   const { user } = useAuth();
-  const [savedIds, setSavedIds] = useState<string[]>([]);
+  const [savedPosts, setSavedPosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
+
+  const fetchSavedData = async () => {
+    if (!user) {
+      setSavedPosts([]);
+      setLoading(false);
+      return;
+    }
+    try {
+      setLoading(true);
+      const [interactRes, postsRes] = await Promise.all([
+        fetch(`/api/interactions?userId=${encodeURIComponent(user.id)}`),
+        fetch('/api/posts'),
+      ]);
+
+      const interactData = await interactRes.json();
+      const postsData = await postsRes.json();
+
+      const savedMap = interactData?.saved || {};
+      const allPosts = postsData?.posts || [];
+
+      const filtered = allPosts.filter((p: any) => savedMap[p.id]);
+      setSavedPosts(filtered);
+    } catch (err) {
+      console.warn('[SavedPage] Fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
-    if (!user) {
-      setSavedIds([]);
-      return;
-    }
-
-    const storageKey = `adsspot_saved_${user.id}`;
-    const stored = localStorage.getItem(storageKey);
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setSavedIds(parsed);
-          return;
-        }
-      } catch {}
-    }
-
-    // Only demo consumer user has initial starter bookmarks; new users start with 0
-    if (user.id === 'usr-consumer-1') {
-      const demoSaved = ['post-1', 'post-2'];
-      setSavedIds(demoSaved);
-      localStorage.setItem(storageKey, JSON.stringify(demoSaved));
-    } else {
-      setSavedIds([]);
-    }
+    fetchSavedData();
   }, [user]);
 
-  const handleRemoveBookmark = (postId: string) => {
+  const handleRemoveBookmark = async (postId: string) => {
     if (!user) return;
-    const next = savedIds.filter((id) => id !== postId);
-    setSavedIds(next);
-    localStorage.setItem(`adsspot_saved_${user.id}`, JSON.stringify(next));
+    setSavedPosts((prev) => prev.filter((p) => p.id !== postId));
+    try {
+      await fetch('/api/interactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          userId: user.id,
+          postId,
+        }),
+      });
+    } catch (err) {
+      console.warn('[SavedPage] Remove bookmark error:', err);
+    }
   };
 
   if (!mounted) return null;
@@ -68,8 +84,6 @@ export default function SavedPage() {
     );
   }
 
-  const savedPosts = SEED_POSTS.filter((p) => savedIds.includes(p.id));
-
   return (
     <div className="flex-1 bg-[#F4F6FB] pb-24 max-w-lg mx-auto w-full min-h-screen p-4 space-y-6">
       <div className="space-y-1">
@@ -77,7 +91,12 @@ export default function SavedPage() {
         <p className="text-xs text-[#687182]">Your bookmarked festival banners, shop offers &amp; digital cards</p>
       </div>
 
-      {savedPosts.length === 0 ? (
+      {loading ? (
+        <div className="p-8 bg-white rounded-3xl border border-[#E3E8EF] text-center space-y-3">
+          <div className="w-8 h-8 rounded-full border-2 border-[#4787F2] border-t-transparent animate-spin mx-auto" />
+          <p className="text-xs font-bold text-[#687182]">Loading saved deals...</p>
+        </div>
+      ) : savedPosts.length === 0 ? (
         <div className="p-8 bg-white rounded-3xl border border-[#E3E8EF] text-center space-y-3">
           <Bookmark className="w-10 h-10 text-[#687182] mx-auto opacity-50" />
           <h3 className="text-sm font-bold text-[#17181C]">No Bookmarks Saved Yet</h3>
@@ -92,31 +111,28 @@ export default function SavedPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          {savedPosts.map((post) => {
-            const biz = SEED_BUSINESSES.find((b) => b.id === post.business_id) || SEED_BUSINESSES[0]!;
-            return (
-              <Card key={post.id} padding="none" className="overflow-hidden shadow-sm">
-                <img src={post.image_urls[0]} alt="Saved post" className="w-full h-48 object-cover" />
-                <div className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[#17181C]">{biz.name}</span>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => handleRemoveBookmark(post.id)}
-                        className="text-[11px] font-bold text-[#981837] hover:underline"
-                      >
-                        Remove
-                      </button>
-                      <Link href={`/card/${biz.slug}`} className="text-xs font-bold text-[#4787F2] hover:underline">
-                        View Card →
-                      </Link>
-                    </div>
+          {savedPosts.map((post) => (
+            <Card key={post.id} padding="none" className="overflow-hidden shadow-sm">
+              <img src={post.image_urls[0]} alt="Saved post" className="w-full h-48 object-cover" />
+              <div className="p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-xs text-[#17181C]">{post.business_name}</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleRemoveBookmark(post.id)}
+                      className="text-[11px] font-bold text-[#981837] hover:underline"
+                    >
+                      Remove
+                    </button>
+                    <Link href={`/card/${post.business_slug || post.business_id}`} className="text-xs font-bold text-[#4787F2] hover:underline">
+                      View Card →
+                    </Link>
                   </div>
-                  <p className="text-xs text-[#4A5260] line-clamp-2">{post.caption}</p>
                 </div>
-              </Card>
-            );
-          })}
+                <p className="text-xs text-[#4A5260] line-clamp-2">{post.caption}</p>
+              </div>
+            </Card>
+          ))}
         </div>
       )}
 

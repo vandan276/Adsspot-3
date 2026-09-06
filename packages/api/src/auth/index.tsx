@@ -130,10 +130,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setUser(null);
           setPermissions([]);
+          if (typeof window !== 'undefined') {
+            try {
+              localStorage.removeItem('adsspot_session_token');
+              localStorage.removeItem('adsspot_auth_user');
+            } catch {}
+          }
         }
       } else {
         setUser(null);
         setPermissions([]);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('adsspot_session_token');
+            localStorage.removeItem('adsspot_auth_user');
+          } catch {}
+        }
       }
 
       // Load merchants from PostgreSQL
@@ -328,7 +340,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       body: JSON.stringify({
         name: input.name,
         email: cleanEmail,
-        password: input.password || 'adsspot123',
+        password: input.password || undefined,
         phone: formattedPhone,
         role: input.role,
         role_id: input.role_id,

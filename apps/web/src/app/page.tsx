@@ -219,16 +219,18 @@ export default function HomePage() {
       )}
 
       {/* 1. MODERN CONSUMER HERO & SEARCH SECTION */}
-      <section className="bg-white dark:bg-[#0B0E14] border-b border-[#E3E8EF] dark:border-white/10 pt-10 pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto text-center">
+      <section className="relative overflow-hidden bg-white dark:bg-[#0B0E14] border-b border-[#E3E8EF] dark:border-white/10 pt-12 pb-20 px-4 sm:px-6 lg:px-8">
+        {/* Ambient Radial Background Glows */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-tr from-[#4787F2]/15 via-[#F2B604]/10 to-[#35AB4E]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="max-w-6xl mx-auto text-center relative z-10">
           {/* Prominent Brand Showcase */}
           <div className="flex flex-col items-center justify-center mb-6">
-            <div className="p-3 sm:p-4 rounded-3xl bg-gradient-to-b from-[#EDF4FF] to-white dark:from-[#172033] dark:to-[#121620] border border-[#4787F2]/20 shadow-lg shadow-[#4787F2]/10 mb-4 transform hover:scale-105 transition-transform flex flex-col items-center gap-2">
-              <Logo size={78} withText={true} animated={true} />
-              <AdsspotBrandLine width={220} className="mt-1" />
+            <div className="p-3.5 sm:p-4.5 rounded-3xl bg-gradient-to-b from-[#EDF4FF]/90 to-white/90 dark:from-[#172033]/90 dark:to-[#121620]/90 backdrop-blur-xl border border-[#4787F2]/25 shadow-xl shadow-[#4787F2]/10 mb-4 transform hover:scale-105 transition-transform flex flex-col items-center gap-2">
+              <Logo size={82} withText={true} animated={true} />
+              <AdsspotBrandLine width={230} className="mt-1" />
             </div>
             {/* Tagline Pill */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF4FF] dark:bg-[#4787F2]/15 border border-[#4787F2]/20">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EDF4FF]/80 dark:bg-[#4787F2]/15 backdrop-blur-md border border-[#4787F2]/20 shadow-xs">
               <span className="w-2 h-2 rounded-full bg-[#4787F2] animate-ping" />
               <span className="text-xs font-bold text-[#1D53B8] dark:text-[#93C5FD]">
                 India's Hyperlocal Neighborhood Discovery Platform
@@ -246,7 +248,7 @@ export default function HomePage() {
           </p>
 
           {/* Interactive Search Bar — iOS Glass Capsule */}
-          <div className="max-w-3xl mx-auto ios-glass-card rounded-2xl p-2.5 flex flex-col sm:flex-row items-center gap-2 mb-6 border border-white/80 dark:border-white/10 shadow-[0_15px_35px_-5px_rgba(71,135,242,0.12)]">
+          <div className="max-w-3xl mx-auto ios-glass-card rounded-3xl p-3 flex flex-col sm:flex-row items-center gap-2 mb-6 border border-white/80 dark:border-white/10 shadow-[0_20px_45px_-5px_rgba(71,135,242,0.16)]">
             {/* Location Selector */}
             <div className="flex items-center gap-2 px-3 py-2 border-b sm:border-b-0 sm:border-r border-[#E3E8EF] dark:border-white/10 w-full sm:w-auto flex-shrink-0 text-left">
               <MapPin className="w-4 h-4 text-[#4787F2]" />

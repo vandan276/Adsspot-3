@@ -1,29 +1,19 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useAuth } from '@adsspot/api';
 import { Sparkles, Shield, User, Store, MapPin, Building2, Crown } from 'lucide-react';
 
 export const DevPersonaBar: React.FC = () => {
-  const router = useRouter();
-  const { user, loginWithEmail } = useAuth();
+  const { user } = useAuth();
 
-  const handleSwitchRole = async (_roleSlug: string, email: string) => {
-    try {
-      const res = await loginWithEmail(email, 'adsspot123');
-      if (res.success && res.user) {
-        if (res.user.role === 'super_admin' || res.user.dashboard_type === 'admin') router.push('/admin');
-        else if (res.user.role === 'zo' || res.user.dashboard_type === 'zo') router.push('/zo');
-        else if (res.user.role === 'ro' || res.user.dashboard_type === 'ro') router.push('/ro');
-        else if (res.user.role === 'sm' || res.user.dashboard_type === 'sm') router.push('/sm');
-        else if (res.user.role === 'merchant' || res.user.dashboard_type === 'merchant') router.push('/merchant');
-        else router.push('/feed');
-      }
-    } catch (e) {
-      console.warn('Switch failed:', e);
-    }
-  };
+  // Strictly disabled in production and only visible when NEXT_PUBLIC_ENABLE_DEMO_MODE is true in development
+  if (
+    process.env.NODE_ENV !== 'development' ||
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_MODE !== 'true'
+  ) {
+    return null;
+  }
 
   const getIcon = (role: string) => {
     if (role === 'super_admin') return <Crown className="w-3.5 h-3.5 text-purple-400" />;
@@ -67,18 +57,17 @@ export const DevPersonaBar: React.FC = () => {
           {personas.map((p) => {
             const isActive = user?.role === p.role || user?.email === p.email;
             return (
-              <button
+              <span
                 key={p.role}
-                onClick={() => handleSwitchRole(p.role, p.email)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
                   isActive
                     ? 'bg-[#4787F2] text-white shadow-sm font-bold scale-[1.02]'
-                    : 'bg-neutral-800/80 text-neutral-300 hover:bg-neutral-700 hover:text-white'
+                    : 'bg-neutral-800/80 text-neutral-300'
                 }`}
               >
                 {getIcon(p.role)}
                 <span className="whitespace-nowrap">{p.name}</span>
-              </button>
+              </span>
             );
           })}
         </div>

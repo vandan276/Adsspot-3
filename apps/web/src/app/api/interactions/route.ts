@@ -1,15 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { queryPostgres } from '@adsspot/api/server';
+import { queryPostgres, getAuthenticatedUser } from '@adsspot/api/server';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
+    const authContext = await getAuthenticatedUser(req);
     const body = await req.json();
-    const { action, userId, postId, businessId, content, rating } = body;
+    const { action, userId: bodyUserId, postId, businessId, content, rating } = body;
+
+    // Use authenticated user ID or body user ID
+    const userId = authContext?.user?.id || bodyUserId;
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: 'User must be authenticated to perform interactions' }, { status: 401 });
+    }
+
+    if (action === 'save' || action === 'bookmark') {
+      if (!postId) return NextResponse.json({ error: 'Post ID is required' }, { status: 400 });
+
+      const existing = await queryPostgres(
+        `SELECT * FROM saved_posts WHERE user_id = $1 AND post_id = $2`,
+        [userId, postId]
+      );
+
+      if (existing && existing.rowCount && existing.rowCount > 0) {
+        // Unsave
+        await queryPostgres(`DELETE FROM saved_posts WHERE user_id = $1 AND post_id = $2`, [userId, postId]);
+        return NextResponse.json({ saved: false, message: 'Removed from bookmarks' });
+      } else {
+        // Save
+        await queryPostgres(
+          `INSERT INTO saved_posts (user_id, post_id, created_at) VALUES ($1, $2, NOW()) ON CONFLICT DO NOTHING`,
+          [userId, postId]
+        );
+        return NextResponse.json({ saved: true, message: 'Saved to bookmarks' });
+      }
     }
 
     if (action === 'like') {
@@ -145,10 +171,11 @@ export async function GET(req: NextRequest) {
     }
 
     if (userId) {
-      const [likesRes, followsRes, reviewsRes] = await Promise.all([
+      const [likesRes, followsRes, reviewsRes, savedRes] = await Promise.all([
         queryPostgres(`SELECT post_id FROM likes WHERE user_id = $1`, [userId]),
         queryPostgres(`SELECT business_id FROM follows WHERE user_id = $1`, [userId]),
         queryPostgres(`SELECT * FROM reviews WHERE user_id = $1`, [userId]),
+        queryPostgres(`SELECT post_id FROM saved_posts WHERE user_id = $1`, [userId]),
       ]);
 
       const likedMap: Record<string, boolean> = {};
@@ -161,9 +188,15 @@ export async function GET(req: NextRequest) {
         followMap[r.business_id] = true;
       });
 
+      const savedMap: Record<string, boolean> = {};
+      (savedRes?.rows || []).forEach((r: any) => {
+        savedMap[r.post_id] = true;
+      });
+
       return NextResponse.json({
         likes: likedMap,
         follows: followMap,
+        saved: savedMap,
         reviews: reviewsRes?.rows || [],
       });
     }

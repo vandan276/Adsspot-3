@@ -40,17 +40,20 @@ export default function CategoryDetailPage() {
   const [tierFilter, setTierFilter] = useState<'all' | 'elite' | 'premium' | 'trusted'>('all');
 
   useEffect(() => {
-    // 1. Find category info
+    const normalizedParam = categoryParam.toLowerCase().trim();
     const catMatch = SEED_CATEGORIES.find(
-      (c) => c.id === categoryParam || c.slug === categoryParam || c.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === categoryParam
+      (c) =>
+        c.id.toLowerCase() === normalizedParam ||
+        c.slug.toLowerCase() === normalizedParam ||
+        c.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === normalizedParam ||
+        c.name.toLowerCase() === normalizedParam.replace(/-/g, ' ')
     ) || {
       id: categoryParam,
-      name: categoryParam.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
+      name: categoryParam.replace(/^(cat-|category-)/i, '').replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase()),
       slug: categoryParam,
     };
     setCategory(catMatch);
 
-    // 2. Fetch businesses for this category from API + seed fallback
     async function loadData() {
       setLoading(true);
       try {
@@ -66,20 +69,35 @@ export default function CategoryDetailPage() {
           list = await getAllBusinesses();
         }
 
-        // Filter by category
+        const catTargetIds = new Set([
+          catMatch.id.toLowerCase(),
+          catMatch.slug.toLowerCase(),
+          categoryParam.toLowerCase(),
+          categoryParam.toLowerCase().replace(/^(cat-|category-)/i, ''),
+        ]);
+
         const filtered = list.filter((b) => {
           if (!b) return false;
-          const matchId = b.category_id === catMatch.id || b.categoryId === catMatch.id;
-          const matchSlug = b.category?.slug === catMatch.slug || (b.category_id && b.category_id.includes(categoryParam));
-          const matchName = b.category_name?.toLowerCase() === catMatch.name?.toLowerCase();
-          return matchId || matchSlug || matchName || categoryParam === 'all';
+          if (categoryParam === 'all') return true;
+
+          const bCatId = (b.category_id || b.categoryId || '').toString().toLowerCase();
+          const bCatSlug = (b.category?.slug || '').toLowerCase();
+          const bCatName = (b.category_name || b.category?.name || '').toLowerCase();
+          const catNameLower = (catMatch.name || '').toLowerCase();
+
+          return (
+            catTargetIds.has(bCatId) ||
+            catTargetIds.has(bCatSlug) ||
+            bCatId === catMatch.id.toLowerCase() ||
+            (bCatName && catNameLower && (bCatName.includes(catNameLower) || catNameLower.includes(bCatName))) ||
+            (bCatId && normalizedParam && bCatId.replace(/[^a-z0-9]/g, '') === normalizedParam.replace(/[^a-z0-9]/g, ''))
+          );
         });
 
-        setBusinesses(filtered.length > 0 ? filtered : list); // Fallback to all if category has no specific seed items
+        setBusinesses(filtered);
       } catch (err) {
         console.error('Failed to load category merchants:', err);
-        const fallback = await getAllBusinesses();
-        setBusinesses(fallback);
+        setBusinesses([]);
       } finally {
         setLoading(false);
       }
@@ -88,7 +106,6 @@ export default function CategoryDetailPage() {
     loadData();
   }, [categoryParam]);
 
-  // Filter businesses by search query & tier
   const filteredMerchants = businesses.filter((b) => {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
@@ -107,7 +124,6 @@ export default function CategoryDetailPage() {
     return matchesSearch && matchesTier;
   });
 
-  // Featured Sponsored Ad Merchants (Top 2 Elite or Premium Merchants for Ad Banner Space)
   const sponsoredAds = businesses.filter((b) => b.tier === 'elite' || b.trusted).slice(0, 2);
 
   return (
@@ -119,7 +135,7 @@ export default function CategoryDetailPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => router.back()}
-              className="w-9 h-9 rounded-full bg-[#F4F6FB] hover:bg-[#E2E8F0] flex items-center justify-center text-[#17181C] transition-colors"
+              className="w-9 h-9 rounded-full bg-[#F4F6FB] hover:bg-[#E2E8F0] flex items-center justify-center text-[#17181C] transition-colors cursor-pointer"
               title="Go Back"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -130,7 +146,7 @@ export default function CategoryDetailPage() {
                   {category?.name || 'Category Overview'}
                 </h1>
                 <span className="text-[10px] font-extrabold bg-[#EDF4FF] text-[#4787F2] px-2 py-0.5 rounded-full border border-[#4787F2]/20">
-                  {businesses.length} Verified Stores
+                  {businesses.length} {businesses.length === 1 ? 'Store' : 'Stores'}
                 </span>
               </div>
               <p className="text-xs text-[#687182] hidden sm:block">
@@ -200,7 +216,7 @@ export default function CategoryDetailPage() {
               <div
                 key={ad.id || idx}
                 className="relative rounded-xl overflow-hidden bg-white/5 backdrop-blur-md border border-white/10 hover:border-[#4787F2]/60 transition-all p-2.5 flex gap-3 items-center group cursor-pointer"
-                onClick={() => router.push(`/card/${ad.slug || 'store-1'}`)}
+                onClick={() => router.push(ad.tier === 'elite' ? `/b/${ad.slug || 'store-1'}` : `/card/${ad.slug || 'store-1'}`)}
               >
                 <div className="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 bg-neutral-800">
                   <img
@@ -258,11 +274,11 @@ export default function CategoryDetailPage() {
               )}
             </div>
 
-            {/* Filter pills */}
-            <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto no-scrollbar">
+            {/* Quick Filter Buttons */}
+            <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
               <button
                 onClick={() => setTierFilter('all')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
                   tierFilter === 'all'
                     ? 'bg-[#17181C] text-white shadow-xs'
                     : 'bg-[#F4F6FB] text-[#687182] hover:bg-[#E2E8F0]'
@@ -270,23 +286,25 @@ export default function CategoryDetailPage() {
               >
                 All Stores ({businesses.length})
               </button>
+
               <button
                 onClick={() => setTierFilter('trusted')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
                   tierFilter === 'trusted'
                     ? 'bg-[#35AB4E] text-white shadow-xs'
-                    : 'bg-[#EBF9F3] text-[#35AB4E] hover:bg-[#D3F3E3]'
+                    : 'bg-[#F4F6FB] text-[#35AB4E] hover:bg-[#EBF9F3]'
                 }`}
               >
                 <ShieldCheck className="w-3.5 h-3.5" />
                 <span>Trusted</span>
               </button>
+
               <button
                 onClick={() => setTierFilter('elite')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1 cursor-pointer ${
                   tierFilter === 'elite'
                     ? 'bg-[#8338EC] text-white shadow-xs'
-                    : 'bg-[#F5EEFD] text-[#8338EC] hover:bg-[#EBDCFB]'
+                    : 'bg-[#F4F6FB] text-[#8338EC] hover:bg-[#F5EEFD]'
                 }`}
               >
                 <Crown className="w-3.5 h-3.5" />
@@ -315,7 +333,7 @@ export default function CategoryDetailPage() {
               🏪
             </div>
             <div>
-              <h3 className="text-base font-extrabold text-[#17181C]">No Merchants Found</h3>
+              <h3 className="text-base font-extrabold text-[#17181C]">No Stores in {category?.name || 'Category'} Yet</h3>
               <p className="text-xs text-[#687182] mt-1">
                 Be the first store owner to list your business under {category?.name}!
               </p>
@@ -335,14 +353,19 @@ export default function CategoryDetailPage() {
               const isElite = biz.tier === 'elite';
               const isPremium = biz.tier === 'premium';
               const isTrusted = biz.trusted !== false;
+              const destinationUrl = isElite ? `/b/${slug}` : `/card/${slug}`;
 
               return (
                 <div
                   key={biz.id}
                   className="bg-white rounded-2xl overflow-hidden border border-[#E3E8EF] hover:border-[#4787F2] hover:shadow-lg transition-all flex flex-col justify-between group"
                 >
-                  {/* Cover Image & Badges */}
-                  <div>
+                  {/* Clickable Header & Cover to open Business Page */}
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => router.push(destinationUrl)}
+                  >
+                    {/* Cover Image & Badges */}
                     <div className="relative h-36 bg-neutral-100 overflow-hidden">
                       <img
                         src={biz.cover_url || biz.logo_url || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&auto=format&fit=crop&q=80'}

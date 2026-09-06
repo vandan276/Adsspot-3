@@ -26,7 +26,22 @@ import {
   Zap,
   Building2,
   X,
+  MapPin,
+  Check,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const LocationPinAdjuster = dynamic(
+  () => import('../../components/LocationPinAdjuster').then((m) => m.LocationPinAdjuster),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-64 rounded-2xl bg-neutral-100 dark:bg-neutral-800 animate-pulse flex items-center justify-center text-xs text-neutral-400 font-bold">
+        Loading Map Adjuster...
+      </div>
+    ),
+  }
+);
 
 export default function MerchantStudioPage() {
   return (
@@ -79,6 +94,43 @@ function MerchantStudioContent() {
   const [onboardCategory, setOnboardCategory] = useState('cat-1');
   const [onboardAddress, setOnboardAddress] = useState('Fort, Mumbai');
   const [onboardPincode, setOnboardPincode] = useState('400001');
+
+  // Business Location Pin Adjuster State
+  const [bizLat, setBizLat] = useState<number>(Number(currentBiz?.lat) || 22.3106);
+  const [bizLng, setBizLng] = useState<number>(Number(currentBiz?.lng) || 73.1678);
+  const [isSavingLocation, setIsSavingLocation] = useState(false);
+
+  useEffect(() => {
+    if (currentBiz?.lat && currentBiz?.lng) {
+      setBizLat(Number(currentBiz.lat));
+      setBizLng(Number(currentBiz.lng));
+    }
+  }, [currentBiz?.lat, currentBiz?.lng]);
+
+  const handleSaveMapLocation = async () => {
+    setIsSavingLocation(true);
+    try {
+      const res = await fetch('/api/business/location', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId: currentBiz?.id,
+          lat: bizLat,
+          lng: bizLng,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || 'Failed to update location');
+      }
+      showToast('✓ Shop location pin updated on the public map!');
+      await refreshAuth();
+    } catch (err: any) {
+      alert('Error updating map location: ' + err.message);
+    } finally {
+      setIsSavingLocation(false);
+    }
+  };
 
   const getPlanPrice = (tier: 'basic' | 'premium' | 'elite', cycle: 'monthly' | 'yearly') => {
     if (tier === 'basic') return cycle === 'monthly' ? 999 : 9990;
@@ -210,14 +262,6 @@ function MerchantStudioContent() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 2500);
-  };
-
-  const handleSendReply = (reviewId: string) => {
-    const text = replyInput[reviewId];
-    if (!text || text.trim() === '') return;
-    setReplies((prev) => ({ ...prev, [reviewId]: text }));
-    setReplyInput((prev) => ({ ...prev, [reviewId]: '' }));
-    showToast('Merchant reply posted successfully!');
   };
 
   // Published posts state
@@ -920,6 +964,40 @@ function MerchantStudioContent() {
                 </div>
               </Card>
             )}
+
+            {/* 🗺️ Store Location Pin Adjuster (Public Map Visibility) */}
+            <Card padding="md" className="space-y-4 bg-white border border-[#E3E8EF] shadow-sm">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 pb-2 border-b border-[#F4F6FB]">
+                <div>
+                  <h3 className="text-sm font-black text-[#17181C] flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#4787F2]" /> Public Map Location &amp; Store Pinpoint
+                  </h3>
+                  <p className="text-xs text-[#687182]">
+                    Drag the pin to your exact storefront on the map. Anyone exploring nearby stores will see your business pinned at this exact spot.
+                  </p>
+                </div>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  isLoading={isSavingLocation}
+                  onClick={handleSaveMapLocation}
+                  className="bg-[#4787F2] hover:bg-[#3373E0] text-white shrink-0 font-bold"
+                  leftIcon={<Check className="w-3.5 h-3.5" />}
+                >
+                  Save Pin Location
+                </Button>
+              </div>
+
+              <LocationPinAdjuster
+                initialLat={bizLat}
+                initialLng={bizLng}
+                onLocationChange={(newLat, newLng) => {
+                  setBizLat(newLat);
+                  setBizLng(newLng);
+                }}
+                height="320px"
+              />
+            </Card>
           </div>
         )}
 
@@ -1371,7 +1449,17 @@ function MerchantStudioContent() {
                   className="flex-1 font-bold shadow-sm"
                   leftIcon={<Download className="w-4 h-4 text-[#4787F2]" />}
                   onClick={() => {
-                    showToast('🎉 High-Res 1080p Festival Banner generated and saved!');
+                    const params = new URLSearchParams({
+                      template: selectedTemplate,
+                      bizName: currentBiz?.name || 'My Store',
+                      phone: currentBiz?.phone || '+91 98765 43210',
+                      address: currentBiz?.address || 'Main Road',
+                      category: currentBiz?.category_id || 'Retail',
+                      tier: currentBiz?.tier || 'premium',
+                    });
+                    const url = `/api/banners/stamp?${params.toString()}`;
+                    window.open(url, '_blank');
+                    showToast('🎉 High-Res 1080p Stamped Banner downloaded!');
                   }}
                 >
                   Download HD Banner (1080p)
@@ -1478,7 +1566,31 @@ function MerchantStudioContent() {
                     <div key={rev.id} className="p-4 rounded-2xl bg-[#F4F6FB] dark:bg-white/5 space-y-2 border border-[#E3E8EF] dark:border-white/10">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-[#17181C] dark:text-white">{rev.full_name || rev.author || 'Verified Buyer'}</span>
-                        <span className="text-xs font-bold text-[#F2B604]">{'★'.repeat(Math.round(Number(rev.rating) || 5))}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-[#F2B604]">{'★'.repeat(Math.round(Number(rev.rating) || 5))}</span>
+                          <button
+                            onClick={async () => {
+                              const reason = prompt('Please specify why this review violates policies (e.g. spam, fake customer, abusive language):');
+                              if (!reason?.trim()) return;
+                              try {
+                                const res = await fetch('/api/reviews/dispute', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ reviewId: rev.id, reason: reason.trim(), reportedBy: currentBiz?.id || user?.id }),
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  showToast('🛡️ Review dispute ticket logged. Trust & Safety team notified.');
+                                }
+                              } catch {
+                                showToast('Failed to log dispute ticket.');
+                              }
+                            }}
+                            className="text-[10px] text-red-500 hover:text-red-700 font-semibold underline ml-2"
+                          >
+                            Report / Dispute
+                          </button>
+                        </div>
                       </div>
                       <p className="text-xs text-[#4A5260] dark:text-neutral-300">{rev.comment}</p>
 
@@ -1501,7 +1613,23 @@ function MerchantStudioContent() {
                             variant="primary"
                             size="sm"
                             className="text-xs"
-                            onClick={() => handleSendReply(rev.id)}
+                            onClick={async () => {
+                              const text = replyInput[rev.id];
+                              if (!text?.trim()) return;
+                              setReplies({ ...replies, [rev.id]: text.trim() });
+                              setReplyInput({ ...replyInput, [rev.id]: '' });
+                              showToast('Store response posted successfully!');
+
+                              try {
+                                await fetch('/api/reviews/reply', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ reviewId: rev.id, replyText: text.trim(), merchantId: currentBiz?.id }),
+                                });
+                              } catch (e) {
+                                console.warn('Reply sync error:', e);
+                              }
+                            }}
                           >
                             Reply
                           </Button>
