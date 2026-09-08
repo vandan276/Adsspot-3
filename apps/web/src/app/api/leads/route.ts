@@ -13,7 +13,7 @@ export async function GET(req: Request) {
 
     const userId = authContext.user.id;
 
-    // Ensure leads table schema matches requirements
+    // Ensure leads table columns exist safely
     await queryPostgres(`
       CREATE TABLE IF NOT EXISTS leads (
         id VARCHAR(64) PRIMARY KEY,
@@ -30,6 +30,11 @@ export async function GET(req: Request) {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
+      ALTER TABLE leads ADD COLUMN IF NOT EXISTS business_id VARCHAR(64) REFERENCES businesses(id) ON DELETE CASCADE;
+      ALTER TABLE leads ADD COLUMN IF NOT EXISTS user_id VARCHAR(64) REFERENCES users(id);
+      ALTER TABLE leads ADD COLUMN IF NOT EXISTS requirement TEXT;
+      ALTER TABLE leads ADD COLUMN IF NOT EXISTS source VARCHAR(128) DEFAULT 'Merchant Profile';
+      ALTER TABLE leads ADD COLUMN IF NOT EXISTS value VARCHAR(64) DEFAULT 'Inquiry';
     `);
 
     // Fetch business owned by user
