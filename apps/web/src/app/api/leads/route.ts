@@ -121,9 +121,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Business not found' }, { status: 404 });
     }
 
-    // Authenticated user details or fallback details
+    // Authenticated user details or caller details
     const consumerUser = authContext?.user;
     const consumerId = consumerUser?.id || null;
+
+    // 1. Prevent merchant owner from generating a lead on their own business
+    if (consumerId && targetBiz.owner_id && consumerId === targetBiz.owner_id) {
+      return NextResponse.json({
+        success: true,
+        message: 'Owner interaction ignored for CRM leads.',
+        ignored: true,
+      });
+    }
+
     const consumerName = consumerUser?.full_name || bodyName || 'Local Consumer';
     const consumerPhone = consumerUser?.phone || bodyPhone || '+919876543210';
 

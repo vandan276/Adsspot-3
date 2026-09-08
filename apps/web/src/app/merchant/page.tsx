@@ -217,39 +217,17 @@ function MerchantStudioContent() {
     }
   };
 
-  // CRM Leads Pipeline State (Feature G)
-  const [leads, setLeads] = useState([
-    {
-      id: 'lead-1',
-      name: 'Priya Sharma',
-      phone: '+919876500111',
-      requirement: 'Inquiry for 25 Bridal Kundan jewellery gift sets for wedding on Nov 15.',
-      source: 'Digital Visiting Card (/card)',
-      status: 'new',
-      time: '15 mins ago',
-      value: '₹1,50,000',
-    },
-    {
-      id: 'lead-2',
-      name: 'Rohan Patel',
-      phone: '+919876500222',
-      requirement: 'Claimed Spot Drop FLASH40 coupon for 4 Royal Gujarati Thalis.',
-      source: 'Spot Drop Voucher',
-      status: 'contacted',
-      time: '1 hour ago',
-      value: '₹3,200',
-    },
-    {
-      id: 'lead-3',
-      name: 'Vertex Media Systems',
-      phone: '+919876500333',
-      requirement: 'Looking for 50 branded festival gift hampers for corporate clients.',
-      source: 'B2B RFQ Portal',
-      status: 'converted',
-      time: 'Yesterday',
-      value: '₹45,000',
-    },
-  ]);
+  // CRM Leads Pipeline State (Real CRM from PostgreSQL)
+  const [leads, setLeads] = useState<Array<{
+    id: string;
+    name: string;
+    phone: string;
+    requirement: string;
+    source: string;
+    status: string;
+    time: string;
+    value: string;
+  }>>([]);
 
   // New Post & Story State
   const [newPostCaption, setNewPostCaption] = useState('');
@@ -318,11 +296,13 @@ function MerchantStudioContent() {
       fetch('/api/leads')
         .then((res) => res.json())
         .then((data) => {
-          if (data && data.success && Array.isArray(data.leads) && data.leads.length > 0) {
+          if (data && data.success && Array.isArray(data.leads)) {
             setLeads(data.leads);
+          } else {
+            setLeads([]);
           }
         })
-        .catch(() => { });
+        .catch(() => { setLeads([]); });
     }
   }, [currentBiz?.id]);
 
@@ -639,10 +619,17 @@ function MerchantStudioContent() {
             </button>
             <button
               onClick={() => setActiveTab('crm')}
-              className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'crm' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
+              className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeTab === 'crm' ? 'bg-[#EDF4FF] text-[#4787F2] font-bold' : 'hover:bg-[#F4F6FB]'
                 }`}
             >
-              <Users className="w-4 h-4 text-[#35AB4E]" /> Customer Leads CRM
+              <div className="flex items-center gap-2.5">
+                <Users className="w-4 h-4 text-[#35AB4E]" /> Customer Leads CRM
+              </div>
+              {leads.length > 0 && (
+                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-[#EBF9EE] text-[#35AB4E]">
+                  {leads.length}
+                </span>
+              )}
             </button>
             <button
               onClick={() => setActiveTab('posts')}
@@ -1019,7 +1006,7 @@ function MerchantStudioContent() {
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold px-3 py-1 bg-[#EBF9EE] text-[#35AB4E] rounded-full border border-[#35AB4E]/30">
-                  ⚡ 3 Active Leads
+                  ⚡ {leads.length} {leads.length === 1 ? 'Lead' : 'Leads'}
                 </span>
               </div>
             </div>
@@ -1032,40 +1019,49 @@ function MerchantStudioContent() {
                   <span className="text-xs font-black uppercase text-[#4787F2] tracking-wider">
                     ● New Inquiries ({leads.filter((l) => l.status === 'new').length})
                   </span>
-                  <span className="w-2 h-2 rounded-full bg-[#4787F2] animate-ping" />
+                  {leads.filter((l) => l.status === 'new').length > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-[#4787F2] animate-ping" />
+                  )}
                 </div>
 
-                {leads.filter((l) => l.status === 'new').map((lead) => (
-                  <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#4787F2]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
-                        <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                {leads.filter((l) => l.status === 'new').length === 0 ? (
+                  <div className="p-6 text-center bg-white rounded-2xl border border-dashed border-neutral-200">
+                    <p className="text-xs font-semibold text-neutral-400">No new inquiries</p>
+                    <p className="text-[10px] text-neutral-400 mt-1">Inquiries from your digital visiting card will appear here in real time.</p>
+                  </div>
+                ) : (
+                  leads.filter((l) => l.status === 'new').map((lead) => (
+                    <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#4787F2]">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
+                          <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-[#4787F2] bg-[#EDF4FF] px-2 py-0.5 rounded-full">{lead.value}</span>
                       </div>
-                      <span className="text-[10px] font-black text-[#4787F2] bg-[#EDF4FF] px-2 py-0.5 rounded-full">{lead.value}</span>
-                    </div>
 
-                    <p className="text-xs text-neutral-700 bg-[#F4F6FB] p-2.5 rounded-xl border border-[#E3E8EF]">{lead.requirement}</p>
-                    <span className="text-[9px] text-[#687182] font-bold block">Source: {lead.source}</span>
+                      <p className="text-xs text-neutral-700 bg-[#F4F6FB] p-2.5 rounded-xl border border-[#E3E8EF]">{lead.requirement}</p>
+                      <span className="text-[9px] text-[#687182] font-bold block">Source: {lead.source}</span>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
-                      <a
-                        href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20thank%20you%20for%20contacting%20${encodeURIComponent(currentBiz?.name)}!`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-xl flex items-center justify-center gap-1 shadow-2xs"
-                      >
-                        WhatsApp Reply
-                      </a>
-                      <button
-                        onClick={() => handleUpdateLeadStatus(lead.id, 'contacted')}
-                        className="px-2.5 py-1.5 bg-[#F4F6FB] text-neutral-700 text-[10px] font-bold rounded-xl border border-[#E3E8EF]"
-                      >
-                        Mark Contacted →
-                      </button>
-                    </div>
-                  </Card>
-                ))}
+                      <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
+                        <a
+                          href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20thank%20you%20for%20contacting%20${encodeURIComponent(currentBiz?.name)}!`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-xl flex items-center justify-center gap-1 shadow-2xs"
+                        >
+                          WhatsApp Reply
+                        </a>
+                        <button
+                          onClick={() => handleUpdateLeadStatus(lead.id, 'contacted')}
+                          className="px-2.5 py-1.5 bg-[#F4F6FB] text-neutral-700 text-[10px] font-bold rounded-xl border border-[#E3E8EF]"
+                        >
+                          Mark Contacted →
+                        </button>
+                      </div>
+                    </Card>
+                  ))
+                )}
               </div>
 
               {/* Column 2: Contacted / In Progress */}
@@ -1076,37 +1072,43 @@ function MerchantStudioContent() {
                   </span>
                 </div>
 
-                {leads.filter((l) => l.status === 'contacted').map((lead) => (
-                  <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#F59E0B]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
-                        <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                {leads.filter((l) => l.status === 'contacted').length === 0 ? (
+                  <div className="p-6 text-center bg-white rounded-2xl border border-dashed border-neutral-200">
+                    <p className="text-xs font-semibold text-neutral-400">No leads in progress</p>
+                  </div>
+                ) : (
+                  leads.filter((l) => l.status === 'contacted').map((lead) => (
+                    <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#F59E0B]">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
+                          <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-[#B45309] bg-[#FEF3C7] px-2 py-0.5 rounded-full">{lead.value}</span>
                       </div>
-                      <span className="text-[10px] font-black text-[#B45309] bg-[#FEF3C7] px-2 py-0.5 rounded-full">{lead.value}</span>
-                    </div>
 
-                    <p className="text-xs text-neutral-700 bg-[#F4F6FB] p-2.5 rounded-xl border border-[#E3E8EF]">{lead.requirement}</p>
-                    <span className="text-[9px] text-[#687182] font-bold block">Source: {lead.source}</span>
+                      <p className="text-xs text-neutral-700 bg-[#F4F6FB] p-2.5 rounded-xl border border-[#E3E8EF]">{lead.requirement}</p>
+                      <span className="text-[9px] text-[#687182] font-bold block">Source: {lead.source}</span>
 
-                    <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
-                      <a
-                        href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20following%20up%20on%20your%20order%20with%20${encodeURIComponent(currentBiz?.name)}.`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-xl flex items-center justify-center gap-1 shadow-2xs"
-                      >
-                        Follow Up
-                      </a>
-                      <button
-                        onClick={() => handleUpdateLeadStatus(lead.id, 'converted')}
-                        className="px-2.5 py-1.5 bg-[#EBF9EE] text-[#35AB4E] text-[10px] font-black rounded-xl border border-[#35AB4E]/30"
-                      >
-                        Win / Converted 🎉
-                      </button>
-                    </div>
-                  </Card>
-                ))}
+                      <div className="flex items-center gap-2 pt-1 border-t border-neutral-100">
+                        <a
+                          href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(lead.name)},%20following%20up%20on%20your%20order%20with%20${encodeURIComponent(currentBiz?.name)}.`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 py-1.5 bg-[#25D366] text-white text-[10px] font-black rounded-xl flex items-center justify-center gap-1 shadow-2xs"
+                        >
+                          Follow Up
+                        </a>
+                        <button
+                          onClick={() => handleUpdateLeadStatus(lead.id, 'converted')}
+                          className="px-2.5 py-1.5 bg-[#EBF9EE] text-[#35AB4E] text-[10px] font-black rounded-xl border border-[#35AB4E]/30"
+                        >
+                          Win / Converted 🎉
+                        </button>
+                      </div>
+                    </Card>
+                  ))
+                )}
               </div>
 
               {/* Column 3: Converted / Completed */}
@@ -1117,20 +1119,26 @@ function MerchantStudioContent() {
                   </span>
                 </div>
 
-                {leads.filter((l) => l.status === 'converted').map((lead) => (
-                  <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#35AB4E]">
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
-                        <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                {leads.filter((l) => l.status === 'converted').length === 0 ? (
+                  <div className="p-6 text-center bg-white rounded-2xl border border-dashed border-neutral-200">
+                    <p className="text-xs font-semibold text-neutral-400">No converted leads yet</p>
+                  </div>
+                ) : (
+                  leads.filter((l) => l.status === 'converted').map((lead) => (
+                    <Card key={lead.id} padding="md" className="space-y-3 bg-white shadow-xs border-l-4 border-l-[#35AB4E]">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-xs font-black text-[#17181C]">{lead.name}</h4>
+                          <span className="text-[10px] text-[#687182] font-semibold">{lead.time}</span>
+                        </div>
+                        <span className="text-[10px] font-black text-[#1B6A2D] bg-[#EBF9EE] px-2 py-0.5 rounded-full">{lead.value}</span>
                       </div>
-                      <span className="text-[10px] font-black text-[#1B6A2D] bg-[#EBF9EE] px-2 py-0.5 rounded-full">{lead.value}</span>
-                    </div>
 
-                    <p className="text-xs text-neutral-700 bg-[#EBF9EE]/50 p-2.5 rounded-xl border border-[#35AB4E]/20">{lead.requirement}</p>
-                    <span className="text-[9px] text-[#35AB4E] font-bold block">✓ Order Completed</span>
-                  </Card>
-                ))}
+                      <p className="text-xs text-neutral-700 bg-[#EBF9EE]/50 p-2.5 rounded-xl border border-[#35AB4E]/20">{lead.requirement}</p>
+                      <span className="text-[9px] text-[#35AB4E] font-bold block">✓ Order Completed</span>
+                    </Card>
+                  ))
+                )}
               </div>
             </div>
           </div>
