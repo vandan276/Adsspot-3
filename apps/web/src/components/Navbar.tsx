@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@adsspot/api';
 import { Button, Avatar, Logo } from '@adsspot/ui';
-import { LayoutDashboard, LogIn, LogOut, Globe, Check, ChevronDown, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, LogIn, Bell, Globe, Check, ChevronDown, Sun, Moon } from 'lucide-react';
 
 const LANGUAGES = [
   { code: 'en', label: 'English', native: 'English', short: 'EN' },
@@ -18,7 +18,7 @@ const LANGUAGES = [
 ];
 
 export const Navbar: React.FC = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [selectedLang, setSelectedLang] = useState('en');
   const [showLangMenu, setShowLangMenu] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -129,7 +129,7 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
         {/* Brand Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0 hover:scale-102 transition-transform">
-          <Logo size={44} withText={true} />
+          <Logo size={32} withText={true} />
         </Link>
 
         {/* Public Navigation (Desktop) */}
@@ -248,13 +248,12 @@ export const Navbar: React.FC = () => {
                 </div>
               </Link>
 
-              {/* Logout Button (Desktop & Mobile) */}
+              {/* Notification Button (Desktop & Mobile) */}
               <button
-                onClick={logout}
-                title="Logout"
-                className="flex items-center justify-center text-neutral-400 hover:text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors shrink-0"
+                title="Notifications"
+                className="flex items-center justify-center text-neutral-400 hover:text-[#4787F2] hover:bg-[#EDF4FF] p-1.5 rounded-full transition-colors shrink-0"
               >
-                <LogOut className="w-4 h-4" />
+                <Bell className="w-4 h-4" />
               </button>
             </div>
           ) : (
