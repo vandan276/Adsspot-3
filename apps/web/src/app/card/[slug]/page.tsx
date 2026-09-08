@@ -54,6 +54,19 @@ export default function DigitalCardPage() {
           const data = await res.json();
           if (data.success && data.business) {
             setBiz(data.business);
+            // Track profile view lead on visiting card open
+            try {
+              fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  businessId: data.business.id,
+                  businessSlug: data.business.slug,
+                  requirement: `Visited Digital Visiting Card (/card/${data.business.slug})`,
+                  source: 'Digital Visiting Card (/card)',
+                }),
+              }).catch(() => {});
+            } catch {}
           }
         }
       } catch (err) {

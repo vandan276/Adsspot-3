@@ -42,6 +42,20 @@ export default function EliteMicrositePage() {
           if (data.success && data.business) {
             setBiz(data.business);
 
+            // Track profile view lead on microsite open
+            try {
+              fetch('/api/leads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  businessId: data.business.id,
+                  businessSlug: data.business.slug,
+                  requirement: `Visited Elite Microsite (/b/${data.business.slug})`,
+                  source: 'Elite Microsite (/b)',
+                }),
+              }).catch(() => {});
+            } catch {}
+
             // Load posts for this business
             try {
               const postsRes = await fetch('/api/posts');
@@ -164,6 +178,20 @@ export default function EliteMicrositePage() {
             {cleanPhone && (
               <a
                 href={`tel:${cleanPhone}`}
+                onClick={() => {
+                  try {
+                    fetch('/api/leads', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        businessId: biz.id,
+                        businessSlug: biz.slug,
+                        requirement: `Consumer clicked Call Now on Elite Microsite (/b/${biz.slug})`,
+                        source: 'Elite Microsite (/b)',
+                      }),
+                    }).catch(() => {});
+                  } catch {}
+                }}
                 className="px-4 py-2 bg-[#4787F2] text-white font-bold text-xs rounded-full shadow-lg hover:brightness-110 flex items-center gap-1.5 transition-all"
               >
                 <Phone className="w-4 h-4" /> Call Now
@@ -174,6 +202,20 @@ export default function EliteMicrositePage() {
                 href={`https://wa.me/${cleanWhatsapp}?text=Hi%20${encodeURIComponent(biz.name)},%20I%20saw%20your%20business%20on%20Adsspot.`}
                 target="_blank"
                 rel="noreferrer"
+                onClick={() => {
+                  try {
+                    fetch('/api/leads', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        businessId: biz.id,
+                        businessSlug: biz.slug,
+                        requirement: `Consumer clicked WhatsApp on Elite Microsite (/b/${biz.slug})`,
+                        source: 'Elite Microsite (/b)',
+                      }),
+                    }).catch(() => {});
+                  } catch {}
+                }}
                 className="px-4 py-2 bg-[#25D366] text-white font-bold text-xs rounded-full shadow-lg hover:brightness-110 flex items-center gap-1.5 transition-all"
               >
                 <MessageCircle className="w-4 h-4" /> WhatsApp

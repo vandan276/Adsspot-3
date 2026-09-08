@@ -130,17 +130,11 @@ export async function POST(req: Request) {
     const consumerUser = authContext?.user;
     const consumerId = consumerUser?.id || null;
 
-    // 1. Prevent merchant owner from generating a lead on their own business
-    if (consumerId && targetBiz.owner_id && consumerId === targetBiz.owner_id) {
-      return NextResponse.json({
-        success: true,
-        message: 'Owner interaction ignored for CRM leads.',
-        ignored: true,
-      });
-    }
+    // 1. Identify user details (if owner is testing their own profile, flag clearly as Test Visitor)
+    const isOwnerTesting = Boolean(consumerId && targetBiz.owner_id && consumerId === targetBiz.owner_id);
+    const consumerName = isOwnerTesting ? 'Store Visitor (Test Lead)' : (consumerUser?.full_name || bodyName || 'Local Consumer');
+    const consumerPhone = isOwnerTesting ? (consumerUser?.phone || '+919876543210') : (consumerUser?.phone || bodyPhone || '+919876543210');
 
-    const consumerName = consumerUser?.full_name || bodyName || 'Local Consumer';
-    const consumerPhone = consumerUser?.phone || bodyPhone || '+919876543210';
 
     // Single Active Lead per Consumer + Business Architecture
     const existingLeadRes = await queryPostgres(
